@@ -2,11 +2,24 @@ import numpy as np
 import time
 from scipy import ndimage
 from scipy.ndimage.filters import convolve
+
+"""
+   the following subiteration functions are how each image is rotated to the next direction for removing
+   boundary voxels in the order described in the reference paper
+   us, ne, wd,..
+"""
 from rotationalOperators import firstSubiteration, secondSubiteration, thirdSubiteration, fourthSubiteration, fifthSubiteration, sixthSubiteration, seventhSubiteration, eighthSubiteration, ninthSubiteration, tenthSubiteration, eleventhSubiteration, twelvethSubiteration
 
 """
    reference paper
    http://web.inf.u-szeged.hu/ipcg/publications/papers/PalagyiKuba_GMIP1999.pdf
+   input should be a binary image/ already segmented
+"""
+
+
+"""
+   array that has calculated the validity of the 14 templates beforehand and stored each index which is
+   decimal number of the binary string of 26 values (sqrt(3) connectivity) that are around a single voxel 
 """
 
 lookUpTablearray = np.load('lookupTablearray.npy')
