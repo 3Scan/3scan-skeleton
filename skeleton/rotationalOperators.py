@@ -1,20 +1,36 @@
 import numpy as np
-from Thin3dtemplates import flipLrInx, flipFbInz, flipUdIny, column
 
 
 """
 has functions of operators to flip and rotate a cube in all possible ways
 
 """
-referenceArray = np.array([[[2 ** 0, 2 ** 1, 2 ** 2],
-                            [2 ** 3, 2 ** 4, 2 ** 5],
-                            [2 ** 6, 2 ** 7, 2 ** 8]],
-                            [[2 ** 9, 2 ** 10, 2 ** 11],
-                            [2 ** 12, 0, 2 ** 13],
-                            [2 ** 14, 2 ** 15, 2 ** 16]],
-                            [[2 ** 17, 2 ** 18, 2 ** 19],
-                            [2 ** 20, 2 ** 21, 2 ** 22],
-                            [2 ** 23, 2 ** 24, 2 ** 25]]], dtype=np.uint64)
+referenceArray = np.array([[[2 ** 0, 2 ** 1, 2 ** 2], [2 ** 3, 2 ** 4, 2 ** 5], [2 ** 6, 2 ** 7, 2 ** 8]],
+                          [[2 ** 9, 2 ** 10, 2 ** 11], [2 ** 12, 0, 2 ** 13], [2 ** 14, 2 ** 15, 2 ** 16]],
+                          [[2 ** 17, 2 ** 18, 2 ** 19], [2 ** 20, 2 ** 21, 2 ** 22], [2 ** 23, 2 ** 24, 2 ** 25]]], dtype=np.uint64)
+
+
+def column(matrix, i):
+    return [row[i] for row in matrix]
+
+
+def flipLrInx(cubeArray):
+    cubeArrayFlippedLrInx = np.copy(cubeArray)
+    cubeArrayFlippedLrInx[:] = cubeArray[:, :, ::-1]
+    return cubeArrayFlippedLrInx
+
+
+def flipUdIny(cubeArray):
+    cubeArrayFlippedLrIny = np.copy(cubeArray)
+    cubeArrayFlippedLrIny[:] = cubeArray[:, ::-1, :]
+    return cubeArrayFlippedLrIny
+
+
+def flipFbInz(cubeArray):
+    cubeArrayFlippedLrInz = np.copy(cubeArray)
+    cubeArrayFlippedLrInz[:] = cubeArray[::-1, :, :]
+    return cubeArrayFlippedLrInz
+
 referenceArray = flipLrInx(flipUdIny(flipFbInz(referenceArray)))
 
 
@@ -96,3 +112,7 @@ ninthSubiteration = _rot3D90(_rot3D90(referenceArray, 'x', 3), 'z', 1)
 tenthSubiteration = _rot3D90(_rot3D90(referenceArray, 'y', 2), 'x', 1)
 eleventhSubiteration = _rot3D90(referenceArray, 'y', 1)
 twelvethSubiteration = _rot3D90(referenceArray, 'x', 2)
+
+directionList = [firstSubiteration, secondSubiteration, thirdSubiteration, fourthSubiteration,
+                 fifthSubiteration, sixthSubiteration, seventhSubiteration, eighthSubiteration,
+                 ninthSubiteration, tenthSubiteration, eleventhSubiteration, twelvethSubiteration]
