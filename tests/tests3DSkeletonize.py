@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import ndimage
 
-from KESMAnalysis.skeleton.convOptimize import getSkeletonize3D
+from skeleton.convOptimize import getSkeletonize3D
 """ test 1 and 3 lines passed , test for rings and random images not defined
 and not checked
 """
@@ -26,6 +26,14 @@ def getStationary3dRectangles(width=5):
     # A grid made up of two perpendicular combs
     grid = hLines | vLines
     stationaryImages = [hLine, vLine, hLines, vLines, grid]
+    return stationaryImages
+
+
+def getStationaryBumpyLines():
+    hLine = np.zeros((25, 25, 25), dtype=bool)
+    hLine[:, 8, :] = 1
+    vLine = hLine.T.copy()
+    stationaryImages = [hLine, vLine]
     return stationaryImages
 
 
@@ -87,6 +95,14 @@ def getDonut(width=2, size=(25, 25, 25)):
     return donutArray
 
 
+def getCylinder(height=10, size=(25, 25, 25)):
+    cylinderArray = np.zeros(size, dtype=bool)
+    cylinderArray[:, height / 2: height / 2 + 2, :] = getDonut(width=2, size=(25, 2, 25))
+    cylinderArray[:, 2, :] = getRing(0.25, 0.5)
+    cylinderArray[:, 12, :] = getRing(0.25, 0.5)
+    return cylinderArray
+
+
 # def checkAlgorithmPreservesImage(image):
 #     newImage = getSkeletonize3D(image)
 #     assert np.array_equal(image, newImage)
@@ -110,6 +126,13 @@ def checkCycles(image):
     image = getSkeletonize3D(image)
     label_img, countObjects = ndimage.measurements.label(image, structure=np.ones((3, 3, 3), dtype=bool))
     assert(countObjects == 1)
+
+
+def test_bumpiness():
+    print("bumpy lines")
+    testImages = getStationaryBumpyLines()
+    for image in testImages:
+        yield checkAlgorithmSinglePixeled, image
 
 
 def test_rings():
