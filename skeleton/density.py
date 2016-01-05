@@ -1,174 +1,213 @@
-import copy
-import numpy as np
-import time
-from radiusOfNodes import getRadiusByPointsOnCenterline
-
-
-thresholdIm = np.load('/Users/3scan_editing/records/scratch/threshold3dtestoptimize.npy')
-inputIm = np.load('/Users/3scan_editing/records/scratch/input3dtestoptimizeWoBoundary.npy')
-shskel = np.load("/Users/3scan_editing/records/scratch/shortestPathSkel.npy")
-boundaryIm = np.load('/Users/3scan_editing/records/scratch/boundaries.npy')
-skeletonIm = np.load('/Users/3scan_editing/records/skeleton3d.npy')
-
-# skelAndBound = shskel + boundaryIm
-# ball1=skimage.morphology.ball(4, bool)
-# label, countObjectsInput = ndimage.measurements.label(inputIm, structure=np.ones((3, 3, 3), dtype=np.uint8))
-# countObjectsInput = 1
-# label1, countObjectsThreshold = ndimage.measurements.label(thresholdIm, structure=np.ones((3, 3, 3), dtype=np.uint8))
-# countObjectsThreshold = 1069
-
-# vesselVoxelsInGreyscaleImage = len(list(np.transpose(np.nonzero(inputIm))))
-# vesselVoxelsInGreyscaleImage =
-
-vesselVoxelsInThresholdedImage = len(list(np.transpose(np.nonzero(thresholdIm))))
-# vesselVoxelsInThresholdedImage =
-from collections import Counter
-
-resolution = 0.7 * 0.7 * 10
-boxVolume = vesselVoxelsInThresholdedImage * resolution
-dictOfNodesAndRadius, distTransformedIm = getRadiusByPointsOnCenterline(shskel, boundaryIm)
-listRadius = list(dictOfNodesAndRadius.values())
-from statistics import median, mode, pvariance, mean
-meanRadius = mean(listRadius)
-varianceRadius = (pvariance(listRadius, meanRadius))
-radiusCounts = Counter(listRadius)
-from math import sqrt
 import json
-dictStats = {'isolatedVoxels': list(dictOfNodesAndRadius.values()).count(0.0), 'maxRadius': max(listRadius), 'minRadius': min(listRadius),
-        'meanRadius': mean(listRadius),
-        'medianRadius': median(listRadius), 'modeRadius': mode(listRadius),
-        'varianceRadius': varianceRadius, 'stddevRadius': sqrt(varianceRadius),
-        'uniquevessels': len(radiusCounts)}
-with open("statistics", "w") as outfile:
-    json.dump(dictStats, outfile, indent=4)
-
-
-def outOfPixBOunds(neighborCoordinate, aShape):
-    zMax, yMax, xMax = aShape
-    isAtZBoundary = neighborCoordinate[0] == zMax
-    isAtYBoundary = neighborCoordinate[1] == yMax
-    isAtXBoundary = neighborCoordinate[2] == xMax
-    if isAtXBoundary or isAtYBoundary or isAtZBoundary:
-        return 0
-    else:
-        return 1
-
-
-def getDensityOfRegion(regionBounds, shskel):
-    aShape = shskel.shape
-    neighborCoordinate = (regionBounds[1], regionBounds[3], regionBounds[5])
-    neighborCoordinate2 = (regionBounds[0], regionBounds[2], regionBounds[4])
-    if len(set(regionBounds)) >= 3 and outOfPixBOunds(neighborCoordinate, aShape) and outOfPixBOunds(neighborCoordinate2, aShape):
-        thresholdImRegion = thresholdIm[regionBounds[0]:regionBounds[1], regionBounds[2]:regionBounds[3], regionBounds[4]:regionBounds[5]]
-        regionSize = len(list(np.transpose(np.nonzero(thresholdImRegion))))
-        regionVolume = regionSize * resolution
-        densityOfRegion = regionVolume / boxVolume
-        return densityOfRegion
-    else:
-        print("not a valid region, doesn't occupy a volume, so density is zero")
-        return 0
-
-densityOfRegion = getDensityOfRegion([200, 300, 256, 511, 256, 511], thresholdIm)
-
-radiusThreshold = max(dictOfNodesAndRadius.values())
-radiusArray = distTransformedIm
-
-
-def filterTreeStructureByRadius(radiusThreshold, shskel, skeletonIm, radiusArray):
-    shSkelTree = copy.deepcopy(shskel)
-    shSkelNet = copy.deepcopy(shskel)
-    skeletonImTree = copy.deepcopy(skeletonIm)
-    skeletonImTree[radiusArray < radiusThreshold - 3] = 0
-    shSkelTree[radiusArray < radiusThreshold - 3] = 0
-    shSkelNet[radiusArray > radiusThreshold - 3] = 0
-    return radiusArray, shSkelTree, shSkelNet, skeletonImTree
-
-rad, shskelTree, shSkelNet, skeletonImTree = filterTreeStructureByRadius(radiusThreshold, shskel, skeletonIm, radiusArray)
-
-
-def transformSphericalToCartesian(r, q, p):
-    """Converts from spherical to cartesian co-ordinates."""
-    from numpy import sin, cos
-    x = r * sin(q) * cos(p)
-    y = r * sin(q) * sin(p)
-    z = r * cos(q)
-    return x, y, z
-
-
-def setCartesianToSpherical(xyz):
-    ptsnew = np.hstack((xyz, np.zeros(xyz.shape)))
-    xy = xyz[:, 1] ** 2 + xyz[:, 2] ** 2
-    ptsnew[:, 3] = np.sqrt(xy + xyz[:, 0] ** 2)
-    ptsnew[:, 4] = np.arctan2(np.sqrt(xy), xyz[:, 0])  # for elevation angle defined from Z-axis down
-    #  ptsnew[:,4] = np.arctan2(xyz[:,2], np.sqrt(xy)) # for elevation angle defined from XY-plane up
-    ptsnew[:, 5] = np.arctan2(xyz[:, 1], xyz[:, 2])
-    return ptsnew
-
-
-def sphere(x, y, z, a, b, c, r):
-    """Returns zero if (x,y,z) lies on a sphere centred at (a,b,c) with radius r."""
-    return (x - a) ** 2 + (y - b) ** 2 + (z - c) ** 2 - r ** 2
-
-
-# # Create some points approximately spherical distribution
-xyz = np.array(np.where(shskel != 0))
-ptsnew = setCartesianToSpherical(xyz)
-x = ptsnew[2]; y = ptsnew[1]; z = ptsnew[0]
-radiuscCoordinate = x[len(xyz[0]):]
-elevationCoordinate = y[len(xyz[0]):]
-azimuthCoordinate = z[len(xyz[0]):]
-from statistics import mean
-elevationMean = mean(elevationCoordinate)
-azimuthMean = mean(azimuthCoordinate)
-
-
-"""
-spline curve fitting
-"""
+import time
 
 from scipy import interpolate
-from math import degrees, atan2
-z_sample, y_sample, x_sample = np.array(np.where(shskel != 0))
-num_true_pts = len(x_sample)
-starttInterp = time.time()
-tck, u = interpolate.splprep([x_sample, y_sample, z_sample], s=0)
-print("interpolate.splprep done and took %i seconds", time.time() - starttInterp)
-starttKnots = time.time()
-# x_knots, y_knots, z_knots = interpolate.splev(tck[0], tck)
-firstDerX, firstDerY, firstDerZ = interpolate.splev(tck[0], tck, der=1)
-secondDerX, secondDerY, secondDerZ = interpolate.splev(tck[0], tck, der=2)
-import json
-# u_fine = np.linspace(0, 1, num_true_pts)
-# z_fine, y_fine, x_fine = interpolate.splev(u_fine, tck)
-print("interpolate.splev done and took %i seconds", time.time() - starttKnots)
 
-
-orientationTheta = np.empty(len(firstDerX))
-orientationPhi = np.empty(len(firstDerX))
-for i in range(0, len(firstDerX)):
-    orientationTheta[i] = degrees(atan2(firstDerZ[i], firstDerX[i]))
-
-    orientationPhi[i] = degrees(atan2(firstDerY[i], firstDerX[i]))
-
-from statistics import median, mode, pvariance
-with open("statistics", "w") as outfile:
-    json.dump({'orientationPhiMean': orientationPhi.mean(), 'orientationPhiMax': orientationPhi.max(), 'orientationPhiMin': orientationPhi.min(),
-        'orientationThetaMean': orientationTheta.mean(), 'orientationThetaMax': orientationTheta.max(), 'orientationThetaMin': orientationTheta.min(),
-        'orientationThetaMedian': median(orientationTheta), 'orientationPhiMedian': median(orientationPhi), 'orientationThetaMode': mode(orientationTheta),
-        'orientationPhiVariance': pvariance(orientationPhi), 'orientationThetaVariance': pvariance(orientationTheta)}, outfile, indent=4)
-# PLOTTING
+# import operator
+import numpy as np
+import scipy
 import seaborn as sns
-radArray = np.array(list(dictOfNodesAndRadius.values()))
-# KDE
-sns.distplot(radArray, kde=True, bins=20)
-# Histogram
-sns.distplot(radArray, kde=False, rug=True)
-sns.distplot(orientationTheta, kde=True)
-sns.distplot(orientationPhi, kde=True)
-# import matplotlib.pyplot as plt
-# fig2 = plt.figure(2)
-# ax3d = fig2.add_subplot(111, projection='rectilinear')
-# ax3d.plot(z_sample, y_sample, x_sample, 'r*')
-# ax3d.plot(z_knots, y_knots, x_knots, 'go')
-# ax3d.plot(z_fine, y_fine, x_fine, 'g')
-# fig2.show()
+
+from collections import Counter
+from math import sqrt, pow, atan2, degrees
+from statistics import median, mode, pvariance, mean
+
+from KESMAnalysis.skeleton.radiusOfNodes import getRadiusByPointsOnCenterline
+
+
+def saveVolumeFeatures(image, nameOfTheImage):
+    """
+       count number of objects and number of nonzero voxels
+       and save them to a json
+    """
+    date = time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime())
+    t = 'countObjects%' + date
+    t = t.replace('%', nameOfTheImage)
+    label, countObjectsInput = scipy.ndimage.measurements.label(image, structure=np.ones((3, 3, 3), dtype=np.uint8))
+    dictStats = {t: countObjectsInput}
+    with open("statistics.json", "a") as feedsjson:
+        feedsjson.write("{}\n".format(json.dumps(dictStats)))
+    feedsjson.close()
+
+
+def saveVolumeMetadata(inputIm):
+    resolution = 0.7 * 0.7 * 10
+    volumeOfDataset = inputIm.size * resolution
+    dictStats = {'resolution': resolution,
+                 'volumeOfDataset': volumeOfDataset}
+    with open("statistics.json", "a") as feedsjson:
+        feedsjson.write("{}\n".format(json.dumps(dictStats)))
+    feedsjson.close()
+
+
+def getRadisuStatistics(dictOfNodesAndRadius, distTransformedIm):
+    listRadius = [dictOfNodesAndRadius[k] for k in dictOfNodesAndRadius]
+    meanRadius = mean(listRadius)
+    varianceRadius = (pvariance(listRadius, meanRadius))
+    radiusCounts = Counter(listRadius)
+    dictStats = {'isolatedVoxels': listRadius.count(0.0), 'maxRadius': max(listRadius), 'minRadius': min(listRadius),
+                 'meanRadius': mean(listRadius),
+                 'medianRadius': median(listRadius), 'modeRadius': mode(listRadius),
+                 'varianceRadius': varianceRadius, 'stddevRadius': sqrt(varianceRadius),
+                 'uniquevessels': len(radiusCounts)}
+    with open("statistics.json", "a") as feedsjson:
+        feedsjson.write("{}\n".format(json.dumps(dictStats)))
+    feedsjson.close()
+
+
+def plotKDEAndHistogram(ndimarray, bins):
+    sns.distplot(ndimarray, kde=True, bins=bins)
+
+
+def splineInterpolateStatistics(shskel, aspectRatio):
+    """
+       spline curve fitting
+
+    """
+    interpolatedSkeleton = scipy.ndimage.interpolation.zoom(shskel, zoom=aspectRatio, order=0)
+    z_sample, y_sample, x_sample = np.array(np.where(interpolatedSkeleton != 0))
+    num_true_pts = len(x_sample)
+    starttInterp = time.time()
+    tck, u = interpolate.splprep([z_sample, y_sample, x_sample])
+    print("interpolate.splprep done and took %i seconds", time.time() - starttInterp)
+    starttKnots = time.time()
+    z_knots, y_knots, x_knots = interpolate.splev(tck[0], tck)
+    firstDerX, firstDerY, firstDerZ = interpolate.splev(tck[0], tck, der=1)
+    secondDerX, secondDerY, secondDerZ = interpolate.splev(tck[0], tck, der=2)
+    u_fine = np.linspace(0, 1, num_true_pts)
+    x_fine, y_fine, z_fine = interpolate.splev(u_fine, tck)
+    print("interpolate.splev done and took %i seconds", time.time() - starttKnots)
+    orientationTheta = np.empty(len(firstDerX))
+    orientationPhi = np.empty(len(firstDerX))
+    for i in range(0, len(firstDerX)):
+        orientationTheta[i] = degrees(atan2(firstDerZ[i], firstDerX[i]))
+        orientationPhi[i] = degrees(atan2(firstDerY[i], firstDerX[i]))
+    binsTheta = np.unique(np.round(orientationTheta, 0))
+    print("number of unique orientationThetas are", len(binsTheta))
+    binsPhi = np.unique(np.round(orientationPhi, 0))
+    print("number of unique orientationPhi are", len(binsPhi))
+
+    lenFirstDer = firstDerX.size
+    tangentVectorsX = np.empty(lenFirstDer)
+    tangentVectorsY = np.empty(lenFirstDer)
+    tangentVectorsZ = np.empty(lenFirstDer)
+    tangentVectors = []
+    for i in range(0, lenFirstDer):
+        modOfVect = (sqrt(pow(firstDerX[i], 2) + pow(firstDerY[i], 2) + pow(firstDerZ[i], 2)))
+        tangentVectorsX[i] = firstDerX[i] / modOfVect
+        tangentVectorsY[i] = firstDerY[i] / modOfVect
+        tangentVectorsZ[i] = firstDerZ[i] / modOfVect
+        tangentVectors.append(np.array((tangentVectorsX[i], tangentVectorsY[i], tangentVectorsZ[i])))
+
+    normalVectorsX = np.empty(lenFirstDer)
+    normalVectorsY = np.empty(lenFirstDer)
+    normalVectorsZ = np.empty(lenFirstDer)
+    normalVectors = []
+    for i in range(0, lenFirstDer):
+        dotProduct = ((secondDerX[i] * tangentVectorsX[i]) + (secondDerY[i] * tangentVectorsY[i]) + (secondDerZ[i] * tangentVectorsZ[i]))
+        numeratorNormX = secondDerX[i] - dotProduct * tangentVectorsX[i]; numeratorNormY = secondDerY[i] - dotProduct * tangentVectorsY[i];
+        numeratorNormZ = secondDerZ[i] - dotProduct * tangentVectorsZ[i]
+        modOfVect = (sqrt(pow(numeratorNormX, 2) + pow(numeratorNormY, 2) + pow(numeratorNormZ, 2)))
+        normalVectorsX[i] = numeratorNormX / modOfVect
+        normalVectorsY[i] = numeratorNormY / modOfVect
+        normalVectorsZ[i] = numeratorNormZ / modOfVect
+        normalVectors.append(np.array((normalVectorsX[i], normalVectorsY[i], normalVectorsZ[i])))
+
+    binormalVectors = []
+    for (a, b) in zip(tangentVectors, normalVectors):
+        binormalVectors.append(np.cross(a.T, b.T))
+
+    curvature = np.empty(lenFirstDer)
+    radiusoFCurvature = np.empty(lenFirstDer)
+    for i in range(0, lenFirstDer):
+        numeratorDotProduct = ((secondDerX[i] * normalVectorsX[i]) + (secondDerY[i] * normalVectorsY[i]) + (secondDerZ[i] * normalVectorsZ[i]))
+        denomMod = pow((sqrt(pow(firstDerX[i], 2) + pow(firstDerY[i], 2) + pow(firstDerZ[i], 2))), 2)
+        curvature[i] = numeratorDotProduct / denomMod
+        radiusoFCurvature[i] = 1 / curvature[i]
+    dictStats = {'orientationPhiMean': orientationPhi.mean(), 'orientationPhiMax': orientationPhi.max(), 'orientationPhiMin': orientationPhi.min(),
+                 'orientationThetaMean': orientationTheta.mean(), 'orientationThetaMax': orientationTheta.max(), 'orientationThetaMin': orientationTheta.min(),
+                 'orientationThetaMedian': median(orientationTheta), 'orientationPhiMedian': median(orientationPhi), 'orientationThetaMode': mode(orientationTheta),
+                 'orientationPhiVariance': pvariance(orientationPhi), 'orientationThetaVariance': pvariance(orientationTheta)}
+    dictStats = {'orientationPhiMode': mode(orientationPhi)}
+    with open("statistics.json", "a") as feedsjson:
+        feedsjson.write("{}\n".format(json.dumps(dictStats)))
+    feedsjson.close()
+    return x_knots, y_knots, z_knots, tangentVectors, normalVectors, binormalVectors, orientationPhi, orientationTheta, curvature, radiusoFCurvature
+
+
+def getBranches(sorteddictOfNodesAndRadius, curvature):
+    dictOfNodesAndBranches = {}
+    i = 0
+    keys = list(sorteddictOfNodesAndRadius.keys())
+    keys = np.array(np.unravel_index(keys, (424, 512, 512), order='C')).tolist()
+    for coordinate, radius, curvature in zip(keys, list(sorteddictOfNodesAndRadius.values()), curvature):
+        branch = 0
+        if radius[i] > radius[i + 1]:
+            dictOfNodesAndBranches[tuple(coordinate)] = branch + 1
+        else:
+            if curvature[i] < curvature[i + 1]:
+                pass
+        i += 1
+    return dictOfNodesAndBranches
+
+
+def ravel_index(x, dims):
+    i = 0
+    for dim, j in zip(dims, x):
+        i = i * dim
+        i += j
+    return i
+
+
+def list_to_dict(listNZI, skeletonLabelled):
+    dictOfIndicesAndlabels = {item: skeletonLabelled[index] for index, item in enumerate(listNZI)}
+    return dictOfIndicesAndlabels
+
+
+def plot3Dfigure(inrerpolatedImage):
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+
+    from skimage import measure
+    verts, faces = measure.marching_cubes(inrerpolatedImage, 0)
+
+    # Display resulting triangular mesh using Matplotlib. This can also be done
+    # with mayavi (see skimage.measure.marching_cubes docstring).
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    # Fancy indexing: `verts[faces]` to generate a collection of triangles
+    mesh = Poly3DCollection(verts[faces])
+    ax.add_collection3d(mesh)
+
+    ax.set_xlabel("x-axis")
+    ax.set_ylabel("y-axis=")
+    ax.set_zlabel("z-axis=")
+
+    ax.set_xlim(0, inrerpolatedImage.shape[0])
+    ax.set_ylim(0, inrerpolatedImage.shape[1])
+    ax.set_zlim(0, inrerpolatedImage.shape[2])
+    ax.set_aspect('equal')
+2
+s
+
+if __name__ == '__main__':
+    from KESMAnalysis.skeleton.radiusOfNodes import _getBouondariesOfimage
+    inputIm = np.load('/home/pranathi/Downloads/mouseBrainGreyscale.npy')
+    # saveVolumeFeatures(inputIm, ' Grey scale image')
+
+    thresholdIm = np.load('/home/pranathi/Downloads/mouseBrainBinary.npy')
+    # saveVolumeFeatures(thresholdIm, ' Binary image')
+
+    boundaryIm = _getBouondariesOfimage(thresholdIm)
+    # saveVolumeMetadata(inputIm)
+    skeletonIm = np.load('/home/pranathi/Downloads/shortestPathSkel.npy')
+    # saveVolumeFeatures(skeletonIm, ' Thinned image')
+
+    shskel = np.load("/home/pranathi/Downloads/shortestPathSkel.npy")
+    # interpolatedImage = np.load('/Users/3scan_editing/records/interpolatedSkeleton.npy')
+    dictOfNodesAndRadius, distTransformedIm = getRadiusByPointsOnCenterline(shskel, boundaryIm, inputIm)
+    # getRadisuStatistics(dictOfNodesAndRadius, distTransformedIm)
+    # # saveVolumeFeatures(shskel, ' Unit Width Voxel image')
+    # aspectRatio = [1, 1, 10]
+    # x_knots, y_knots, z_knots, tangentVectors, normalVectors, binormalVectors, orientationPhi, orientationTheta, curvature, radiusoFCurvature = splineInterpolateStatistics(shskel, aspectRatio)

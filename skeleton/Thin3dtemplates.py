@@ -1,4 +1,5 @@
 import numpy as np
+
 from pyeda.inter import exprvar, expr
 
 """
@@ -139,8 +140,8 @@ def firstSubIter(validateMatrix):
     assert np.ndim(validateMatrix) == 3
     listedMatrix = list(np.reshape(validateMatrix, 27))
     del(listedMatrix[13])
-    val1 = _getTempsDelexpression(listedMatrix)
-    return val1, listedMatrix
+    # val1 = _getTempsDelexpression(listedMatrix)
+    return listedMatrix
 
 
 def secondSubIter(validateMatrix):
@@ -154,9 +155,9 @@ def secondSubIter(validateMatrix):
     firstTransition = _rot3D90(_rot3D90(validateMatrix, 'y', 2), 'x', 3)
     listedMatrix = list(np.reshape(firstTransition, 27))
     del(listedMatrix[13])
-    val1 = _getTempsDelexpression(listedMatrix)
+    # val1 = _getTempsDelexpression(listedMatrix)
     # str1 = ''.join(str(e) for e in listedMatrix)
-    return val1, listedMatrix
+    return listedMatrix
 
 
 def thirdSubIter(validateMatrix):
@@ -170,9 +171,9 @@ def thirdSubIter(validateMatrix):
     secondTransition = _rot3D90(_rot3D90(validateMatrix, 'x', 1), 'z', 1)
     listedMatrix = list(np.reshape(secondTransition, 27))
     del(listedMatrix[13])
-    val1 = _getTempsDelexpression(listedMatrix)
+    # val1 = _getTempsDelexpression(listedMatrix)
     # str1 = ''.join(str(e) for e in listedMatrix)
-    return val1, listedMatrix
+    return listedMatrix
 
 
 def fourthSubIter(validateMatrix):
@@ -186,9 +187,9 @@ def fourthSubIter(validateMatrix):
     thirdTransition = _rot3D90(validateMatrix, 'x', 3)
     listedMatrix = list(np.reshape(thirdTransition, 27))
     del(listedMatrix[13])
-    val1 = _getTempsDelexpression(listedMatrix)
+    # val1 = _getTempsDelexpression(listedMatrix)
     # str1 = ''.join(str(e) for e in listedMatrix)
-    return val1, listedMatrix
+    return listedMatrix
 
 
 def fifthSubIter(validateMatrix):
@@ -202,9 +203,9 @@ def fifthSubIter(validateMatrix):
     fourthTransition = _rot3D90(validateMatrix, 'y', 3)
     listedMatrix = list(np.reshape(fourthTransition, 27))
     del(listedMatrix[13])
-    val1 = _getTempsDelexpression(listedMatrix)
+    # val1 = _getTempsDelexpression(listedMatrix)
     # str1 = ''.join(str(e) for e in listedMatrix)
-    return val1, listedMatrix
+    return listedMatrix
 
 
 def sixthSubIter(validateMatrix):
@@ -218,9 +219,9 @@ def sixthSubIter(validateMatrix):
     fifthTransition = _rot3D90(_rot3D90(_rot3D90(validateMatrix, 'x', 3), 'z', 1), 'y', 1)
     listedMatrix = list(np.reshape(fifthTransition, 27))
     del(listedMatrix[13])
-    val1 = _getTempsDelexpression(listedMatrix)
+    # val1 = _getTempsDelexpression(listedMatrix)
     # str1 = ''.join(str(e) for e in listedMatrix)
-    return val1, listedMatrix
+    return listedMatrix
 
 
 def seventhSubIter(validateMatrix):
@@ -234,9 +235,9 @@ def seventhSubIter(validateMatrix):
     sixthTransition = _rot3D90(validateMatrix, 'x', 1)
     listedMatrix = list(np.reshape(sixthTransition, 27))
     del(listedMatrix[13])
-    val1 = _getTempsDelexpression(listedMatrix)
+    # val1 = _getTempsDelexpression(listedMatrix)
     # str1 = ''.join(str(e) for e in listedMatrix)
-    return val1, listedMatrix
+    return listedMatrix
 
 
 def eighthSubIter(validateMatrix):
@@ -250,9 +251,9 @@ def eighthSubIter(validateMatrix):
     seventhTransition = _rot3D90(validateMatrix, 'y', 2)
     listedMatrix = list(np.reshape(seventhTransition, 27))
     del(listedMatrix[13])
-    val1 = _getTempsDelexpression(listedMatrix)
+    # val1 = _getTempsDelexpression(listedMatrix)
     # str1 = ''.join(str(e) for e in listedMatrix)
-    return val1, listedMatrix
+    return listedMatrix
 
 
 def ninthSubIter(validateMatrix):
@@ -266,9 +267,9 @@ def ninthSubIter(validateMatrix):
     eighthTransition = _rot3D90(_rot3D90(validateMatrix, 'x', 3), 'z', 1)
     listedMatrix = list(np.reshape(eighthTransition, 27))
     del(listedMatrix[13])
-    val1 = _getTempsDelexpression(listedMatrix)
+    # val1 = _getTempsDelexpression(listedMatrix)
     # str1 = ''.join(str(e) for e in listedMatrix)
-    return val1, listedMatrix
+    return listedMatrix
 
 
 def tenthSubIter(validateMatrix):
@@ -282,9 +283,9 @@ def tenthSubIter(validateMatrix):
     ninthTransition = _rot3D90(_rot3D90(validateMatrix, 'y', 2), 'x', 1)
     listedMatrix = list(np.reshape(ninthTransition, 27))
     del(listedMatrix[13])
-    val1 = _getTempsDelexpression(listedMatrix)
+    # val1 = _getTempsDelexpression(listedMatrix)
     # str1 = ''.join(str(e) for e in listedMatrix)
-    return val1, listedMatrix
+    return listedMatrix
 
 
 def eleventhSubIter(validateMatrix):
@@ -298,9 +299,9 @@ def eleventhSubIter(validateMatrix):
     tenthTransition = _rot3D90(validateMatrix, 'y', 1)
     listedMatrix = list(np.reshape(tenthTransition, 27))
     del(listedMatrix[13])
-    val1 = _getTempsDelexpression(listedMatrix)
+    # val1 = _getTempsDelexpression(listedMatrix)
     # str1 = ''.join(str(e) for e in listedMatrix)
-    return val1, listedMatrix
+    return listedMatrix
 
 
 def twelvethSubIter(validateMatrix):
@@ -314,9 +315,9 @@ def twelvethSubIter(validateMatrix):
     eleventhTransition = _rot3D90(validateMatrix, 'x', 2)
     listedMatrix = list(np.reshape(eleventhTransition, 27))
     del(listedMatrix[13])
-    val1 = _getTempsDelexpression(listedMatrix)
+    # val1 = _getTempsDelexpression(listedMatrix)
     # str1 = ''.join(str(e) for e in listedMatrix)
-    return val1, listedMatrix
+    return listedMatrix
 
 
 if __name__ == '__main__':
