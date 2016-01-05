@@ -1,8 +1,12 @@
 import numpy as np
 
+import copy
+import operator
+import scipy
 import time
 
 from scipy import ndimage
+
 
 """
    radius = distance of node to nearest zero co-ordinate(edge)
@@ -17,7 +21,9 @@ def _getBouondariesOfimage(image):
     """
        function to find boundaries/border/edges of the array/image
     """
-
+    assert image.shape[0] != 1
+    if image.shape[0] == 1:
+        print("Single slice, not a 3d image")
     sElement = ndimage.generate_binary_structure(3, 1)
     erode_im = ndimage.morphology.binary_erosion(image, sElement)
     boundaryIm = image - erode_im
@@ -25,103 +31,116 @@ def _getBouondariesOfimage(image):
     return boundaryIm
 
 
-def _intersectCrowded(a, b):
+def getRadiusByPointsOnCenterline(skeletonIm, boundaryIm, inputIm, aspectRatio=[1, 1, 1]):
     """
-
-       return the intersection of two lists
-
+       removes voxels with radius 0.0
     """
-    if list(set(a) & set(b)) == list(set(a)):
-        return 1
-    else:
-        return 0
-
-
-def getRadiusByPointsOnCenterline(skeletonIm, boundaryIm):
-    from scipy import ndimage
-    import time
+    skeletonImCopy = copy.deepcopy(skeletonIm)
+    inputImCopy = copy.deepcopy(inputIm)
     startt = time.time()
-    nonZeroIndices = list(np.transpose(np.nonzero(skeletonIm)))
-    skeletonIm[skeletonIm == 0] = 2
-    skeletonIm[boundaryIm == 1] = 0
-    distTransformedIm = ndimage.distance_transform_edt(skeletonIm, [0.7, 0.7, 10])
-    dictOfNodesAndRadius = {}
-    for items in nonZeroIndices:
-        dictOfNodesAndRadius[tuple(items)] = distTransformedIm[tuple(items)]
-    distTransformedIm[skeletonIm == 0] = 0
+    skeletonImCopy[skeletonIm == 0] = 255
+    skeletonImCopy[boundaryIm == 1] = 0
+    distTransformedIm = ndimage.distance_transform_edt(skeletonImCopy, aspectRatio)
+    listNZI = list(set(map(tuple, np.transpose(np.nonzero(skeletonIm)))))
+    dictOfNodesAndRadius = list_to_dict(listNZI, distTransformedIm)
+    label, countBefore = scipy.ndimage.measurements.label(inputIm, structure=np.ones((3, 3, 3), dtype=np.uint8))
+    inputImCopy[distTransformedIm == 0.0] = 0
+    label, countAfter = scipy.ndimage.measurements.label(inputIm, structure=np.ones((3, 3, 3), dtype=np.uint8))
+    if countAfter == countBefore:
+        print("voxels with radius 0.00 can be removed")
+    else:
+        print("voxels with radius 0.00 cannot be removed")
+
     print("time taken to find the nodes and their radius is ", time.time() - startt, "seconds")
     return dictOfNodesAndRadius, distTransformedIm
+
+
+def getRadiusByPointsOnCenterlineslicewise(skeletonIm, boundaryIm, inputIm, aspectRatio=[1, 1], plane=0):
+    """
+       (z, y, x) removes voxels with radius 0.0 and get radius by looking in the plane = 0 look in x, y
+       plane = 1 look in z, x and plane = 2 look in z, y
+    """
+    skeletonImCopy = copy.deepcopy(skeletonIm)
+    inputImCopy = copy.deepcopy(inputIm)
+    startt = time.time()
+    skeletonImCopy[skeletonIm == 0] = 255
+    skeletonImCopy[boundaryIm == 1] = 0
+    distTransformedIm = np.zeros((skeletonImCopy.shape))
+    for i in range(0, skeletonImCopy.shape[0]):
+        distTransformedIm[i] = ndimage.distance_transform_edt(skeletonImCopy[i], sampling=aspectRatio)
+    listNZI = list(set(map(tuple, np.transpose(np.nonzero(skeletonIm)))))
+    dictOfNodesAndRadius = list_to_dict(listNZI, distTransformedIm)
+    label, countBefore = scipy.ndimage.measurements.label(inputIm, structure=np.ones((3, 3, 3), dtype=np.uint8))
+    inputImCopy[distTransformedIm == 0.0] = 0
+    label, countAfter = scipy.ndimage.measurements.label(inputIm, structure=np.ones((3, 3, 3), dtype=np.uint8))
+    if countAfter == countBefore:
+        print("voxels with radius 0.00 can be removed")
+    else:
+        print("voxels with radius 0.00 cannot be removed")
+
+    print("time taken to find the nodes and their radius is ", time.time() - startt, "seconds")
+    return dictOfNodesAndRadius, distTransformedIm
+
+
+def list_to_dict(listNZI, skeletonLabelled):
+    dictOfIndicesAndlabels = {item: skeletonLabelled[item] for item in listNZI}
+    return dictOfIndicesAndlabels
+
+
+def colorCodeByRadius(dictOfNodesAndRadius, distTransformedIm):
+    z, y, x = np.shape(distTransformedIm)
+    shapeC = z, y, x, 3
+    colorCodedImage = np.zeros(shapeC, dtype=np.uint8)
+    sorted_x = sorted(dictOfNodesAndRadius.items(), key=operator.itemgetter(1), reverse=True)
+    for index, (key, value) in enumerate(sorted_x):
+        x, y, z = key
+        colorCodedImage[z, y, x, 0] = (index + 1) * 1
+        colorCodedImage[z, y, x, 1] = (index + 1) * 2
+        colorCodedImage[z, y, x, 2] = (index + 1) * 3
+    return colorCodedImage
+
+
+def averageShortestdistance(d1, d2, d3):
+    assert len(d1) == len(d2) == len(d3)
+    radiusz = [d1[k] for k in d1]
+    radiusy = [d2[k] for k in d2]
+    radiusx = [d3[k] for k in d3]
+    averageShortestdistance = []
+    for i in range(0, len(d1)):
+        averageShortestdistance[i] = (radiusz[i] + radiusy[i] + radiusx[i]) / 3
+    return averageShortestdistance
+
+
+def getReconstructedVasculature(distTransformedIm):
+    zDim, yDim, xDim = np.shape(distTransformedIm)
+    shapeC = zDim, yDim, xDim, 3
+    reconstructedImage = np.zeros(shapeC, dtype=np.uint8)
+    reconstructedImage = np.lib.pad(reconstructedImage, 1, 'constant', constant_values=0)
+    distTransformedIm = np.lib.pad(distTransformedIm, 1, 'constant', constant_values=0)
+    listNZI = map(tuple, np.transpose(np.nonzero(distTransformedIm)))
+    dictOfNodesAndRadius = list_to_dict(listNZI, distTransformedIm)
+    sorted_x = sorted(dictOfNodesAndRadius.items(), key=operator.itemgetter(1), reverse=True)
+    for index, (key, value) in enumerate(sorted_x):
+        z, y, x = key
+        reconstructedImage[z - value, y - value, y - value, 1] = (index + 1) * 1
+        reconstructedImage[z + value, y + value, x + value, 1] = (index + 1) * 1
+        reconstructedImage[z - value, y - value, y - value, 2] = (index + 1) * 2
+        reconstructedImage[z + value, y + value, x + value, 2] = (index + 1) * 2
+        reconstructedImage[z - value, y - value, y - value, 3] = (index + 1) * 3
+        reconstructedImage[z + value, y + value, x + value, 3] = (index + 1) * 3
+    return reconstructedImage[1: zDim + 1, 1: yDim + 1, 1: xDim + 1, 1: 4]
+
 
 if __name__ == '__main__':
     startt = time.time()
     # load the skeletonized image
-    skeletonIm = np.load('/Users/3scan_editing/records/scratch/shortestPathSkel.npy')
-    thresholdIm = np.load('/Users/3scan_editing/records/scratch/threshold3dtestoptimize.npy')
+    skeletonIm = np.load('/Users/3scan_editing/records/shortestPathSkel1.npy')
+    thresholdIm = np.load('/Users/3scan_editing/records/mouseBrainBinary.npy')
+    inputIm = np.load('/Users/3scan_editing/records/mouseBrainGreyscale.npy')
     # finding edges of the microvasculature
     boundaryIm = _getBouondariesOfimage(thresholdIm)
-    dictOfNodesAndRadius, distTransformedIm = getRadiusByPointsOnCenterline(skeletonIm, boundaryIm)
-
-    # find the non-zero indices which represent the nodes in the skeletonized image
-    # loading the thresholded image to find edges of the microvasuclature# mask out the zeros in the skeletonized image so when distance transform is applied, distance
-    # to these zeros are not found
-
-    # mask the co-ordinates obtained in the edge image to be zeros
-    # finding EDT- distance from the nonzero points on the centerline to the edges
-    # Sanity check for the isolated pixels which are on the edge image themselves
-    # take out the distance transform value as the radius of the node
-    # /nonzero co-ordinates which are present on the original skeleton
-    # # sanity check -  only the nodes/nonzero co-ordinates in the skeletonized image are
-    # # looked for radius
-    # meanRadius = np.float32(mean(listRadius))
-    # print("arithematic mean of all the radius of the vessels is", meanRadius)
-    # medianRadius = np.float32(median(listRadius))
-    # print("median of all the radius of the vessels is", medianRadius)
-    # if lengthOfNodes % 2 == 0:
-    #     highmedianRadius = np.float32(median_high(listRadius))
-    #     print("high medianRadius is the highest among the two center ones if even number of elements in the list ", highmedianRadius)
-    #     lowmedianRadius = np.float32(median_low(listRadius))
-    #     print("low medianRadius is lowest among the two center ones if even number of elements in the list ", lowmedianRadius)
-    # modeRadius = mode(dictOfNodesAndRadius.values())
-    # print("most frequently occuring vessel radius/ mode is", modeRadius)
-    # print("voxels with mode radius are %i, out of all the %i nonzero voxels  " % ((listRadius.count(modeRadius)), lengthOfNodes))
-    # print("data spread out around the mean is", varianceRadius)
-    # stddevRadius = np.float32(sqrt(varianceRadius))
-    # print("standard deviation is", stddevRadius)
-    # sortedListRadiusDecim = list(np.float16(listRadius))
-    # print("unique number of filaments/vessels with different radius is", len(radiusCounts))
-    # df = pandas.DataFrame.from_dict(radiusCounts, orient='index')
-    # df = df.sort()
-    # df2 = pandas.DataFrame.from_dict(radiusCounts2, orient='index')
-    # df2 = df2.sort()
-    # # df = np.round(df,decimals=2)
-    # # df.reindex_axis(sorted(df.columns), axis=0)
-    # from pylab import text
-    # ax = df.plot(kind='density', rot=75, title='radius of microvasculature plot', fontsize=12, subplots=True)
-    # # text(modeRadius, listRadius.count(modeRadius), 'mode and median')
-    # ax.set_xlabel('radii of the microvasculature sample in voxels')
-    # ax.set_ylabel('frequency of the radii')
-
-    # # ax.annotate('mode, median', xy=(modeRadius, listRadius.count(modeRadius)), xytext=(1.5, 3),
-    # #             arrowprops=dict(facecolor='black', shrink=0.1),
-    # #             )
-    # # ax.annotate('mean', xy=(meanRadius, listRadius.count(meanRadius)))
-    # # f = partial(Series.round, decimals=2)
-    # # df.apply(f)
-    # df.plot(kind='line', rot=75, title='radius of microvasculature plot', fontsize=8, subplots=True)
-    # df.plot(kind='bar', rot=75, title='radius of microvasculature plot', fontsize=8, subplots=True)
-    # df.plot(kind='density', rot=75, title='radius of microvasculature plot', fontsize=12, subplots=True)
-    # df2.plot(kind='pie', rot=75, title='radius of microvasculature plot', fontsize=8, subplots=True)
-    # # import matplotlib.pyplot as plt
-    # # yaxisVars = list(radiusCounts.values())
-    # # xaxisVars = list(radiusCounts.keys())
-
-    # # pos = np.arange(len(xaxisVars))
-    # # width = 1  # gives histogram aspect to the bar diagram
-
-    # # ax = plt.axes()
-    # # ax.set_xticks(pos + (width / 2))
-    # # ax.set_xticklabels(xaxisVars, rotation=75)
-
-    # # plt.bar(pos, yaxisVars, width, color='r')
-    # # plt.show()
-    # # print("time taken to find the nodes and their radius is ", time.time() - startt, "seconds")
+    dictOfNodesAndRadius, distTransformedIm = getRadiusByPointsOnCenterline(skeletonIm, boundaryIm, inputIm, aspectRatio=[10, 0.7, 0.7])
+    dictOfNodesAndRadiusz, distTransformedImz = getRadiusByPointsOnCenterlineslicewise(skeletonIm, boundaryIm, inputIm, aspectRatio=[0.7, 0.7], plane=0)
+    dictOfNodesAndRadiusy, distTransformedImz = getRadiusByPointsOnCenterlineslicewise(skeletonIm, boundaryIm, inputIm, aspectRatio=[0.7, 0.7], plane=1)
+    dictOfNodesAndRadiusx, distTransformedImz = getRadiusByPointsOnCenterlineslicewise(skeletonIm, boundaryIm, inputIm, aspectRatio=[0.7, 0.7], plane=2)
+    averageShortestdistance = averageShortestdistance(dictOfNodesAndRadiusy, dictOfNodesAndRadiusx, dictOfNodesAndRadiusz)
