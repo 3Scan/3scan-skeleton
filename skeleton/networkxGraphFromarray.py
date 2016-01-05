@@ -159,7 +159,7 @@ def getBreadthFirstSearchtree(wholeGraph):
 
 if __name__ == '__main__':
     # read points into array
-    shskel = np.load("/Users/3scan_editing/records/shortestPathSkel1.npy")
+    shskel = np.load("/home/pranathi/Downloads/shortestPathSkel.npy")
     squae = np.zeros((20, 20, 20), dtype=bool)
     squae[2:-2, 2:-2, 2:-2] = 1
     dictAdjacent = _setAdjacencylistarray(shskel)
