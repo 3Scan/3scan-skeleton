@@ -8,10 +8,10 @@ from scipy.ndimage import convolve
 
 
 """
-   program to look up adjacent elements only in the forward direction
-   and calculate degree this dictionary can be used for graph creation
-   since networkx graph based on looking up the sparse array and the
-   adjacent coordinates takes long time trying to create a dict
+   program to look up adjacent elements and calculate degree
+   this dictionary can be used for graph creation
+   since networkx graph based on looking up the array and the
+   adjacent coordinates takes long time. create a dict
    using dictOfIndicesAndAdjacentcoordinates. Refer the following link
    https://networkx.github.io/documentation/development/reference/generated/networkx.convert.from_dict_of_lists.html
 """
@@ -47,11 +47,6 @@ def _setAdjacencylistarray(arr):
         takes in an array and returns a dictionary with nonzero voxels/ pixels
         and their adjcent nonzero coordinates
     """
-    # padding required or not??
-    # what if incremented adjacent coordinate is on the boundary
-    # if padded gives shifted coordinates
-    # so avoiding images with pixels/voxels on boundary of the array
-    # arr = np.lib.pad(arr, 1, 'constant', constant_values=0)
     dimensions = arr.ndim
     if dimensions == 3:
         # flipped 3D template in advance
@@ -130,31 +125,6 @@ def getGraphProperties(G, nameOfTheGraph):
     disjointGraphs = list(nx.connected_component_subgraphs(G))
     numberOfDisjointGraphs = len(disjointGraphs)
     return numberOfCycles, numberOfDisjointGraphs, disjointGraphs
-
-
-def getBreadthFirstSearchtree(wholeGraph):
-    dictOfSegmentsLength = {}
-    dictOfSegments = {}
-    G = nx.empty_graph()
-    disjointGraphsWholeGraph = list(nx.connected_component_subgraphs(wholeGraph))
-    for i in range(0, len(disjointGraphsWholeGraph)):
-        subGraphSkeleton = disjointGraphsWholeGraph[i]
-        disjointGraphsNodes = list(subGraphSkeleton.nodes())
-        source = disjointGraphsNodes[0]
-        print(source)
-        bfsedges = nx.bfs_edges(subGraphSkeleton, source=source)
-        G.add_edges_from(bfsedges)
-        bfspredecessors = nx.bfs_predecessors(G, source=source)
-        bfssuccessors = nx.bfs_successors(G, source=source)
-        branchPoints = [k for (k, v) in bfssuccessors.items() if len(v) >= 2]
-        print("branchPoints", branchPoints)
-        dictOfSegments[i] = len(set(branchPoints))
-        print(set(branchPoints))
-        for branchPoint in branchPoints:
-            startNode = branchPoints[0]
-            endNode = branchPoints[-1]
-            dictOfSegmentsLength[i, (startNode, endNode)] = np.sqrt(np.sum((np.array(startNode) - np.array(endNode)) ** 2))
-    return G, bfspredecessors, bfssuccessors, dictOfSegments, dictOfSegmentsLength
 
 
 if __name__ == '__main__':

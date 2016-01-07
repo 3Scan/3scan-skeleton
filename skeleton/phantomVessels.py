@@ -48,18 +48,38 @@ def _getCrosssection():
     return vessels
 
 
+def getPhantomLineToCheckOrientation(size=(25, 25, 25)):
+
+    hLine = np.zeros(size, dtype=bool)
+    hLine[3, :, 4] = 1
+    vLine = hLine.T.copy()
+
+    # A "comb" of lines
+    hLines = np.zeros(size, dtype=bool)
+    hLines[0, ::3, :] = 1
+    vLines = hLines.T.copy()
+    # A grid made up of two perpendicular combs
+    grid = hLines | vLines
+    stationaryImages = [hLine, vLine, hLines, vLines, grid]
+    return stationaryImages
+
+
 if __name__ == '__main__':
     from convOptimize import getSkeletonize3D
     from radiusOfNodes import getRadiusByPointsOnCenterline
     from unitwidthcurveskeleton import getShortestPathskeleton
     from radiusOfNodes import _getBouondariesOfimage
     from density import getRadisuStatistics
+    from density import splineInterpolateStatistics
     phantom = getPhantom(424)
-    np.save('/Users/3scan_editing/records/phantom.npy', phantom)
+    np.save('/home/pranathi/Downloads/phantom.npy', phantom)
     phantomSkel = getSkeletonize3D(phantom)
     phantomShort = getShortestPathskeleton(phantomSkel)
-    np.save('/Users/3scan_editing/records/phantomShort.npy', phantomShort)
+    np.save('/home/pranathi/Downloads/phantomShort.npy', phantomShort)
     phantomBound = _getBouondariesOfimage(phantom)
-    np.save('/Users/3scan_editing/records/phantomBound.npy', phantomBound)
+    np.save('/home/pranathi/Downloads/phantomBound.npy', phantomBound)
     dict1, dist = getRadiusByPointsOnCenterline(phantomShort, phantomBound, phantom)
     getRadisuStatistics(dict1, dist)
+    linesHandV = getPhantomLineToCheckOrientation((5, 5, 5))
+    x_knots, y_knots, z_knots, tangentVectors, normalVectors, binormalVectors, orientationPhi, orientationTheta, curvature, radiusoFCurvature = splineInterpolateStatistics(linesHandV[1])
+    assert np.unique(orientationPhi).tolist() == [90]

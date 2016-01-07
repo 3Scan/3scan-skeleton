@@ -9,7 +9,7 @@ from scipy import ndimage
 
 
 """
-   radius = distance of node to nearest zero co-ordinate(edge)
+   calculates radius as distance of node to nearest zero co-ordinate(edge)
    if radius is zero it is a single isolated voxel which may be
    due to noise, itself forms an edge
    these voxels can be removed through some sanity checks with

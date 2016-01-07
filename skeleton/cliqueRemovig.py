@@ -6,6 +6,10 @@ import networkx as nx
 
 from skeleton.networkxGraphFromarray import getNetworkxGraphFromarray
 
+"""
+   program to remove 3 vertex cliques
+"""
+
 
 def removeCliqueEdges(networkxGraph):
     """

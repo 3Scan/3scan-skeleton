@@ -60,12 +60,12 @@ if __name__ == '__main__':
     for file in listOfJpgs:
         inputIm[count1][:][:] = imread((os.path.join(root, file)))
         count1 += 1
-    smoothedIm = scipy.ndimage.filters.gaussian_filter(inputIm, [7, 0.7, 0.7])
-    thresholdedIm, globalThreshold = convertToBinary(smoothedIm, False)
+    # smoothedIm = scipy.ndimage.filters.gaussian_filter(inputIm, [7, 0.7, 0.7])
+    thresholdedIm, globalThreshold = convertToBinary(inputIm, False)
     print("skeletonizing started at")
     print(strftime("%a, %d %b %Y %H:%M:%S ", localtime()))
     print("threshold of the 3d volume is", globalThreshold)
-    np.save('/home/pranathi/Downloads/mouseBrainGreyscale.npy', smoothedIm)
+    np.save('/home/pranathi/Downloads/mouseBrainGreyscale.npy', inputIm)
     np.save('/home/pranathi/Downloads/mouseBrainBinary.npy', thresholdedIm)
     skeletonIm = getSkeletonize3D(thresholdedIm)
     np.save('/home/pranathi/Downloads/mouseBrainSkeleton.npy', skeletonIm)

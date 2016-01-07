@@ -8,9 +8,9 @@ from skimage.graph import route_through_array
 
 """
    The goal of this algorithm is to generate a topologically and geometrically preserved
-   unit pixel width skeleton. The skeleton/ centerline
+   unit voxel width skeleton. The skeleton/ centerline
    of an image obtained by using various structuring elements does not
-   necessarily be a 1 pixel wide although it ensures topological connectedness.
+   necessarily be a 1 voxel wide although it ensures topological connectedness.
    end point = 1 middle point = 2 joint point = 3 crowded point = 4 crowded region = 5
    implemented according to the paper in this link
    https://drive.google.com/a/3scan.com/file/d/0BwQueSW2_nsOWGRzb2s4dlZmRlE/view?usp=sharing

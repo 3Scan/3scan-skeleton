@@ -3,7 +3,6 @@ import time
 
 from scipy import interpolate
 
-# import operator
 import numpy as np
 import scipy
 import seaborn as sns
@@ -12,7 +11,13 @@ from collections import Counter
 from math import sqrt, pow, atan2, degrees
 from statistics import median, mode, pvariance, mean
 
-from KESMAnalysis.skeleton.radiusOfNodes import getRadiusByPointsOnCenterline
+from skeleton.radiusOfNodes import getRadiusByPointsOnCenterline
+
+"""
+   The follwing program quantifies a skeletonized structure to meaningful
+   statistics like radius, orienation at each node, mean radiuses of the
+   nodes in a volume and other statistically significant values
+"""
 
 
 def saveVolumeFeatures(image, nameOfTheImage):
@@ -31,6 +36,10 @@ def saveVolumeFeatures(image, nameOfTheImage):
 
 
 def saveVolumeMetadata(inputIm):
+    """
+       save 3D volume meta data like resolution
+       and volume of the dataset
+    """
     resolution = 0.7 * 0.7 * 10
     volumeOfDataset = inputIm.size * resolution
     dictStats = {'resolution': resolution,
@@ -59,10 +68,10 @@ def plotKDEAndHistogram(ndimarray, bins):
     sns.distplot(ndimarray, kde=True, bins=bins)
 
 
-def splineInterpolateStatistics(shskel, aspectRatio):
+def splineInterpolateStatistics(shskel, aspectRatio=[1, 1, 1]):
     """
-       spline curve fitting
-
+       spline curve fitting and orientation finding from
+       the derivatives
     """
     interpolatedSkeleton = scipy.ndimage.interpolation.zoom(shskel, zoom=aspectRatio, order=0)
     z_sample, y_sample, x_sample = np.array(np.where(interpolatedSkeleton != 0))
@@ -72,8 +81,8 @@ def splineInterpolateStatistics(shskel, aspectRatio):
     print("interpolate.splprep done and took %i seconds", time.time() - starttInterp)
     starttKnots = time.time()
     z_knots, y_knots, x_knots = interpolate.splev(tck[0], tck)
-    firstDerX, firstDerY, firstDerZ = interpolate.splev(tck[0], tck, der=1)
-    secondDerX, secondDerY, secondDerZ = interpolate.splev(tck[0], tck, der=2)
+    firstDerZ, firstDerY, firstDerX = interpolate.splev(tck[0], tck, der=1)
+    secondDerZ, secondDerY, secondDerX = interpolate.splev(tck[0], tck, der=2)
     u_fine = np.linspace(0, 1, num_true_pts)
     x_fine, y_fine, z_fine = interpolate.splev(u_fine, tck)
     print("interpolate.splev done and took %i seconds", time.time() - starttKnots)
@@ -126,9 +135,8 @@ def splineInterpolateStatistics(shskel, aspectRatio):
         radiusoFCurvature[i] = 1 / curvature[i]
     dictStats = {'orientationPhiMean': orientationPhi.mean(), 'orientationPhiMax': orientationPhi.max(), 'orientationPhiMin': orientationPhi.min(),
                  'orientationThetaMean': orientationTheta.mean(), 'orientationThetaMax': orientationTheta.max(), 'orientationThetaMin': orientationTheta.min(),
-                 'orientationThetaMedian': median(orientationTheta), 'orientationPhiMedian': median(orientationPhi), 'orientationThetaMode': mode(orientationTheta),
+                 'orientationThetaMedian': median(orientationTheta), 'orientationPhiMedian': median(orientationPhi),
                  'orientationPhiVariance': pvariance(orientationPhi), 'orientationThetaVariance': pvariance(orientationTheta)}
-    dictStats = {'orientationPhiMode': mode(orientationPhi)}
     with open("statistics.json", "a") as feedsjson:
         feedsjson.write("{}\n".format(json.dumps(dictStats)))
     feedsjson.close()
@@ -136,6 +144,10 @@ def splineInterpolateStatistics(shskel, aspectRatio):
 
 
 def getBranches(sorteddictOfNodesAndRadius, curvature):
+    """
+       a trial function written to find branches based on if the
+       curvature at next node is different from the previous node
+    """
     dictOfNodesAndBranches = {}
     i = 0
     keys = list(sorteddictOfNodesAndRadius.keys())
@@ -152,6 +164,11 @@ def getBranches(sorteddictOfNodesAndRadius, curvature):
 
 
 def ravel_index(x, dims):
+    """
+       function that converts a 3D coordinate to a
+       one dimensional number similar to reshaping
+       indices
+    """
     i = 0
     for dim, j in zip(dims, x):
         i = i * dim
@@ -160,11 +177,18 @@ def ravel_index(x, dims):
 
 
 def list_to_dict(listNZI, skeletonLabelled):
+    """
+       converts an array and their value to a dictionary with keys as the
+       coordinate and the values as the value of the voxel/pixel
+    """
     dictOfIndicesAndlabels = {item: skeletonLabelled[index] for index, item in enumerate(listNZI)}
     return dictOfIndicesAndlabels
 
 
 def plot3Dfigure(inrerpolatedImage):
+    """
+       plots a 3D volume
+    """
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
@@ -181,15 +205,14 @@ def plot3Dfigure(inrerpolatedImage):
     ax.add_collection3d(mesh)
 
     ax.set_xlabel("x-axis")
-    ax.set_ylabel("y-axis=")
-    ax.set_zlabel("z-axis=")
+    ax.set_ylabel("y-axis")
+    ax.set_zlabel("z-axis")
 
     ax.set_xlim(0, inrerpolatedImage.shape[0])
     ax.set_ylim(0, inrerpolatedImage.shape[1])
     ax.set_zlim(0, inrerpolatedImage.shape[2])
     ax.set_aspect('equal')
-2
-s
+
 
 if __name__ == '__main__':
     from KESMAnalysis.skeleton.radiusOfNodes import _getBouondariesOfimage

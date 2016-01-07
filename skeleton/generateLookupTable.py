@@ -2,8 +2,19 @@ import numpy as np
 from rotationalOperators import firstSubIter, secondSubIter, thirdSubIter, fourthSubIter, fifthSubIter, sixthSubIter
 from rotationalOperators import seventhSubIter, eighthSubIter, ninthSubIter, tenthSubIter, eleventhSubIter, twelvethSubIter
 
+"""
+   reference paper
+   http://web.inf.u-szeged.hu/ipcg/publications/papers/PalagyiKuba_GMIP1999.pdf
+"""
+
 
 def generateLookuparray(stop, iterationNumber):
+    """
+       to generate a look up aray the all the 2 ** 26 possible configurations are
+       checked if they satisy one of the 14 templates
+       iterationNumber is the rotation of the cube into one of the directions
+       refer to the paper Parallel 3D thinning algorithm with 12 directions for more details
+    """
     lookuparray = np.zeros(stop, dtype=np.uint8)
     print(iterationNumber)
     for item in range(0, stop):

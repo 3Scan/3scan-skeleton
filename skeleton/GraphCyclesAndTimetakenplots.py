@@ -1,11 +1,27 @@
 import networkx as nx
 import time
 
+import matplotlib.pyplot as plt
+import numpy as np
+
 from skeleton.cliqueRemovig import removeCliqueEdges
 from skeleton.segmentLengths import getSegmentsAndLengths
 
+"""
+   program to generate a balanced tree with a root node and the branches extending to the height
+   https://networkx.github.io/documentation/latest/reference/generated/networkx.generators.classic.balanced_tree.html
+   and generate a cycle graph with n number of nodes
+   https://networkx.github.io/documentation/latest/reference/generated/networkx.generators.classic.cycle_graph.html
+   To check the time taken to detect the branches in a tree and the lenght of branches to each node
+   detects cycle and finds length of cycle with time complexity as O(1) - CONSTANT
+   detects tree and finds length of branches with time complexity as O(nodeCount) - linear function of number of nodes
+"""
 
-def cycle(n):
+
+def _cycle(n):
+    """
+       generate a cyclic graph with number of nodes n
+    """
     networkxGraph = nx.cycle_graph(n)
     removeCliqueEdges(networkxGraph)
     print("nth cycle", n)
@@ -19,7 +35,10 @@ def cycle(n):
     return timeTaken, densityOfgraph, n
 
 
-def tree(n):
+def _tree(n):
+    """
+       generate a balanced tree with height of tree from root equal to n
+    """
     networkxGraph = nx.balanced_tree(2, n)
     removeCliqueEdges(networkxGraph)
     print("nth tree", n)
@@ -32,20 +51,28 @@ def tree(n):
     n = networkxGraph.number_of_nodes()
     return timeTaken, densityOfgraph, n
 
+functionList = [_cycle, _tree]
 
-if __name__ == '__main__':
-    import matplotlib.pyplot as plt
-    import numpy as np
-    timeTree = np.zeros((6))
-    densityTree = np.zeros((6))
-    numberOfNodesarraytree = np.zeros((6))
-    for numberOfNodes in range(3, 9):
-        timeTaken, d, n = tree(numberOfNodes)
-        timeTree[numberOfNodes - 3] = timeTaken
-        densityTree[numberOfNodes - 3] = d
-        numberOfNodesarraytree[numberOfNodes - 3] = n
+
+def plotTreeAndTimetaken(treeOrCycle=1, heightRange=9):
+    """
+       plot a figure with x axis as nodes and y axis as the time
+       taken to find to segment characteristics in the graph
+    """
+    timeTree = []
+    densityTree = []
+    numberOfNodesarraytree = []
+    plt.ion()
+    op = functionList[treeOrCycle]
+    for heightOfTree in range(2, heightRange):
+        timeTaken, d, n = op(heightOfTree)
+        timeTree.append(timeTaken)
+        densityTree.append(d)
+        numberOfNodesarraytree.append(n)
     plt.title("nodes in a tree and time taken to find number of segments and lengths")
     plt.xlabel("number of nodes in the tree")
     plt.ylabel("time taken to trace and find segement features in seconds")
-    plt.plot(numberOfNodesarraytree, timeTree, 'r')
-    plt.show()
+    plt.plot(np.array(numberOfNodesarraytree), np.array(timeTree), 'r')
+
+if __name__ == '__main__':
+    plotTreeAndTimetaken(1, 13)
