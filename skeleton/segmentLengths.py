@@ -207,7 +207,7 @@ def getSegmentsAndLengths(networkxGraph):
                                 segmentLengthdict[segment, sourceOnTree, item] = curveLength
                                 segmentTortuositydict[segment, sourceOnTree, item] = curveLength / curveDisplacement
                                 _removeEdgesInVisitedPath(subGraphskeleton, shortestPath, 0)
-            assert subGraphskeleton.number_of_edges() == 0
+            # assert subGraphskeleton.number_of_edges() == 0
         # print("time taken in {} disjoint graph is {}".format(ithDisjointgraph, time.time() - starttDisjoint), "seconds")
         totalSegments = sum(segmentCountdict.values())
     print("time taken to calculate segments and their lengths is", time.time() - startt, "seconds", totalSegments)
