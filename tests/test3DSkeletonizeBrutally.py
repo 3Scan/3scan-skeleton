@@ -18,8 +18,10 @@ from skimage.morphology import skeletonize as getskeletonize2d
 
 
 def embed2in3(arr):
-    """Embed a 2d shape in a 3d array,
-    along all possible testing directions."""
+    """
+       Embed a 2d shape in a 3d array,
+       along all possible testing directions.
+    """
 
     assert arr.dtype == bool
     assert arr.ndim == 2
@@ -65,24 +67,6 @@ def allOrientationsTest(arr, expectedResult=None):
         result = checkCycles(reoriented)
         break
         assert result == expectedResult
-
-
-# def getGraphProperties(g):
-#     """Return a count of the nodes, edges, and
-#     simple cycles in a graph"""
-
-#     nodeCount = g.number_of_nodes()
-#     edgeCount = g.number_of_edges()
-#     cycleCount = len(nx.cycle_basis(g))
-#     # Lets add independent (disjoint) subgraph identification here?
-#     # http://stackoverflow.com/questions/21739569/finding-separate-graphs-within-a-graph-object-in-networkx
-#     # make an undirected copy of the digraph
-#     UG = g.to_undirected()
-
-#     # extract subgraphs
-#     disjointGraphs = len(list(nx.connected_component_subgraphs(UG)))
-
-#     return nodeCount, edgeCount, cycleCount, disjointGraphs
 
 
 def checkCycles(image):

@@ -5,6 +5,7 @@ from scipy import ndimage
 from skimage.morphology import skeletonize as getskeletonize2d
 
 """
+    test if 2D skeletonized images are as expected
     http://scikit-image.org/docs/dev/api/skimage.morphology.html#skimage.morphology.skeletonize
 """
 

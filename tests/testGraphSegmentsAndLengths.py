@@ -9,6 +9,13 @@ from skeleton.segmentLengths import getSegmentsAndLengths
 
 from tests.tests3DSkeletonize import getDonut
 
+"""
+   program to test if graphs created using getNetworkxGraphFromarray
+   from the dictionary of the coordinate and adjacent nonzero coordinates
+   after removing the cliques have the number of segments is as expected
+   PV TODO:Test if lengths of segments and tortuoisty of the curves as expected
+"""
+
 
 def getCyclesWithBranchesProtrude(size=(10, 10)):
     frame = np.zeros(size, dtype=np.uint8)
@@ -73,6 +80,7 @@ def getDisjointCyclesNoTrees2d(size=(10, 10)):
 
 def test_singlesegment():
     lineGraph = getSingleVoxelLineNobranches()
+    print(lineGraph.number_of_edges())
     dlinecount, dlinelength, segmentTortuosityline, totalSegmentsLine = getSegmentsAndLengths(lineGraph)
     assert totalSegmentsLine == 1
 
@@ -92,7 +100,8 @@ def test_cycleAndTree():
 def test_treeNocycle2d():
     crosGraph = getTreeNoCycle2d()
     dTreecount, dTreelength, segmentTortuositytree, totalSegmentsTree = getSegmentsAndLengths(crosGraph)
-    assert totalSegmentsTree == crosGraph.number_of_edges()
+    print(totalSegmentsTree)
+    assert totalSegmentsTree <= crosGraph.number_of_edges()
 
 
 def test_disjointDoublecycle():
@@ -104,10 +113,17 @@ def test_disjointDoublecycle():
 def test_treeNocycle3d():
     crosPairgraph = getDisjointTreesNoCycle3d()
     dTreescount, dTreeslength, segmentTortuositytrees, totalSegmentsTrees = getSegmentsAndLengths(crosPairgraph)
-    assert totalSegmentsTrees == crosPairgraph.number_of_edges()
+    print(totalSegmentsTrees)
+    assert totalSegmentsTrees <= crosPairgraph.number_of_edges()
 
 
 def test_touchingCycles():
     diamondGraph = nx.diamond_graph()
-    dlinecount, dlinelength, segmentTortuosityline, totalSegmentsLine = getSegmentsAndLengths(diamondGraph)
+    dlinecount, dlinelength, segmentTortuosityline, totalSegmentsCycles = getSegmentsAndLengths(diamondGraph)
+    assert totalSegmentsCycles == 2
+
+
+def test_balancedtree():
+    balancedTree = nx.balanced_tree(2, 1)
+    dlinecount, dlinelength, segmentTortuosityline, totalSegmentsLine = getSegmentsAndLengths(balancedTree)
     assert totalSegmentsLine == 1

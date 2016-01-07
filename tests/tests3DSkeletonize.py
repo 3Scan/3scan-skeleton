@@ -2,8 +2,11 @@ import numpy as np
 from scipy import ndimage
 
 from skeleton.convOptimize import getSkeletonize3D
-""" test 1 and 3 lines passed , test for rings and random images not defined
-and not checked
+
+"""
+   test if 3D skeletonize implemented as in
+   http://web.inf.u-szeged.hu/ipcg/publications/papers/PalagyiKuba_GMIP1999.pdf
+   is working as expected
 """
 
 
