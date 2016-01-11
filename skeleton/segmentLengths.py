@@ -89,7 +89,7 @@ def getSegmentsAndLengths(networkxGraph):
        visited. Each time the visited paths are deleted so that
        it minimizes the time of checking if a path is already
        visited by reducing/ removing the premutation of paths
-       already checked
+       already checked.
     """
     assert networkxGraph.number_of_selfloops() == 0
     # intitialize all the common variables
@@ -112,8 +112,8 @@ def getSegmentsAndLengths(networkxGraph):
         if len(nodes) == 1:
             " if it is a single node"
             segmentCountdict[nodes[0]] = 1
-            segmentLengthdict[nodes[0], nodes[0]] = 0
-            segmentTortuositydict = 1
+            segmentLengthdict[1, nodes[0], nodes[0]] = 0
+            segmentTortuositydict[1, nodes[0], nodes[0]] = 1
             totalSegments = 1
         else:
             """ if there are more than one nodes decide what kind of subgraph it is
@@ -135,7 +135,7 @@ def getSegmentsAndLengths(networkxGraph):
                 sourceOnCycle = cycle[0]
                 segmentCountdict[sourceOnCycle] = 1
                 segmentLengthdict[1, sourceOnCycle, cycle[-1]] = _getDistanceBetweenPointsInpath(cycle, 1)
-                segmentTortuositydict[1, sourceOnCycle, cycle[-1]] = float('NaN')
+                segmentTortuositydict[1, sourceOnCycle, cycle[-1]] = 0
                 _removeEdgesInVisitedPath(subGraphskeleton, cycle, 1)
             elif set(degreeList) == set((1, 2)):
                 # print("line segment with no tree structure")
@@ -161,7 +161,7 @@ def getSegmentsAndLengths(networkxGraph):
                         cycleOnSamesource += 1
                         segmentCountdict[sourceOnCycle] = cycleOnSamesource
                     segmentLengthdict[nthCycle, sourceOnCycle, cyclePath[-1]] = _getDistanceBetweenPointsInpath(cyclePath, 1)
-                    segmentTortuositydict[nthCycle, sourceOnCycle, cyclePath[-1]] = float('NaN')
+                    segmentTortuositydict[nthCycle, sourceOnCycle, cyclePath[-1]] = 0
                     _removeEdgesInVisitedPath(subGraphskeleton, cyclePath, 1)
                 "all the cycles in the graph are checked now look for the tree characteristics in this subgraph"
                 # collecting all the branch and endpoints
@@ -200,22 +200,28 @@ def getSegmentsAndLengths(networkxGraph):
                                 continue
                             if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
                                 segment += 1
-                                shortestPath = nx.shortest_path(subGraphskeleton, source=sourceOnTree, target=item)
-                                curveLength = _getDistanceBetweenPointsInpath(shortestPath)
+                                curveLength = _getDistanceBetweenPointsInpath(simplePath)
                                 curveDisplacement = np.sqrt(np.sum((np.array(sourceOnTree) - np.array(item)) ** 2))
                                 segmentCountdict[sourceOnTree] = segment
                                 segmentLengthdict[segment, sourceOnTree, item] = curveLength
                                 segmentTortuositydict[segment, sourceOnTree, item] = curveLength / curveDisplacement
-                                _removeEdgesInVisitedPath(subGraphskeleton, shortestPath, 0)
+                                _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
             # assert subGraphskeleton.number_of_edges() == 0
         # print("time taken in {} disjoint graph is {}".format(ithDisjointgraph, time.time() - starttDisjoint), "seconds")
-        totalSegments = sum(segmentCountdict.values())
-    print("time taken to calculate segments and their lengths is", time.time() - startt, "seconds", totalSegments)
+        totalSegments = len(segmentLengthdict)
+    print("time taken to calculate segments and their lengths is", time.time() - startt, "seconds")
     return segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments
 
 
 if __name__ == '__main__':
+    from skeleton.orientationStatisticsSpline import plotKde
     shskel = np.load("/home/pranathi/Downloads/shortestPathSkel.npy")
     networkxGraph = getNetworkxGraphFromarray(shskel)
     removeCliqueEdges(networkxGraph)
     segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments = getSegmentsAndLengths(networkxGraph)
+    # getStatistics(segmentCountdict, 'segmentCount')
+    # getStatistics(segmentLengthdict, 'segmentLength')
+    # getStatistics(segmentTortuositydict, 'segmentTortuosity')
+    plotKde(segmentCountdict)
+    plotKde(segmentLengthdict)
+    plotKde(segmentTortuositydict)
