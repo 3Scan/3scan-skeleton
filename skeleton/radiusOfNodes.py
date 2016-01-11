@@ -132,6 +132,7 @@ def getReconstructedVasculature(distTransformedIm):
 
 
 if __name__ == '__main__':
+    from skeleton.orientationStatisticsSpline import getStatistics, plotKDEAndHistogram
     startt = time.time()
     # load the skeletonized image
     skeletonIm = np.load('/Users/3scan_editing/records/shortestPathSkel1.npy')
@@ -144,3 +145,5 @@ if __name__ == '__main__':
     dictOfNodesAndRadiusy, distTransformedImz = getRadiusByPointsOnCenterlineslicewise(skeletonIm, boundaryIm, inputIm, aspectRatio=[0.7, 0.7], plane=1)
     dictOfNodesAndRadiusx, distTransformedImz = getRadiusByPointsOnCenterlineslicewise(skeletonIm, boundaryIm, inputIm, aspectRatio=[0.7, 0.7], plane=2)
     averageShortestdistance = averageShortestdistance(dictOfNodesAndRadiusy, dictOfNodesAndRadiusx, dictOfNodesAndRadiusz)
+    getStatistics(dictOfNodesAndRadius, 'Radius')
+    plotKDEAndHistogram(list(dictOfNodesAndRadius.values()))
