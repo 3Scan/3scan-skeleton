@@ -36,7 +36,7 @@ def removeCliqueEdges(networkxGraph):
                 if length == max(max(list(zip(*subGraphEdgelengths)))):
                     cliquEdges.append(combEdge[mainDim][subDim])
         networkxGraph.remove_edges_from(cliquEdges)
-        print("time taken to remove cliques is", time.time() - startt, "seconds")
+        print("time taken to remove cliques is %0.2f seconds" % (time.time() - startt))
 
 
 if __name__ == '__main__':
