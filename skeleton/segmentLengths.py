@@ -76,9 +76,9 @@ def _removeEdgesInVisitedPath(subGraphskeleton, path, cycle=0):
         subGraphskeleton.remove_edges_from(shortestPathedges)
 
 
-def getSegmentsAndLengths(networkxGraph):
+def getSegmentsAndLengths(imAray):
     """
-       the following function takes in a networkx graph
+       the following function takes in a image converts to networkx graph
        and process each of its disjoint graph to obtain
        the characteristics of segments in the disjoint
        subgraph
@@ -91,6 +91,8 @@ def getSegmentsAndLengths(networkxGraph):
        visited by reducing/ removing the premutation of paths
        already checked.
     """
+    networkxGraph = getNetworkxGraphFromarray(imAray)
+    removeCliqueEdges(networkxGraph)
     assert networkxGraph.number_of_selfloops() == 0
     # intitialize all the common variables
     startt = time.time()
@@ -216,9 +218,7 @@ def getSegmentsAndLengths(networkxGraph):
 if __name__ == '__main__':
     from skeleton.orientationStatisticsSpline import plotKde
     shskel = np.load("/home/pranathi/Downloads/shortestPathSkel.npy")
-    networkxGraph = getNetworkxGraphFromarray(shskel)
-    removeCliqueEdges(networkxGraph)
-    segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments = getSegmentsAndLengths(networkxGraph)
+    segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments = getSegmentsAndLengths(shskel)
     # getStatistics(segmentCountdict, 'segmentCount')
     # getStatistics(segmentLengthdict, 'segmentLength')
     # getStatistics(segmentTortuositydict, 'segmentTortuosity')
