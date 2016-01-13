@@ -74,7 +74,7 @@ def getSkeletonize3D(image):
         numpixel_removed, padImage = _skeletonPass(padImage)
         # print("number of pixels removed in pass {} is {}".format(pass_no, numpixel_removed))
         pass_no += 1
-    print("done %i number of pixels in %f seconds" % (np.sum(image), time.time() - start_skeleton))
+    print("done %i number of pixels in %0.2f seconds" % (np.sum(image), time.time() - start_skeleton))
     return padImage[1:zOrig + 1, 1:yOrig + 1, 1:xOrig + 1]
 
 if __name__ == '__main__':
