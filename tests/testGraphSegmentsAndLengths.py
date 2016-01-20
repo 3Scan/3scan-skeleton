@@ -6,7 +6,7 @@ from skimage.morphology import skeletonize as getSkeletonize2D
 from skeleton.segmentLengths import getSegmentsAndLengths
 from skeleton.networkxGraphFromarray import getNetworkxGraphFromarray
 from skeleton.cliqueRemovig import removeCliqueEdges
-from skeleton.segmentStatsDisjointGraph import plotGraphWithCount
+# from skeleton.segmentStatsDisjointGraph import plotGraphWithCount
 
 from tests.tests3DSkeletonize import getDonut
 
@@ -82,54 +82,54 @@ def getDisjointCyclesNoTrees2d(size=(10, 10)):
 def test_singlesegment():
     lineGraph = getSingleVoxelLineNobranches()
     dlinecount, dlinelength, segmentTortuosityline, totalSegmentsLine = getSegmentsAndLengths(lineGraph, True, False)
-    plotGraphWithCount(lineGraph, dlinecount)
+    # plotGraphWithCount(lineGraph, dlinecount)
     assert totalSegmentsLine == 1
 
 
 def test_singlecycle():
     donutGraph = getCycleNotree()
     dcyclecount, dcyclelength, segmentTortuositycycle, totalSegmentsDonut = getSegmentsAndLengths(donutGraph, True, False)
-    plotGraphWithCount(donutGraph, dcyclecount)
+    # plotGraphWithCount(donutGraph, dcyclecount)
     assert totalSegmentsDonut == 1
 
 
 def test_cycleAndTree():
     sampleGraph = getCyclesWithBranchesProtrude()
     dcycleTreecount, dcycleTreelength, segmentTortuositycycletree, totalSegmentsSampleGraph = getSegmentsAndLengths(sampleGraph, True, False)
-    plotGraphWithCount(sampleGraph, dcycleTreecount)
+    # plotGraphWithCount(sampleGraph, dcycleTreecount)
     assert totalSegmentsSampleGraph == 3
 
 
 def test_treeNocycle2d():
     crosGraph = getTreeNoCycle2d()
     dTreecount, dTreelength, segmentTortuositytree, totalSegmentsTree = getSegmentsAndLengths(crosGraph, True, False)
-    plotGraphWithCount(crosGraph, dTreecount)
+    # plotGraphWithCount(crosGraph, dTreecount)
     assert totalSegmentsTree == 4
 
 
 def test_disjointDoublecycle():
     multiloopgraph = getDisjointCyclesNoTrees2d()
     ddisjointCyclescount, ddisjointCycleslength, segmentTortuositycycles, totalSegmentsDisjointCycles = getSegmentsAndLengths(multiloopgraph, True, False)
-    plotGraphWithCount(multiloopgraph, ddisjointCyclescount)
+    # plotGraphWithCount(multiloopgraph, ddisjointCyclescount)
     assert totalSegmentsDisjointCycles == 2
 
 
 def test_treeNocycle3d():
     crosPairgraph = getDisjointTreesNoCycle3d()
     dTreescount, dTreeslength, segmentTortuositytrees, totalSegmentsTrees = getSegmentsAndLengths(crosPairgraph, True, False)
-    plotGraphWithCount(crosPairgraph, dTreescount)
+    # plotGraphWithCount(crosPairgraph, dTreescount)
     assert totalSegmentsTrees == 8
 
 
 def test_balancedtree():
     balancedTree = nx.balanced_tree(2, 1)
     dlinecount, dlinelength, segmentTortuosityline, totalSegmentsLine = getSegmentsAndLengths(balancedTree, True, False)
-    plotGraphWithCount(balancedTree, dlinecount)
+    # plotGraphWithCount(balancedTree, dlinecount)
     assert totalSegmentsLine == 1
 
 
 def test_touchingCycles():
     diamondGraph = nx.diamond_graph()
     dlinecount, dlinelength, segmentTortuosityline, totalSegmentsCycles = getSegmentsAndLengths(diamondGraph, True, False)
-    plotGraphWithCount(diamondGraph, dlinecount)
+    # plotGraphWithCount(diamondGraph, dlinecount)
     assert totalSegmentsCycles == 2
