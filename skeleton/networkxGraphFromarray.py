@@ -104,7 +104,7 @@ def getNetworkxGraphFromarray(arr, skeletonIm=True):
     else:
         skeleton = arr
     dictOfIndicesAndAdjacentcoordinates = _setAdjacencylistarray(skeleton)
-    print("adjacent list calculation for all nodes took %0.2f seconds" % (time.time() - startt))
+    print("adjacent list calculation for all nodes took %0.3f seconds" % (time.time() - startt))
     G = nx.from_dict_of_lists(dictOfIndicesAndAdjacentcoordinates)
 
     # asserting no extra nodes other than nonzero coordinates on skeleton
