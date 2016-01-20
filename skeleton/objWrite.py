@@ -50,7 +50,6 @@ def getObjWrite(imArray, pathTosave):
     #     # print(strs)
     # objFile.writelines(strsCycles)
     strsSeq = []
-    pathSeq = []
     # lines/edges in the network
     disjointGraphs = list(nx.connected_component_subgraphs(networkGraphIntegerNodes))
     print("number of disjoint graphs is", len(disjointGraphs))
@@ -82,20 +81,19 @@ def getObjWrite(imArray, pathTosave):
                 # print("number of cycles in the graph is", cycleCount)
                 """ if the maximum degree is equal to minimum degree it is a circle"""
                 cycle = cycleList[0]
-                pathSeq.append(cycle)
+                cycle.append(cycle[0])
                 strsSeq.append("l " + " ".join(str(x) for x in cycle) + "\n")
                 _removeEdgesInVisitedPath(subGraphskeleton, cycle, 1)
             elif set(degreeList) == set((1, 2)):
                 # print("line segment with no tree structure")
                 """ each node is connected to one or two other nodes implies it is a line"""
-                pathSeq.append(nodes)
                 strsSeq.append("l " + " ".join(str(x) for x in nodes) + "\n")
                 _removeEdgesInVisitedPath(subGraphskeleton, nodes, 0)
             elif cycleCount >= 1:
                 # print("cycle (more than 1) and tree like structures")
                 """go through each of the cycles"""
                 for nthCycle, cyclePath in enumerate(cycleList):
-                    pathSeq.append(cyclePath)
+                    cyclePath.append(cyclePath[0])
                     strsSeq.append("l " + " ".join(str(x) for x in cyclePath) + "\n")
                     _removeEdgesInVisitedPath(subGraphskeleton, cyclePath, 1)
                 "all the cycles in the graph are checked now look for the tree characteristics in this subgraph"
@@ -111,7 +109,6 @@ def getObjWrite(imArray, pathTosave):
                             if len(list(set(branchEndpoints) & set(simplePath))) != 2:
                                 continue
                             if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
-                                pathSeq.append(simplePath)
                                 strsSeq.append("l " + " ".join(str(x) for x in simplePath) + "\n")
                                 _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
             else:
@@ -127,11 +124,10 @@ def getObjWrite(imArray, pathTosave):
                             if len(list(set(branchEndpoints) & set(simplePath))) != 2:
                                 continue
                             if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
-                                pathSeq.append(simplePath)
                                 strsSeq.append("l " + " ".join(str(x) for x in simplePath) + "\n")
                                 _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
     objFile.writelines(strsSeq)
-    print("obj file write took %0.2f seconds" % (time.time() - startt))
+    print("obj file write took %0.3f seconds" % (time.time() - startt))
     # Close opend file
     objFile.close()
 
@@ -160,7 +156,7 @@ def getObjWriteEdges(imArray, pathTosave):
         strsEdges.append("l " + " ".join(str(x) for x in edge) + "\n")
         # print(strs)
     objFile.writelines(strsEdges)
-    print("obj file write took %0.2f seconds" % (time.time() - startt))
+    print("obj file write took %0.3f seconds" % (time.time() - startt))
     objFile.close()
 
 
@@ -168,13 +164,5 @@ if __name__ == '__main__':
     # read points into array
     truthCase = np.load("/home/pranathi/Downloads/mouseBrainSkeleton.npy")
     groundTruth = np.load("/media/pranathi/DATA/groundtruthNpy.npy")
-    getObjWriteEdges(truthCase, "/media/pranathi/DATA/withCliques/SPV_eT.obj")
-    getObjWriteEdges(groundTruth, "/media/pranathi/DATA/withCliques/SPV_egT.obj")
-    getObjWrite(truthCase, "/media/pranathi/DATA/withCliques/SPV_T.obj")
-    getObjWrite(groundTruth, "/media/pranathi/DATA/withCliques/SPV_gT.obj")
-    graph = {'A': ['B', 'C'],
-             'B': ['C', 'A'],
-             'C': ['D'],
-             'D': ['C'],
-             'E': ['F'],
-             'F': ['C']}
+    getObjWrite(truthCase, "/media/pranathi/DATA/SPV_T.obj")
+    getObjWrite(groundTruth, "/media/pranathi/DATA/SPV_GT.obj")
