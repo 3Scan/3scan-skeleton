@@ -174,7 +174,6 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
                                     segmentTortuositydict[sourceOnTree, item] = curveLength / curveDisplacement
                                     _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
                             segmentCountdict[sourceOnTree] = segment
-                            print("checking again here stupidly")
 
             else:
                 "acyclic tree characteristics"
@@ -201,7 +200,8 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
             if subGraphskeleton.number_of_edges() == 0:
                 continue
             else:
-                print("edges", subGraphskeleton.number_of_edges(), subGraphskeleton.edges())
+                print("edges", subGraphskeleton.number_of_edges());
+                break
             assert subGraphskeleton.number_of_edges() == 0
         # print("time taken in {} disjoint graph is {}".format(ithDisjointgraph, time.time() - starttDisjoint), "seconds")
     print(sum(segmentCountdict.values()), len(segmentLengthdict), len(segmentTortuositydict))

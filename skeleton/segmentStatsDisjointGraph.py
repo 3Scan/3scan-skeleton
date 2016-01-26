@@ -3,6 +3,7 @@ import xlsxwriter
 
 import numpy as np
 import networkx as nx
+from statistics import mean
 
 from skeleton.networkxGraphFromarray import getNetworkxGraphFromarray
 from skeleton.cliqueRemovig import removeCliqueEdges
@@ -72,7 +73,7 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
                 segmentdict[sourceOnCycle] = [1, 0, 1]
                 pathLength = _getDistanceBetweenPointsInpath(cycle, 1)
                 segmentdict[sourceOnCycle] = [1, pathLength, 0]
-                disjointgraphDict[ithDisjointgraph] = [1, pathLength, pathLength]
+                disjointgraphDict[ithDisjointgraph] = [1, pathLength, pathLength, 0, 0]
                 _removeEdgesInVisitedPath(subGraphskeleton, cycle, 1)
             elif set(degreeList) == set((1, 2)):
                 # print("line segment with no tree structure")
@@ -80,18 +81,21 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
                 set tortuosity to 1"""
                 sourceOnLine = nodes[0]
                 pathLength = _getDistanceBetweenPointsInpath(nodes, 0)
-                segmentdict[sourceOnLine] = [1, pathLength, 0]
-                disjointgraphDict[ithDisjointgraph] = [1, pathLength, pathLength]
+                segmentdict[sourceOnLine] = [1, pathLength, 1]
+                disjointgraphDict[ithDisjointgraph] = [1, pathLength, pathLength, 1, 1]
                 _removeEdgesInVisitedPath(subGraphskeleton, nodes, 0)
             elif cycleCount >= 1:
                 # print("cycle (more than 1) and tree like structures")
                 visitedSources = []
+                pathLengths = []
                 cycleOnSamesource = 0
+                totalSegmentLengths = []
                 """go through each of the cycles and find the lengths, set tortuosity to NaN represented by zero here(circle)"""
                 for nthCycle, cyclePath in enumerate(cycleList):
                     sourceOnCycle = cyclePath[0]
                     pathLength = _getDistanceBetweenPointsInpath(cyclePath, 1)
                     pathLengths.append(pathLength)
+                    totalSegmentLengths.append(pathLength)
                     visitedSources.append(sourceOnCycle)
                     if sourceOnCycle not in visitedSources:
                         "check if the same source has multiple loops/cycles"
@@ -100,12 +104,16 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
                         cycleOnSamesource += 1
                         segmentdict[sourceOnCycle] = [cycleOnSamesource, pathLengths, [0] * len(pathLengths)]
                     _removeEdgesInVisitedPath(subGraphskeleton, cyclePath, 1)
+                tortuosityList = [0] * len(cycleList)
+                totalSegmentsTortuosity = [0] * len(cycleList)
                 "all the cycles in the graph are checked now look for the tree characteristics in this subgraph"
                 # collecting all the branch and endpoints
+                totalSegmentsinDisjoint = len(cycleList)
                 branchEndpoints = [k for (k, v) in nodeDegreedict.items() if v == endPointdegree or v == branchPointdegree]
                 branchpoints = [k for (k, v) in nodeDegreedict.items() if v == branchPointdegree]
                 _getSort(branchpoints, nodeDim)
                 _getSort(branchEndpoints, nodeDim)
+                lengthList = [];
                 for i, sourceOnTree in enumerate(branchpoints):
                     segment = 0
                     for item in branchEndpoints:
@@ -117,13 +125,19 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
                                 segment += 1
                                 curveLength = _getDistanceBetweenPointsInpath(simplePath)
                                 curveDisplacement = np.sqrt(np.sum((np.array(sourceOnTree) - np.array(item)) ** 2))
-                                segmentLengthdict[sourceOnTree, item] = curveLength
-                                segmentTortuositydict[sourceOnTree, item] = curveLength / curveDisplacement
+                                tortuosity = curveLength / curveDisplacement
+                                lengthList[segment] = curveLength
+                                tortuosityList[segment] = tortuosity
                                 _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
-                        segmentCountdict[sourceOnTree] = segment
-
+                                totalSegmentLengths.append(curveLength)
+                                totalSegmentsTortuosity.append(tortuosity)
+                                _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
+                    totalSegmentsinDisjoint += segment
+                    segmentdict[sourceOnTree] = [segment, lengthList, tortuosityList]
+                disjointgraphDict[ithDisjointgraph] = [totalSegmentsinDisjoint, max(totalSegmentLengths), mean(pathLengths), max(totalSegmentsTortuosity), mean(totalSegmentsTortuosity)]
             else:
                 "acyclic tree characteristics"
+                totalSegmentLengths = []; totalSegmentsTortuosity = []
                 # print("tree like structure")
                 branchEndpoints = [k for (k, v) in nodeDegreedict.items() if v == endPointdegree or v == branchPointdegree]
                 branchpoints = [k for (k, v) in nodeDegreedict.items() if v == branchPointdegree]
@@ -140,16 +154,20 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
                                 segment += 1
                                 curveLength = _getDistanceBetweenPointsInpath(simplePath)
                                 curveDisplacement = np.sqrt(np.sum((np.array(sourceOnTree) - np.array(item)) ** 2))
-                                segmentLengthdict[segment, sourceOnTree, item] = curveLength
-                                segmentTortuositydict[segment, sourceOnTree, item] = curveLength / curveDisplacement
+                                lengthList[segment] = curveLength
+                                tortuosity = curveLength / curveDisplacement
+                                tortuosityList[segment] = tortuosity
+                                totalSegmentLengths.append(curveLength)
+                                totalSegmentsTortuosity.append(tortuosity)
                                 _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
-                        segmentCountdict[sourceOnTree] = segment
-            # assert subGraphskeleton.number_of_edges() == 0
-        # print("time taken in {} disjoint graph is {}".format(ithDisjointgraph, time.time() - starttDisjoint), "seconds")
-    assert sum(segmentCountdict.values()) == len(segmentTortuositydict) == len(segmentLengthdict)
-    totalSegments = len(segmentLengthdict)
+                    segmentdict[sourceOnTree] = [segment, lengthList, tortuosityList]
+            disjointgraphDict[ithDisjointgraph] = [totalSegmentsinDisjoint, max(totalSegmentLengths), mean(pathLengths), max(totalSegmentsTortuosity), mean(totalSegmentsTortuosity)]
+            print(subGraphskeleton.number_of_edges())
+            assert subGraphskeleton.number_of_edges() == 0
+    # assert sum(segmentCountdict.values()) == len(segmentTortuositydict) == len(segmentLengthdict)
+    # totalSegments = len(segmentLengthdict)
     print("time taken to calculate segments and their lengths is %0.3f seconds" % (time.time() - startt))
-    return segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments
+    return segmentdict, disjointgraphDict
 
 
 def xlsxWrite():
@@ -170,3 +188,7 @@ def xlsxWrite():
 
     workbook.close()
     pass
+
+if __name__ == '__main__':
+    shskel = np.load("/home/pranathi/Downloads/shortestPathSkel.npy")
+    segmentdict, disjointgraphDict = getSegmentsAndLengths(shskel)
