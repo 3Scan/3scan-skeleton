@@ -109,8 +109,8 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
                 "all the cycles in the graph are checked now look for the tree characteristics in this subgraph"
                 # collecting all the branch and endpoints
                 totalSegmentsinDisjoint = len(cycleList)
-                branchEndpoints = [k for (k, v) in nodeDegreedict.items() if v == endPointdegree or v == branchPointdegree]
-                branchpoints = [k for (k, v) in nodeDegreedict.items() if v == branchPointdegree]
+                branchEndpoints = [k for (k, v) in nodeDegreedict.items() if v == 1 or v > 2]
+                branchpoints = [k for (k, v) in nodeDegreedict.items() if v > 2]
                 _getSort(branchpoints, nodeDim)
                 _getSort(branchEndpoints, nodeDim)
                 lengthList = [];
@@ -139,8 +139,8 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
                 "acyclic tree characteristics"
                 totalSegmentLengths = []; totalSegmentsTortuosity = []
                 # print("tree like structure")
-                branchEndpoints = [k for (k, v) in nodeDegreedict.items() if v == endPointdegree or v == branchPointdegree]
-                branchpoints = [k for (k, v) in nodeDegreedict.items() if v == branchPointdegree]
+                branchEndpoints = [k for (k, v) in nodeDegreedict.items() if v == 1 or v > 2]
+                branchpoints = [k for (k, v) in nodeDegreedict.items() if v > 2]
                 _getSort(branchpoints, nodeDim)
                 _getSort(branchEndpoints, nodeDim)
                 for i, sourceOnTree in enumerate(branchpoints):
