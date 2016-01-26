@@ -100,13 +100,15 @@ def _setLabelCrowdedregion(connNeighborsList):
 
 
 def outOfPixBOunds(nearByCoordinate, aShape):
-    zMax, yMax = aShape
-    isAtXBoundary = nearByCoordinate[0] in [0, zMax]
-    isAtYBoundary = nearByCoordinate[1] in [0, yMax]
-    if isAtXBoundary or isAtYBoundary:
-        return 1
-    else:
-        return 0
+    onbound = 0
+    for index, maxVal in enumerate(aShape):
+        isAtBoundary = nearByCoordinate[index] in [0, maxVal] or nearByCoordinate[index] > maxVal
+        if isAtBoundary:
+            onbound = 1
+            break
+        else:
+            continue
+    return onbound
 
 
 stepDirect = itertools.product((-1, 0, 1), repeat=2)
