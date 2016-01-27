@@ -1,6 +1,6 @@
 import networkx as nx
 import numpy as np
-import skimage
+from skimage import morphology
 from math import pow, sqrt
 
 
@@ -14,7 +14,10 @@ def getDim(maxIndex, dims=3):
 
 
 def getTreeArray(branching=3, height=1, dims=3):
-    selem = skimage.morphology.ball(1)
+    if dims == 3:
+        selem = morphology.ball(1)
+    else:
+        selem = morphology.disk(1)
     treeGraph = nx.balanced_tree(branching, height)
     maxIndex = max(treeGraph.nodes())
     dim = getDim(maxIndex, dims)
@@ -30,9 +33,9 @@ def getTreeArray(branching=3, height=1, dims=3):
         if dist < 1:
             for i in range(0, dist):
                 treeArray[tuple((normalized * i) + nzi1)] = 1
-    synVessels = skimage.morphology.binary_dilation(treeArray, selem)
+    synVessels = morphology.binary_dilation(treeArray, selem)
     return synVessels, treeArray
 
 
 if __name__ == '__main__':
-    twoDVesselarray, twoDTreearray = getTreeArray(5, 2, 3)
+    twoDVesselarray, twoDTreearray = getTreeArray(5, 2, 2)

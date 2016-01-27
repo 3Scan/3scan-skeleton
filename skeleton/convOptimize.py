@@ -65,6 +65,7 @@ def getSkeletonize3D(image):
     In other words, 1 = object, 0 = background
     """
     assert np.max(image) in [0, 1]
+    image = np.bool(image)
     zOrig, yOrig, xOrig = np.shape(image)
     padImage = np.lib.pad(image, 1, 'constant', constant_values=0)
     start_skeleton = time.time()
@@ -75,7 +76,7 @@ def getSkeletonize3D(image):
         # print("number of pixels removed in pass {} is {}".format(pass_no, numpixel_removed))
         pass_no += 1
     print("done %i number of pixels in %0.2f seconds" % (np.sum(image), time.time() - start_skeleton))
-    return padImage[1:zOrig + 1, 1:yOrig + 1, 1:xOrig + 1]
+    return np.uint8(padImage[1:zOrig + 1, 1:yOrig + 1, 1:xOrig + 1])
 
 if __name__ == '__main__':
     sample = np.ones((5, 5, 5), dtype=np.uint8)

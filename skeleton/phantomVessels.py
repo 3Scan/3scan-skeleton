@@ -18,7 +18,7 @@ def makeFakeVessels(imgsize=(2048, 1024), background=230):
         cx, cy = random.uniform(0, sx), random.uniform(0, sy)
         r1, r2 = 0, 0
         while (r1 < minw) or (r2 < minw):
-            np.random.seed(20)
+            # np.random.seed(20)
             r1 = np.random.normal(mu, sigma)
             r2 = np.random.normal(mu, sigma)
         print(r1, r2)
@@ -64,13 +64,100 @@ def getPhantomLineToCheckOrientation(size=(25, 25, 25)):
     return stationaryImages
 
 
+def rotate2D(coordinates, fixedAngle=-30):
+    from math import cos, sin, radians
+    print(coordinates)
+    x = coordinates[0]
+    y = coordinates[1]
+    fixedAngle = radians(fixedAngle)
+    xt = x * cos(fixedAngle) - y * sin(fixedAngle)
+    yt = y * cos(fixedAngle) + x * sin(fixedAngle)
+    return xt, yt
+
+
+def getSyntheticVasculature(size=(512, 512, 512), ro=0.5):
+    vessels = np.zeros(size, dtype=bool)
+    centerList = []
+    radiusList = []
+    directionList = []
+    m, n, k = size
+    rr, cc = skimage.draw.circle(256, 256, 32)
+    circle = np.zeros((n, k), dtype=np.bool)
+    circle[rr, cc] = True
+    centerList.append((256, 256))
+    centerList.append((256, 256))
+    radiusList.append(32)
+    radiusList.append((36, 28))
+    vessels[0] = circle
+    rr, cc = skimage.draw.ellipse(256, 256, 36, 28)
+    ellipse = np.zeros((n, k), dtype=np.bool)
+    ellipse[rr, cc] = True
+    vessels[1] = ellipse
+    for i in range(2, size[0]):
+        print("ith loop --", i)
+        randomProbability = np.random.ranf()
+        if randomProbability < 0.07:
+            if type(centerList[i - 1][0]) != int:
+                print(centerList[i - 1])
+                print("subscript")
+                print(centerList[i - 1][0])
+                for previousCenters in centerList[i - 1]:
+                    numberOfBifurcations = np.random.randint(1, 6)
+                    transformedCenterj = []
+                    radiusj = []
+                    anglej = []
+                    for j in range(0, numberOfBifurcations):
+                        angle = (30 / (j + 1))
+                        anglej.append(angle)
+                        transformedCenter = rotate2D(previousCenters, angle)
+                        transformedCenterj.append(transformedCenter)
+                        prevRadius = radiusList[i - 1]
+                        if type(prevRadius) != int:
+                            print(prevRadius)
+                            radius = 0.7 * (prevRadius[0])
+                        else:
+                            radius = 0.7 * (prevRadius)
+                        radiusj.append(radius)
+                        rr, cc = skimage.draw.circle(transformedCenter[0], transformedCenter[1], radius)
+                        circle1 = np.zeros((n, k), dtype=np.bool)
+                        circle1[rr, cc] = True
+                        vessels[i] = np.logical_or(circle1, vessels[i])
+                directionList.append(anglej)
+                centerList.append(transformedCenterj)
+                radiusList.append(radiusj)
+            else:
+                transformedCenter1 = rotate2D(centerList[i - 1], 15)
+                transformedCenter2 = rotate2D(centerList[i - 1], -15)
+                prevRadius = radiusList[i - 1]
+                if type(prevRadius) != int:
+                    print(prevRadius)
+                    radius = 0.7 * (prevRadius[0])
+                else:
+                    radius = 0.7 * (prevRadius)
+                radiusList.append(tuple((radius, radius)))
+                rr, cc = skimage.draw.circle(transformedCenter1[0], transformedCenter1[1], radius)
+                circle1 = np.zeros((n, k), dtype=np.bool)
+                circle1[rr, cc] = True
+                rr, cc = skimage.draw.circle(transformedCenter2[0], transformedCenter2[1], radius)
+                circle2 = np.zeros((n, k), dtype=np.bool)
+                circle2[rr, cc] = True
+                vessels[i] = np.logical_or(circle1, circle2)
+                centerList.append((transformedCenter1, transformedCenter2))
+                directionList.append((15, -15))
+        else:
+            print(len(radiusList))
+            vessels[i] = vessels[i - 1]
+            radiusList.append(radiusList[i - 1])
+            centerList.append(centerList[i - 1])
+            directionList.append(radiusList[i - 1])
+    return vessels, centerList, radiusList, directionList
+
 if __name__ == '__main__':
-    from convOptimize import getSkeletonize3D
-    from radiusOfNodes import getRadiusByPointsOnCenterline
-    from unitwidthcurveskeleton import getShortestPathskeleton
-    from radiusOfNodes import _getBouondariesOfimage
-    from density import getRadisuStatistics
-    from density import splineInterpolateStatistics
+    from skeleton.convOptimize import getSkeletonize3D
+    from skeleton.radiusOfNodes import getRadiusByPointsOnCenterline, _getBouondariesOfimage
+    from skeleton.unitwidthcurveskeleton import getShortestPathskeleton
+    from skeleton.orientationStatisticsSpline import getStatistics
+    # from density import splineInterpolateStatistics
     phantom = getPhantom(424)
     np.save('/home/pranathi/Downloads/phantom.npy', phantom)
     phantomSkel = getSkeletonize3D(phantom)
@@ -79,7 +166,7 @@ if __name__ == '__main__':
     phantomBound = _getBouondariesOfimage(phantom)
     np.save('/home/pranathi/Downloads/phantomBound.npy', phantomBound)
     dict1, dist = getRadiusByPointsOnCenterline(phantomShort, phantomBound, phantom)
-    getRadisuStatistics(dict1, dist)
-    linesHandV = getPhantomLineToCheckOrientation((5, 5, 5))
-    x_knots, y_knots, z_knots, tangentVectors, normalVectors, binormalVectors, orientationPhi, orientationTheta, curvature, radiusoFCurvature = splineInterpolateStatistics(linesHandV[1])
-    assert np.unique(orientationPhi).tolist() == [90]
+    getStatistics(dict1, dist)
+    # linesHandV = getPhantomLineToCheckOrientation((5, 5, 5))
+    # x_knots, y_knots, z_knots, tangentVectors, normalVectors, binormalVectors, orientationPhi, orientationTheta, curvature, radiusoFCurvature = splineInterpolateStatistics(linesHandV[1])
+    # assert np.unique(orientationPhi).tolist() == [90]

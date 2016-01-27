@@ -1,5 +1,5 @@
 import numpy as np
-import skimage
+# import skimage
 from random import randint, seed
 
 from skeleton.networkxGraphFromarray import listStepDirect, listStepDirect2d
@@ -9,13 +9,13 @@ from skeleton.networkxGraphFromarray import listStepDirect, listStepDirect2d
 
 
 def createBranching(syntheticVessels, origin3dVertex, increments, branching):
-    print(origin3dVertex)
+    # print(origin3dVertex)
     aShape = syntheticVessels.shape
     randomBranchdirections = [randint(1, len(increments) - 1) for p in range(1, branching + 1)]
     for index, direction in enumerate(randomBranchdirections):
         nextOrigin = tuple(np.array(origin3dVertex) + np.array(increments[direction]))
         # + np.array([5] * syntheticVessels.ndim)
-        print(nextOrigin)
+        # print(nextOrigin)
         if outOfPixBOunds(nextOrigin, aShape) == 0:
             syntheticVessels[nextOrigin] = 1
         else:
@@ -44,7 +44,7 @@ def generateSyntheticvessels(shape=(64, 64, 64), branching=2):
     else:
         increments = listStepDirect2d
     origin3dVertex = np.unravel_index(originVessels, dims=shape, order='C')
-    for i in range(0, 10):
+    for i in range(0, 1):
         createBranching(syntheticVessels, origin3dVertex, increments, branching)
     # if syntheticVessels.sum() == 0:
     #     generateSyntheticvessels(shape=shape, branching=branching)
@@ -82,9 +82,9 @@ def generate_random_tree(node_list, idx=0, parent=None, depth=0, max_children=2,
 
 
 if __name__ == '__main__':
+    syntheticVessels3D = generateSyntheticvessels()
     tree = [[0, None, 0]]  # the algorithm starts with a root node which has no parents and depth 0
     seed(0)
-    syntheticVessels3D = generateSyntheticvessels()
     generate_random_tree(node_list=tree, idx=len(tree), parent=0, depth=1, max_children=3, max_depth=5)
     tree.remove(tree[0])
     treeStructure = np.zeros(tuple(tree[-1]), dtype=np.uint8)
