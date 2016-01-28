@@ -6,6 +6,7 @@ import scipy
 import time
 
 from scipy import ndimage
+from skimage import morphology
 
 
 """
@@ -111,36 +112,45 @@ def averageShortestdistance(d1, d2, d3):
     return averageShortestdistance
 
 
-def getReconstructedVasculature(distTransformedIm):
+def getReconstructedVasculature(dictOfNodesAndRadius, distTransformedIm, skeletonIm):
     zDim, yDim, xDim = np.shape(distTransformedIm)
-    shapeC = zDim, yDim, xDim, 3
+    shapeC = zDim, yDim, xDim
     reconstructedImage = np.zeros(shapeC, dtype=np.uint8)
-    reconstructedImage = np.lib.pad(reconstructedImage, 1, 'constant', constant_values=0)
-    distTransformedIm = np.lib.pad(distTransformedIm, 1, 'constant', constant_values=0)
-    listNZI = map(tuple, np.transpose(np.nonzero(distTransformedIm)))
-    dictOfNodesAndRadius = list_to_dict(listNZI, distTransformedIm)
-    sorted_x = sorted(dictOfNodesAndRadius.items(), key=operator.itemgetter(1), reverse=True)
-    for index, (key, value) in enumerate(sorted_x):
-        z, y, x = key
-        reconstructedImage[z - value, y - value, y - value, 1] = (index + 1) * 1
-        reconstructedImage[z + value, y + value, x + value, 1] = (index + 1) * 1
-        reconstructedImage[z - value, y - value, y - value, 2] = (index + 1) * 2
-        reconstructedImage[z + value, y + value, x + value, 2] = (index + 1) * 2
-        reconstructedImage[z - value, y - value, y - value, 3] = (index + 1) * 3
-        reconstructedImage[z + value, y + value, x + value, 3] = (index + 1) * 3
-    return reconstructedImage[1: zDim + 1, 1: yDim + 1, 1: xDim + 1, 1: 4]
+    se = np.ones((3, 3, 3), dtype=np.uint8)
+    label, numDisjointRegions = ndimage.measurements.label(skeletonIm, structure=se)
+    mask = np.zeros(shapeC, dtype=np.uint8)
+    print(numDisjointRegions)
+    objectify = ndimage.find_objects(label)
+    for i in range(0, numDisjointRegions):
+        loc = objectify[i]
+        zcoords = loc[0]; ycoords = loc[1]; xcoords = loc[2]
+        regionLowerBoundZ = zcoords.start - 1; regionLowerBoundY = ycoords.start - 1; regionLowerBoundX = xcoords.start - 1
+        regionUpperBoundZ = zcoords.stop + 1; regionUpperBoundY = ycoords.stop + 1; regionUpperBoundX = xcoords.stop + 1
+        dilatedMask = mask[regionLowerBoundZ: regionUpperBoundZ, regionLowerBoundY: regionUpperBoundY, regionLowerBoundX: regionUpperBoundX]
+        dilatedSkeletonIm = skeletonIm[regionLowerBoundZ: regionUpperBoundZ, regionLowerBoundY: regionUpperBoundY, regionLowerBoundX: regionUpperBoundX]
+        dests = map(tuple, np.transpose(np.nonzero(dilatedSkeletonIm)))
+        for dest in dests:
+            radius = dictOfNodesAndRadius[dest]
+            selemBall = morphology.ball(radius)
+            dilatedMask[dest] = 1
+            reconstructIthImage = ndimage.morphology.binary_dilation(dilatedSkeletonIm, structure=selemBall, iterations=1, mask=dilatedMask)
+            reconstructedImage[regionLowerBoundZ: regionUpperBoundZ, regionLowerBoundY: regionUpperBoundY, regionLowerBoundX: regionUpperBoundX] = np.logical_or(reconstructedImage[regionLowerBoundZ: regionUpperBoundZ, regionLowerBoundY: regionUpperBoundY, regionLowerBoundX: regionUpperBoundX], reconstructIthImage)
+    # skeletonImNew[np.logical_and(valencearray == 0, skeletonIm == 1)] = 1  # see if isolated voxels can be removed (answer: yes)
+    stopp = time.time()
+    print("time taken to reconstruct the skeleton is", (stopp - startt), "seconds")
+    return reconstructedImage
 
 
 if __name__ == '__main__':
     from skeleton.orientationStatisticsSpline import getStatistics, plotKDEAndHistogram
     startt = time.time()
     # load the skeletonized image
-    skeletonIm = np.load('/Users/3scan_editing/records/shortestPathSkel1.npy')
-    thresholdIm = np.load('/Users/3scan_editing/records/mouseBrainBinary.npy')
-    inputIm = np.load('/Users/3scan_editing/records/mouseBrainGreyscale.npy')
+    skeletonIm = np.load('/home/pranathi/Downloads/shortestPathSkel.npy')
+    thresholdIm = np.load('/home/pranathi/Downloads/mouseBrainBinary.npy')
+    inputIm = np.load('/home/pranathi/Downloads/mouseBrainGreyscale.npy')
     # finding edges of the microvasculature
     boundaryIm = _getBouondariesOfimage(thresholdIm)
-    dictOfNodesAndRadius, distTransformedIm = getRadiusByPointsOnCenterline(skeletonIm, boundaryIm, inputIm, aspectRatio=[10, 0.7, 0.7])
+    dictOfNodesAndRadius, distTransformedIm = getRadiusByPointsOnCenterline(skeletonIm, boundaryIm, inputIm, aspectRatio=[1, 1, 1])
     dictOfNodesAndRadiusz, distTransformedImz = getRadiusByPointsOnCenterlineslicewise(skeletonIm, boundaryIm, inputIm, aspectRatio=[0.7, 0.7], plane=0)
     dictOfNodesAndRadiusy, distTransformedImz = getRadiusByPointsOnCenterlineslicewise(skeletonIm, boundaryIm, inputIm, aspectRatio=[0.7, 0.7], plane=1)
     dictOfNodesAndRadiusx, distTransformedImz = getRadiusByPointsOnCenterlineslicewise(skeletonIm, boundaryIm, inputIm, aspectRatio=[0.7, 0.7], plane=2)
