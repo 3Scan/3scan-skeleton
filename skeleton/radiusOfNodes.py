@@ -113,6 +113,7 @@ def averageShortestdistance(d1, d2, d3):
 
 
 def getReconstructedVasculature(dictOfNodesAndRadius, distTransformedIm, skeletonIm):
+    startt = time.time()
     zDim, yDim, xDim = np.shape(distTransformedIm)
     shapeC = zDim, yDim, xDim
     reconstructedImage = np.zeros(shapeC, dtype=np.uint8)
@@ -122,15 +123,17 @@ def getReconstructedVasculature(dictOfNodesAndRadius, distTransformedIm, skeleto
     print(numDisjointRegions)
     objectify = ndimage.find_objects(label)
     for i in range(0, numDisjointRegions):
+        print("ith loop", i)
         loc = objectify[i]
         zcoords = loc[0]; ycoords = loc[1]; xcoords = loc[2]
         regionLowerBoundZ = zcoords.start - 1; regionLowerBoundY = ycoords.start - 1; regionLowerBoundX = xcoords.start - 1
         regionUpperBoundZ = zcoords.stop + 1; regionUpperBoundY = ycoords.stop + 1; regionUpperBoundX = xcoords.stop + 1
         dilatedMask = mask[regionLowerBoundZ: regionUpperBoundZ, regionLowerBoundY: regionUpperBoundY, regionLowerBoundX: regionUpperBoundX]
+        dilatedDistanceTransform = distTransformedIm[regionLowerBoundZ: regionUpperBoundZ, regionLowerBoundY: regionUpperBoundY, regionLowerBoundX: regionUpperBoundX]
         dilatedSkeletonIm = skeletonIm[regionLowerBoundZ: regionUpperBoundZ, regionLowerBoundY: regionUpperBoundY, regionLowerBoundX: regionUpperBoundX]
         dests = map(tuple, np.transpose(np.nonzero(dilatedSkeletonIm)))
         for dest in dests:
-            radius = dictOfNodesAndRadius[dest]
+            radius = dilatedDistanceTransform[dest]
             selemBall = morphology.ball(radius)
             dilatedMask[dest] = 1
             reconstructIthImage = ndimage.morphology.binary_dilation(dilatedSkeletonIm, structure=selemBall, iterations=1, mask=dilatedMask)
