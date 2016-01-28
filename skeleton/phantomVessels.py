@@ -76,20 +76,21 @@ def rotate2D(coordinates, fixedAngle=-30):
 
 
 def getSyntheticVasculature(size=(512, 512, 512), ro=0.5):
+    # Allocate the size of synthetic vesels
     vessels = np.zeros(size, dtype=bool)
-    centerList = []
+    centerList = []  # initialize lists to store centers, radius and directions
     radiusList = []
     directionList = []
-    m, n, k = size
-    rr, cc = skimage.draw.circle(256, 256, 32)
-    circle = np.zeros((n, k), dtype=np.bool)
+    m, n, k = size  # size of the image
+    rr, cc = skimage.draw.circle(256, 256, 32)  # (256, 256) = center radius = 32, gives coordinates inside the circle
+    circle = np.zeros((n, k), dtype=np.bool)  # draw a circle on the first plane
     circle[rr, cc] = True
-    centerList.append((256, 256))
+    centerList.append((256, 256))  # keeping track of radius and centers
     centerList.append((256, 256))
     radiusList.append(32)
     radiusList.append((36, 28))
-    vessels[0] = circle
-    rr, cc = skimage.draw.ellipse(256, 256, 36, 28)
+    vessels[0] = circle  # set the first plane to circle
+    rr, cc = skimage.draw.ellipse(256, 256, 36, 28)  # Set the second plane to ellipse
     ellipse = np.zeros((n, k), dtype=np.bool)
     ellipse[rr, cc] = True
     vessels[1] = ellipse
