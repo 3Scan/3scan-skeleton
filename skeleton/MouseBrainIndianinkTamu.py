@@ -30,6 +30,19 @@ def convertToBinary(image, convert):
     return np.uint8(binary_global), global_thresh
 
 
+def getDiceSimilarityCOefficient(inputIm, thresholdedIm):
+    """
+        Takes an original image and its segmentation result
+        gives the efficiency of a segmentation with dice similariy statistic
+        defined as 2(A & B)/ A + B where A, B are the original and segmentation
+        result, & intersection ("non zero voxels in common"), A + B indicates sum of non
+        zero voxels in A and B
+    """
+    numerator = np.sum(np.logical_and(thresholdedIm, inputIm))
+    denominator = len(np.transpose(np.nonzero(inputIm))) + len(np.transpose(np.nonzero(thresholdedIm)))
+    dsc = numerator / denominator
+    return dsc
+
 if __name__ == '__main__':
     startt = time.time()
     count = 0
