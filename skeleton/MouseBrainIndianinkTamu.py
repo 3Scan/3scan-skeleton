@@ -10,7 +10,8 @@ from convOptimize import getSkeletonize3D
 """
     takes in 2D image slices from the root directory
     converts them to binary and returns the thinnned 3d volume
-    as a boolean array
+    as a boolean array, image slices as pngs in the root directory
+    under name twodkskeletonslices
 """
 
 from skimage.filters import threshold_otsu
@@ -46,7 +47,8 @@ def getDiceSimilarityCOefficient(inputIm, thresholdedIm):
 if __name__ == '__main__':
     startt = time.time()
     count = 0
-    root = "/home/pranathi/Downloads/twodimageslices"
+    root = input("please enter a root directory where your 2D slices are----")
+    formatOfFiles = input("please enter the format of 2D files---")
     # list and sort all the files in the given greyscale
     # input root directory
     # which is to be skeletonized
@@ -61,10 +63,10 @@ if __name__ == '__main__':
     # dimensional volume
     listOfJpgs = []
     for file in listOffiles:
-        if file.endswith(".jpg"):
+        if file.endswith(formatOfFiles):
             listOfJpgs.append(file)
             count = count + 1
-    i = imread((os.path.join(root, file)))
+    i = imread((os.path.join(root, listOffiles[0])))
     m, n = np.shape(i)
     inputIm = np.zeros((count, m, n), dtype=np.uint8)
     count1 = 0
@@ -73,17 +75,19 @@ if __name__ == '__main__':
     for file in listOfJpgs:
         inputIm[count1][:][:] = imread((os.path.join(root, file)))
         count1 += 1
-    # smoothedIm = scipy.ndimage.filters.gaussian_filter(inputIm, [7, 0.7, 0.7])
+    inputIm = scipy.ndimage.interpolation.zoom(inputIm, zoom=[1, 0.6, 0.7], order=0)
+    inputIm = scipy.ndimage.filters.gaussian_filter(inputIm, sigma=1)
     thresholdedIm, globalThreshold = convertToBinary(inputIm, False)
     print("skeletonizing started at")
     print(strftime("%a, %d %b %Y %H:%M:%S ", localtime()))
     print("threshold of the 3d volume is", globalThreshold)
-    np.save('/home/pranathi/Downloads/mouseBrainGreyscale.npy', inputIm)
-    np.save('/home/pranathi/Downloads/mouseBrainBinary.npy', thresholdedIm)
+    os.mkdir(root + 'twodkskeletonslices')
+    np.save(root + 'twodkskeletonslices/' + 'Greyscale.npy', inputIm)
+    np.save(root + 'twodkskeletonslices/' + 'Binary.npy', thresholdedIm)
     skeletonIm = getSkeletonize3D(thresholdedIm)
-    np.save('/home/pranathi/Downloads/mouseBrainSkeleton.npy', skeletonIm)
+    np.save(root + 'Skeleton.npy', skeletonIm)
     for i in range(skeletonIm.shape[0]):
-        scipy.misc.imsave('/home/pranathi/Downloads/twodskeletonslices/skeletonIm%i.png' % i, skeletonIm[i] * 255)
+        scipy.misc.imsave(root + 'twodkskeletonslices/' + 'skeletonIm%i.png' % i, skeletonIm[i] * 255)
     print("skeletonizing ended at")
     print(strftime("%a, %d %b %Y %H:%M:%S", localtime()))
     print("\ttime taken to skeletonize the {} sized image is {}.".format(dimensions, (time.time() - startt)))

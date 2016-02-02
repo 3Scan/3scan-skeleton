@@ -276,9 +276,9 @@ def list_to_dict(listNZI, skeletonLabelled):
 
 
 if __name__ == '__main__':
-    skeletonIm = np.load('/home/pranathi/Downloads/mouseBrainSkeleton.npy')
+    skeletonIm = np.load('/home/pranathi/Downloads/twodimageslices/Skeleton.npy')
     shortestPathSkel = getShortestPathskeleton(skeletonIm)
-    np.save("/home/pranathi/Downloads/shortestPathSkel.npy", shortestPathSkel)
+    np.save("/home/pranathi/Downloads/twodimageslices/shortestPathSkel.npy", shortestPathSkel)
     label_img1, countObjects = ndimage.measurements.label(skeletonIm, structure=np.ones((3, 3, 3), dtype=np.uint8))
     label_img2, countObjectsShorty = ndimage.measurements.label(shortestPathSkel, structure=np.ones((3, 3, 3), dtype=np.uint8))
     assert countObjects == countObjectsShorty

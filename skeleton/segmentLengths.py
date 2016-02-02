@@ -41,7 +41,7 @@ def _getSort(cycles, nodeDim):
        to highest only if it is not sorted
     """
     # print("sorting", len(cycles), "number of nodes")
-    if nodeDim != 1:
+    if nodeDim != 0:
         for i in range(nodeDim):
             cycles.sort(key=lambda x: (x[i]))
         return cycles
@@ -99,6 +99,7 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
         nodes = subGraphskeleton.nodes()
         if len(nodes) == 1:
             " if it is a single node"
+            print("single node")
             segmentCountdict[nodes[0]] = 1
             segmentLengthdict[nodes[0], nodes[0]] = 0
             segmentTortuositydict[nodes[0], nodes[0]] = 1
@@ -120,6 +121,7 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
                 """ if the maximum degree is equal to minimum degree it is a circle, set
                 tortuosity to infinity (NaN) """
                 cycle = cycleList[0]
+                print("cycle")
                 sourceOnCycle = cycle[0]
                 segmentCountdict[sourceOnCycle] = 1
                 segmentLengthdict[sourceOnCycle, cycle[-1]] = _getDistanceBetweenPointsInpath(cycle, 1)
@@ -129,12 +131,12 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
                 # print("line segment with no tree structure")
                 """ each node is connected to one or two other nodes implies it is a line,
                 set tortuosity to 1"""
+                print("straight line")
                 sourceOnLine = nodes[0]; targetOnLine = nodes[-1]
                 segmentCountdict[sourceOnLine] = 1
                 segmentLengthdict[sourceOnLine, targetOnLine] = _getDistanceBetweenPointsInpath(nodes, 0)
                 segmentTortuositydict[sourceOnLine, targetOnLine] = 1
-                edges = subGraphskeleton.edges()
-                subGraphskeleton.remove_edges_from(edges)
+                _removeEdgesInVisitedPath(subGraphskeleton, nodes, 0)
             elif cycleCount >= 1:
                 # print("cycle (more than 1) and tree like structures")
                 visitedSources = []
@@ -152,11 +154,13 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
                     segmentLengthdict[sourceOnCycle, cyclePath[-1]] = _getDistanceBetweenPointsInpath(cyclePath, 1)
                     segmentTortuositydict[sourceOnCycle, cyclePath[-1]] = 0
                     _removeEdgesInVisitedPath(subGraphskeleton, cyclePath, 1)
+                print("multiple cycles")
                 if subGraphskeleton.number_of_edges() != 0:
+                    print("multiple cycles - disjointGraphs")
                     "all the cycles in the graph are checked now look for the tree characteristics in this subgraph"
                     # collecting all the branch and endpoints
-                    branchEndpoints = [k for (k, v) in nodeDegreedict.items() if v == 1 or v > 2]
-                    branchpoints = [k for (k, v) in nodeDegreedict.items() if v > 2]
+                    branchEndpoints = [k for (k, v) in nodeDegreedict.items() if v == branchPointdegree or v == endPointdegree]
+                    branchpoints = [k for (k, v) in nodeDegreedict.items() if v == branchPointdegree]
                     _getSort(branchpoints, nodeDim)
                     _getSort(branchEndpoints, nodeDim)
                     for i, sourceOnTree in enumerate(branchpoints):
@@ -173,13 +177,13 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
                                     segmentLengthdict[sourceOnTree, item] = curveLength
                                     segmentTortuositydict[sourceOnTree, item] = curveLength / curveDisplacement
                                     _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
-                            segmentCountdict[sourceOnTree] = segment
+                                    segmentCountdict[sourceOnTree] = segment
 
             else:
                 "acyclic tree characteristics"
-                # print("tree like structure")
-                branchEndpoints = [k for (k, v) in nodeDegreedict.items() if v == 1 or v > 2]
-                branchpoints = [k for (k, v) in nodeDegreedict.items() if v > 2]
+                print("tree like structure")
+                branchEndpoints = [k for (k, v) in nodeDegreedict.items() if v == branchPointdegree or v == endPointdegree]
+                branchpoints = [k for (k, v) in nodeDegreedict.items() if v == branchPointdegree]
                 _getSort(branchpoints, nodeDim)
                 _getSort(branchEndpoints, nodeDim)
                 for i, sourceOnTree in enumerate(branchpoints):
@@ -196,16 +200,16 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
                                 segmentLengthdict[segment, sourceOnTree, item] = curveLength
                                 segmentTortuositydict[segment, sourceOnTree, item] = curveLength / curveDisplacement
                                 _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
-                        segmentCountdict[sourceOnTree] = segment
-            if subGraphskeleton.number_of_edges() == 0:
-                continue
-            else:
-                print("edges", subGraphskeleton.number_of_edges());
-                break
-            assert subGraphskeleton.number_of_edges() == 0
+                                segmentCountdict[sourceOnTree] = segment
+            # if subGraphskeleton.number_of_edges() == 0:
+            #     continue
+            # else:
+            #     print("edges", subGraphskeleton.number_of_edges());
+            #     break
+            # assert subGraphskeleton.number_of_edges() == 0
         # print("time taken in {} disjoint graph is {}".format(ithDisjointgraph, time.time() - starttDisjoint), "seconds")
-    print(sum(segmentCountdict.values()), len(segmentLengthdict), len(segmentTortuositydict))
-    assert sum(segmentCountdict.values()) == len(segmentTortuositydict) == len(segmentLengthdict)
+    # print(sum(segmentCountdict.values()), len(segmentLengthdict), len(segmentTortuositydict))
+    # assert sum(segmentCountdict.values()) == len(segmentTortuositydict) == len(segmentLengthdict)
     totalSegments = len(segmentLengthdict)
     print("time taken to calculate segments and their lengths is %0.3f seconds" % (time.time() - startt))
     return segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments

@@ -3,67 +3,6 @@ import random
 import skimage
 
 
-def makeFakeVessels(imgsize=(2048, 1024), background=230):
-    """
-    create and save a matrix with whitish background and randomly selected vessel sizes and save matrices generated as images of format png
-    """
-    nVes = 9
-    mu = 20
-    sigma = 5
-    minw = 5
-    sx, sy = imgsize
-    vasc = np.ones((sx, sy), dtype=np.uint8) * background
-
-    for i in range(nVes):
-        cx, cy = random.uniform(0, sx), random.uniform(0, sy)
-        r1, r2 = 0, 0
-        while (r1 < minw) or (r2 < minw):
-            # np.random.seed(20)
-            r1 = np.random.normal(mu, sigma)
-            r2 = np.random.normal(mu, sigma)
-        print(r1, r2)
-
-        rr, cc = skimage.draw.ellipse(cy, cx, r1, r2)
-        if np.any(rr >= sy):
-            ix = rr < sy
-            rr, cc = rr[ix], cc[ix]
-        if np.any(cc >= sx):
-            ix = cc < sx
-            rr, cc = rr[ix], cc[ix]
-        vasc[rr, cc] = 1  # make circle blackish
-    return vasc
-
-
-def getPhantom(slices):
-    vessels = _getCrosssection()
-    phantom = np.zeros((slices, vessels.shape[0], vessels.shape[1]), dtype=np.uint8)
-    for i in range(0, slices):
-        phantom[i, :, :] = vessels
-    return phantom
-
-
-def _getCrosssection():
-    s = np.array((512, 512))
-    vessels = makeFakeVessels(s, background=0)
-    return vessels
-
-
-def getPhantomLineToCheckOrientation(size=(25, 25, 25)):
-
-    hLine = np.zeros(size, dtype=bool)
-    hLine[3, :, 4] = 1
-    vLine = hLine.T.copy()
-
-    # A "comb" of lines
-    hLines = np.zeros(size, dtype=bool)
-    hLines[0, ::3, :] = 1
-    vLines = hLines.T.copy()
-    # A grid made up of two perpendicular combs
-    grid = hLines | vLines
-    stationaryImages = [hLine, vLine, hLines, vLines, grid]
-    return stationaryImages
-
-
 def rotate2D(coordinates, fixedAngle=-30):
     from math import cos, sin, radians
     x = coordinates[0]
@@ -74,30 +13,22 @@ def rotate2D(coordinates, fixedAngle=-30):
     return xt, yt
 
 
-def getSyntheticVasculature(size=(512, 512, 512), ro=0.5):
+def getSyntheticVasculature(size=(512, 512, 512), ro=0.07):
     # Allocate the size of synthetic vesels
     vessels = np.zeros(size, dtype=bool)
     centerList = []  # initialize lists to store centers, radius and directions
     radiusList = []
     directionList = []
     m, n, k = size  # size of the image
-    rr, cc = skimage.draw.circle(256, 256, 32)  # (256, 256) = center radius = 32, gives coordinates inside the circle
-    circle = np.zeros((n, k), dtype=np.bool)  # draw a circle on the first plane
-    circle[rr, cc] = True
+    rr, cc = skimage.draw.circle(256, 256, 16)  # (256, 256) = center radius = 32, returns all of coordinates within the circle
     centerList.append((256, 256))  # keeping track of radius and centers
-    centerList.append((256, 256))
     radiusList.append(32)
-    radiusList.append((36, 28))
-    vessels[0] = circle  # set the first plane to circle
-    rr, cc = skimage.draw.ellipse(256, 256, 36, 28)  # Set the second plane to ellipse
-    ellipse = np.zeros((n, k), dtype=np.bool)
-    ellipse[rr, cc] = True
-    vessels[1] = ellipse
+    vessels[0, rr, cc] = True  # set the first plane to circle - z plane in python
     # for the rest of the planes do the following
-    for i in range(2, size[0]):
+    for i in range(1, size[0]):
         print("ith loop --", i)
         randomProbability = np.random.ranf()  # if a selected random number is less than 0.07,bifurcation folows in the plane
-        if randomProbability < 0.07:
+        if randomProbability < ro:
             if type(centerList[i - 1][0]) != int:  # if there was a single center in the previous plane
                 for previousCenters in centerList[i - 1]:  # for each of the centers of ellipses in center list of previous plane
                     numberOfBifurcations = np.random.randint(1, 6)  # more bifurcations = random number between 1 and 6
@@ -120,9 +51,7 @@ def getSyntheticVasculature(size=(512, 512, 512), ro=0.5):
                         rr, cc = skimage.draw.circle(transformedCenter[0], transformedCenter[1], radius)  # get the coordinates inside the circle of radius found
                         assert np.sum([item for item in rr.tolist() if item < 1]) == 0  # assert the coordinates are not negative
                         assert np.sum([item for item in cc.tolist() if item < 1]) == 0  # assert the coordinates are not negative
-                        circle1 = np.zeros((n, k), dtype=np.bool)  # allocate memory for the plane
-                        circle1[rr, cc] = True   # set the coordinates inside the circle to ones
-                        vessels[i] = np.logical_or(circle1, vessels[i])  # vessels so far is the logical or of all the bifurcations
+                        vessels[i, rr, cc] = np.logical_or(circle1, vessels[i, rr, cc])  # vessels so far is the logical or of all the bifurcations
                 directionList.append(anglej)  # keeping track of radius and direcions
                 centerList.append(transformedCenterj)
                 radiusList.append(radiusj)
@@ -160,7 +89,7 @@ def getSyntheticVasculature(size=(512, 512, 512), ro=0.5):
     return vessels, centerList, radiusList, directionList
 
 if __name__ == '__main__':
-    vessels = getSyntheticVasculature()
+    vessels, centerList, radiusList, directionList = getSyntheticVasculature()
     # from skeleton.convOptimize import getSkeletonize3D
     # from skeleton.radiusOfNodes import getRadiusByPointsOnCenterline, _getBouondariesOfimage
     # from skeleton.unitwidthcurveskeleton import getShortestPathskeleton

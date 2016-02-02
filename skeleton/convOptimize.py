@@ -65,7 +65,7 @@ def getSkeletonize3D(image):
     In other words, 1 = object, 0 = background
     """
     assert np.max(image) in [0, 1]
-    image = np.bool(image)
+    image = image.astype(bool)
     zOrig, yOrig, xOrig = np.shape(image)
     padImage = np.lib.pad(image, 1, 'constant', constant_values=0)
     start_skeleton = time.time()
