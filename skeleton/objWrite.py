@@ -6,145 +6,95 @@ import time
 
 from skeleton.cliqueRemovig import removeCliqueEdges
 from skeleton.networkxGraphFromarray import getNetworkxGraphFromarray
-from skeleton.segmentLengths import _getSort, _removeEdgesInVisitedPath
+from skeleton.segmentLengths import _removeEdgesInVisitedPath
 
 
 """
-   program to look up adjacent elements and calculate degree
-   this dictionary can be used for graph creation
-   since networkx graph based on looking up the array and the
-   adjacent coordinates takes long time. create a dict
-   using dictOfIndicesAndAdjacentcoordinates. Refer the following link
-   https://networkx.github.io/documentation/development/reference/generated/networkx.convert.from_dict_of_lists.html
+    write an array to a wavefront obj file - time takes upto 3 minutes for a 512 * 512 * 512 array,
+    input array can be either 3D or 2D. Function needs to be called with an array you want to save
+    as a .obj file and the location on obj file
 """
 
 
 def getObjWrite(imArray, pathTosave):
     """
-       takes in a numpy skeleton array and converts it to a obj file
+       takes in a numpy array and converts it to a obj file and writes it to pathTosave
     """
-    startt = time.time()
-    networkxGraph = getNetworkxGraphFromarray(imArray, True)
-    removeCliqueEdges(networkxGraph)
-    objFile = open(pathTosave, "w")
-    GraphList = nx.to_dict_of_lists(networkxGraph)
-    verticesSorted = list(GraphList.keys())
+    startt = time.time()  # for calculating time taken to write to an obj file
+    networkxGraph = getNetworkxGraphFromarray(imArray, True)  # converts array to a networkx graph(based on non zero coordinates and the adjacent nonzeros)
+    removeCliqueEdges(networkxGraph)  # remove cliques in the graph
+    objFile = open(pathTosave, "w")  # open a obj file in the given path
+    GraphList = nx.to_dict_of_lists(networkxGraph)  # convert the graph to a dictionary with keys as nodes and list of adjacent nodes as the values
+    verticesSorted = list(GraphList.keys())  # list and sort the keys so they are geometrically in the same order when writing to an obj file as (l_prefix paths)
     verticesSorted.sort()
-    # print(verticesSorted)
-    # http://www.tutorialspoint.com/python/file_writelines.html
-    # http://learnpythonthehardway.org/book/ex16.html
-    # vertices of the network
-    strsVertices = []
-    mapping = {}
-    for index, line in enumerate(verticesSorted):
-        mapping[line] = index + 1
-        strsVertices.append("v " + " ".join(str(x) for x in line) + "\n")
-    objFile.writelines(strsVertices)
+    strsVertices = []; mapping = {}  # initialize variables for writing string of vertex v followed by x, y, x coordinates in the obj file
+    #  for each of the sorted vertices
+    for index, vertex in enumerate(verticesSorted):
+        mapping[vertex] = index + 1  # a mapping to transform the vertices (x, y, z) to indexes (beginining with 1)
+        strsVertices.append("v " + " ".join(str(dim) for dim in vertex) + "\n")  # add strings of vertices to obj file
+    objFile.writelines(strsVertices)  # write strings to obj file
     networkGraphIntegerNodes = nx.relabel_nodes(networkxGraph, mapping, False)
     strsSeq = []
-    # lines/edges in the network
+    # line prefixes for the obj file
     disjointGraphs = list(nx.connected_component_subgraphs(networkGraphIntegerNodes))
-    print("number of disjoint graphs is", len(disjointGraphs))
-    """ check if the nodes are of one dimensions or more than one dimensions
-        and intitialize the variable nodeDim used in sorting nodes later """
     for ithDisjointgraph, subGraphskeleton in enumerate(disjointGraphs):
-        # starttDisjoint = time.time()
         nodes = subGraphskeleton.nodes()
         if len(nodes) == 1:
-            " if it is a single node"
-            # print("single node")
-            _removeEdgesInVisitedPath(subGraphskeleton, nodes, 1)
+            continue
+        """ if there are more than one nodes decide what kind of subgraph it is
+            if it has cycles alone, or is a cyclic graph with a tree or an
+            acyclic graph with tree """
+        nodes.sort()
+        cycleList = nx.cycle_basis(subGraphskeleton)
+        cycleCount = len(cycleList)
+        nodeDegreedict = nx.degree(subGraphskeleton)
+        degreeList = list(nodeDegreedict.values())
+        endPointdegree = min(degreeList)
+        branchPointdegree = max(degreeList)
+        if endPointdegree == branchPointdegree and nx.is_biconnected(subGraphskeleton) and cycleCount != 0:
+            """ if the maximum degree is equal to minimum degree it is a circle"""
+            cycle = cycleList[0]
+            cycle.append(cycle[0])
+            strsSeq.append("l " + " ".join(str(x) for x in cycle) + "\n")
+            _removeEdgesInVisitedPath(subGraphskeleton, cycle, 1)
+        elif set(degreeList) == set((1, 2)):
+            """ each node is connected to one or two other nodes implies it is a line"""
+            strsSeq.append("l " + " ".join(str(x) for x in nodes) + "\n")
+            _removeEdgesInVisitedPath(subGraphskeleton, nodes, 0)
+        elif cycleCount >= 1:
+            """go through each of the cycles"""
+            for nthCycle, cyclePath in enumerate(cycleList):
+                cyclePath.append(cyclePath[0])
+                strsSeq.append("l " + " ".join(str(x) for x in cyclePath) + "\n")
+                _removeEdgesInVisitedPath(subGraphskeleton, cyclePath, 1)
+            "all the cycles in the graph are checked now look for the tree characteristics in this subgraph"
+            # collecting all the branch and endpoints
+            branchpoints = [k for (k, v) in nodeDegreedict.items() if v > 2]
+            endpoints = [k for (k, v) in nodeDegreedict.items() if v == 1]
+            branchpoints.sort(); endpoints.sort();
+            listOfPerms = list(itertools.product(branchpoints, endpoints))
+            for sourceOnTree, item in listOfPerms:
+                if nx.has_path(subGraphskeleton, sourceOnTree, item):
+                    simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
+                    for simplePath in simplePaths:
+                        strsSeq.append("l " + " ".join(str(x) for x in simplePath) + "\n")
+                        _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
         else:
-            """ if there are more than one nodes decide what kind of subgraph it is
-                if it has cycles alone, or is a cyclic graph with a tree or an
-                acyclic graph with tree """
-            nodes.sort()
-            cycleList = nx.cycle_basis(subGraphskeleton)
-            cycleCount = len(cycleList)
-            nodeDegreedict = nx.degree(subGraphskeleton)
-            degreeList = list(nodeDegreedict.values())
-            endPointdegree = min(degreeList)
-            branchPointdegree = max(degreeList)
-            if endPointdegree == branchPointdegree and nx.is_biconnected(subGraphskeleton) and cycleCount != 0:
-                # print("1 cycle in disjoint graph and no other components")
-                # print("number of cycles in the graph is", cycleCount)
-                """ if the maximum degree is equal to minimum degree it is a circle"""
-                # print("single cycle")
-                cycle = cycleList[0]
-                cycle.append(cycle[0])
-                strsSeq.append("l " + " ".join(str(x) for x in cycle) + "\n")
-                _removeEdgesInVisitedPath(subGraphskeleton, cycle, 1)
-            elif set(degreeList) == set((1, 2)):
-                # print("line segment with no tree structure")
-                # print("straight line")
-                """ each node is connected to one or two other nodes implies it is a line"""
-                strsSeq.append("l " + " ".join(str(x) for x in nodes) + "\n")
-                edges = subGraphskeleton.edges()
-                subGraphskeleton.remove_edges_from(edges)
-            elif cycleCount >= 1:
-                # print("cycle tree graph")
-                # print("cycle (more than 1) and tree like structures")
-                """go through each of the cycles"""
-                # print("multiple cycles")
-                for nthCycle, cyclePath in enumerate(cycleList):
-                    cyclePath.append(cyclePath[0])
-                    strsSeq.append("l " + " ".join(str(x) for x in cyclePath) + "\n")
-                    _removeEdgesInVisitedPath(subGraphskeleton, cyclePath, 1)
-                "all the cycles in the graph are checked now look for the tree characteristics in this subgraph"
-                # collecting all the branch and endpoints
-                branchEndpoints = [k for (k, v) in nodeDegreedict.items() if v != 2 or v == 1]
-                branchEndpoints.sort()
-                listOfPerms = list(itertools.permutations(branchEndpoints, 2))
-                for sourceOnTree, item in listOfPerms:
-                    if nx.has_path(subGraphskeleton, sourceOnTree, item):
-                        simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
-                        for simplePath in simplePaths:
-                            strsSeq.append("l " + " ".join(str(x) for x in simplePath) + "\n")
-                            _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
-            else:
-                "acyclic tree characteristics"""
-                # print("acyclic")
-                branchEndpoints = [k for (k, v) in nodeDegreedict.items() if v != 2 or v == 1]
-                branchEndpoints.sort()
-                listOfPerms = list(itertools.permutations(branchEndpoints, 2))
-                for sourceOnTree, item in listOfPerms:
-                    if nx.has_path(subGraphskeleton, sourceOnTree, item):
-                        simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
-                        for simplePath in simplePaths:
-                            strsSeq.append("l " + " ".join(str(x) for x in simplePath) + "\n")
-                            _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
+            "acyclic tree characteristics"""
+            branchpoints = [k for (k, v) in nodeDegreedict.items() if v > 2]
+            endpoints = [k for (k, v) in nodeDegreedict.items() if v == 1]
+            branchpoints.sort(); endpoints.sort();
+            listOfPerms = list(itertools.product(branchpoints, endpoints))
+            for sourceOnTree, item in listOfPerms:
+                if nx.has_path(subGraphskeleton, sourceOnTree, item):
+                    simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
+                    for simplePath in simplePaths:
+                        strsSeq.append("l " + " ".join(str(x) for x in simplePath) + "\n")
+                        _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
             assert subGraphskeleton.number_of_edges() == 0
     objFile.writelines(strsSeq)
     print("obj file write took %0.3f seconds" % (time.time() - startt))
     # Close opend file
-    objFile.close()
-
-
-def getObjWriteEdges(imArray, pathTosave):
-    startt = time.time()
-    networkxGraph = getNetworkxGraphFromarray(imArray, True)
-    removeCliqueEdges(networkxGraph)
-    objFile = open(pathTosave, "w")
-    GraphList = nx.to_dict_of_lists(networkxGraph)
-    verticesSorted = list(GraphList.keys())
-    _getSort(verticesSorted, 3)
-    # http://www.tutorialspoint.com/python/file_writelines.html
-    # http://learnpythonthehardway.org/book/ex16.html
-    # vertices of the network
-    strsVertices = []
-    mapping = {}
-    for index, line in enumerate(verticesSorted):
-        mapping[line] = index + 1
-        strsVertices.append("v " + " ".join(str(x) for x in line) + "\n")
-    objFile.writelines(strsVertices)
-    networkGraphIntegerNodes = nx.relabel_nodes(networkxGraph, mapping, False)
-    edgesList = networkGraphIntegerNodes.edges()
-    strsEdges = []
-    for edge in edgesList:
-        strsEdges.append("l " + " ".join(str(x) for x in edge) + "\n")
-        # print(strs)
-    objFile.writelines(strsEdges)
-    print("obj file write took %0.3f seconds" % (time.time() - startt))
     objFile.close()
 
 
