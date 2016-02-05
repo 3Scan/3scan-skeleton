@@ -36,6 +36,16 @@ def getObjWrite(imArray, pathTosave):
     networkGraphIntegerNodes = nx.relabel_nodes(networkxGraph, mapping, False)
     strsSeq = []
     # line prefixes for the obj file
+    """
+        algorithm - 1) go through each of the disjoint graphs
+                    2) decide if it is one of the following a) line
+                    b) cycle c) acyclic tree like structure d) cyclic tree like structure
+                    e) single node
+                    3) Find all the paths in a given disjoint graph from a point whose degree is greater
+                    than or equal to 2 to a point whose degree equal to one
+                    4) Save edges in each path as l prefix follwed by the index of the vertex
+                    5) Remove all the edges in this path once they are traced
+    """
     disjointGraphs = list(nx.connected_component_subgraphs(networkGraphIntegerNodes))
     for ithDisjointgraph, subGraphskeleton in enumerate(disjointGraphs):
         nodes = subGraphskeleton.nodes()
@@ -58,9 +68,26 @@ def getObjWrite(imArray, pathTosave):
             strsSeq.append("l " + " ".join(str(x) for x in cycle) + "\n")
             _removeEdgesInVisitedPath(subGraphskeleton, cycle, 1)
         elif set(degreeList) == set((1, 2)):
-            """ each node is connected to one or two other nodes implies it is a line"""
-            strsSeq.append("l " + " ".join(str(x) for x in nodes) + "\n")
-            _removeEdgesInVisitedPath(subGraphskeleton, nodes, 0)
+            branchpoints = list(nx.articulation_points(subGraphskeleton))
+            endpoints = [k for (k, v) in nodeDegreedict.items() if v == 1]
+            listOfPerms = list(itertools.product(branchpoints, endpoints))
+            modulus = [[start - end] for start, end in listOfPerms]
+            dists = [abs(i[0]) for i in modulus]
+            if len(branchpoints) == 1 and set(dists) != 1:
+                """ each node is connected to one or two other nodes implies and there is a
+                    one branch point at a distance not equal to one it is a single dichotomous tree"""
+                branchpoints.sort(); endpoints.sort();
+                for sourceOnTree, item in listOfPerms:
+                    if nx.has_path(subGraphskeleton, sourceOnTree, item):
+                        simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
+                        for simplePath in simplePaths:
+                            strsSeq.append("l " + " ".join(str(x) for x in simplePath) + "\n")
+                            _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
+            else:
+                """ each node is connected to one or two other nodes implies it is a line,
+                set tortuosity to 1"""
+                _removeEdgesInVisitedPath(subGraphskeleton, nodes, 0)
+                strsSeq.append("l " + " ".join(str(x) for x in nodes) + "\n")
         elif cycleCount >= 1:
             """go through each of the cycles"""
             for nthCycle, cyclePath in enumerate(cycleList):
@@ -72,10 +99,16 @@ def getObjWrite(imArray, pathTosave):
             branchpoints = [k for (k, v) in nodeDegreedict.items() if v > 2]
             endpoints = [k for (k, v) in nodeDegreedict.items() if v == 1]
             branchpoints.sort(); endpoints.sort();
+            # get a list of permutations with branch points - points with degree greater than 2
+            # as the starting vertex and end points - points with degree equal to one as the
+            # ending vertex
             listOfPerms = list(itertools.product(branchpoints, endpoints))
             for sourceOnTree, item in listOfPerms:
+                # find if a path exist between given starting and ending vertex
                 if nx.has_path(subGraphskeleton, sourceOnTree, item):
+                    # if a path exists, list out all the paths
                     simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
+                    # for each simple path, save the edges in the path to save it a .obj file
                     for simplePath in simplePaths:
                         strsSeq.append("l " + " ".join(str(x) for x in simplePath) + "\n")
                         _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
@@ -103,4 +136,4 @@ if __name__ == '__main__':
     truthCase = np.load("/home/pranathi/Downloads/twodimageslices/output/Skeleton.npy")
     groundTruth = np.load("/home/pranathi/Downloads/twodimageslices/output/Skeleton-gt.npy")
     getObjWrite(truthCase, "/media/pranathi/DATA/PV_T.obj")
-    getObjWrite(groundTruth, "/media/pranathi/DATA/SPV_GT.obj")
+    getObjWrite(groundTruth, "/media/pranathi/DATA/PV_GT.obj")
