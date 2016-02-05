@@ -1,8 +1,8 @@
-from scipy.misc import imread
+from scipy.misc import imread, imsave
 import numpy as np
-from time import localtime, strftime
-import scipy
 import time
+from time import localtime, strftime
+from scipy import ndimage
 import os
 
 from convOptimize import getSkeletonize3D
@@ -75,8 +75,8 @@ if __name__ == '__main__':
     for file in listOfJpgs:
         inputIm[count1][:][:] = imread((os.path.join(root, file)))
         count1 += 1
-    inputIm = scipy.ndimage.interpolation.zoom(inputIm, zoom=[1, 0.6, 0.7], order=0)
-    inputIm = scipy.ndimage.filters.gaussian_filter(inputIm, sigma=1)
+    inputIm = ndimage.interpolation.zoom(inputIm, zoom=[1, 0.6, 0.7], order=0)
+    inputIm = ndimage.filters.gaussian_filter(inputIm, sigma=1)
     thresholdedIm, globalThreshold = convertToBinary(inputIm, False)
     print("skeletonizing started at")
     print(strftime("%a, %d %b %Y %H:%M:%S ", localtime()))
@@ -87,11 +87,10 @@ if __name__ == '__main__':
     skeletonIm = getSkeletonize3D(thresholdedIm)
     np.save(root + 'Skeleton.npy', skeletonIm)
     for i in range(skeletonIm.shape[0]):
-        scipy.misc.imsave(root + 'twodkskeletonslices/' + 'skeletonIm%i.png' % i, skeletonIm[i] * 255)
+        imsave(root + 'twodkskeletonslices/' + 'skeletonIm%i.png' % i, skeletonIm[i] * 255)
     print("skeletonizing ended at")
     print(strftime("%a, %d %b %Y %H:%M:%S", localtime()))
     print("\ttime taken to skeletonize the {} sized image is {}.".format(dimensions, (time.time() - startt)))
-    from scipy import ndimage
     label_img1, countObjects = ndimage.measurements.label(thresholdedIm, structure=np.ones((3, 3, 3), dtype=np.uint8))
     label_img2, countObjectsSkel = ndimage.measurements.label(skeletonIm, structure=np.ones((3, 3, 3), dtype=np.uint8))
     assert countObjects == countObjectsSkel
