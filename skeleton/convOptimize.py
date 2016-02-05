@@ -1,15 +1,17 @@
 import numpy as np
+import os
 import time
 from scipy import ndimage
 from scipy.ndimage.filters import convolve
 from skeleton.rotationalOperators import directionList
+from skeleton.radiusOfNodes import _getBouondariesOfimage
 
 """
    reference paper
    http://web.inf.u-szeged.hu/ipcg/publications/papers/PalagyiKuba_GMIP1999.pdf
 """
 
-import os
+
 lookUparray = np.load(os.path.join(os.path.dirname(__file__), 'lookuparray.npy'))
 sElement = ndimage.generate_binary_structure(3, 1)
 
@@ -52,8 +54,11 @@ def _applySubiter(image, convImage):
        different image named temp_del and finally multiply it with the original
        image to delete the voxels so marked
     """
+    boundaries = _getBouondariesOfimage(image)
+    nzi = list(set(map(tuple, np.transpose(np.nonzero(boundaries)))))
     temp_del = np.zeros_like(image)
-    temp_del[:] = lookUparray[convImage[:]]
+    for index in nzi:
+        temp_del[index] = lookUparray[convImage[index]]
     numpixel_removed = np.einsum('ijk->', image * temp_del, dtype=int)
     image[temp_del == 1] = 0
     return numpixel_removed, image
