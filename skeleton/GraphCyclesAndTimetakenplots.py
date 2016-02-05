@@ -26,7 +26,7 @@ def _cycle(n):
     removeCliqueEdges(networkxGraph)
     print("nth cycle", n)
     startt = time.time()
-    dcyclecount, dcyclelength, segmentTortuositycycle, totalSegmentsDonut = getSegmentsAndLengths(networkxGraph)
+    dcyclecount, dcyclelength, segmentTortuositycycle, totalSegmentsDonut = getSegmentsAndLengths(networkxGraph, True, False)
     timeTaken = time.time() - startt
     print(n, totalSegmentsDonut)
     assert totalSegmentsDonut == 1
@@ -43,10 +43,9 @@ def _tree(n):
     removeCliqueEdges(networkxGraph)
     print("nth tree", n)
     startt = time.time()
-    dcyclecount, dcyclelength, segmentTortuositycycle, totalSegmentsDonut = getSegmentsAndLengths(networkxGraph)
+    dcyclecount, dcyclelength, segmentTortuositycycle, totalSegmentsDonut = getSegmentsAndLengths(networkxGraph, True, False)
     timeTaken = time.time() - startt
     print(n, totalSegmentsDonut)
-    assert totalSegmentsDonut == networkxGraph.number_of_edges()
     densityOfgraph = nx.density(networkxGraph)
     n = networkxGraph.number_of_nodes()
     return timeTaken, densityOfgraph, n
