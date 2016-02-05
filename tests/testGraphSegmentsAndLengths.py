@@ -125,7 +125,7 @@ def test_balancedtree():
     balancedTree = nx.balanced_tree(2, 1)
     dlinecount, dlinelength, segmentTortuosityline, totalSegmentsLine = getSegmentsAndLengths(balancedTree, True, False)
     # plotGraphWithCount(balancedTree, dlinecount)
-    assert totalSegmentsLine == 1
+    assert totalSegmentsLine == 2
 
 
 def test_touchingCycles():
