@@ -72,8 +72,12 @@ if __name__ == '__main__':
     count1 = 0
     print("x, y, z dimensions are %i %i %i  " % (m, n, count))
     dimensions = (m, n, count)
-    for file in listOfJpgs:
-        inputIm[count1][:][:] = imread((os.path.join(root, file)))
+    mip = np.ones((m, n), dtype=int) * 255
+    for fileName in listOfJpgs:
+        image = imread((os.path.join(root, fileName)))
+        inputIm[count1][:][:] = image
+        inds = image < mip  # find where image intensity < min intensity
+        mip[inds] = image[inds]  # update the minimum value at each pixel
         count1 += 1
     inputIm = ndimage.interpolation.zoom(inputIm, zoom=[1, 0.6, 0.7], order=0)
     inputIm = ndimage.filters.gaussian_filter(inputIm, sigma=1)
@@ -94,3 +98,4 @@ if __name__ == '__main__':
     label_img1, countObjects = ndimage.measurements.label(thresholdedIm, structure=np.ones((3, 3, 3), dtype=np.uint8))
     label_img2, countObjectsSkel = ndimage.measurements.label(skeletonIm, structure=np.ones((3, 3, 3), dtype=np.uint8))
     assert countObjects == countObjectsSkel
+
