@@ -9,20 +9,30 @@ from scipy import ndimage
 from scipy.misc import imread
 
 
-# def process(listOfJpgs):
-#     min_ = np.ones((12000, 3000)) * 255
-#     for fileName in listOfJpgs:
-#         im_array = imread((os.path.join(root, fileName)))
-#         min_ = np.minimum(min_, im_array)
-#     return min_
+def process(listOfJpgs):
+    min_ = np.ones((12000, 3000)) * 255
+    for fileName in listOfJpgs[0]:
+        print(fileName)
+        # read the image
+        image = imread(fileName)
+        # remove the black pixels and extract 12000 x 3000 tissue region from 12000 * 4096 images
+        imageExtract = np.zeros((12000, 3000), dtype=int)
+        # remove the black pixels on left dure to absence of tissue (tissue already cut)
+        imageExtract[:, 0:199] = image[:, 201:400]
+        # remove the black pixels on the right beacuse light is focused only in the center and left
+        # to pixels on the line scan camera
+        imageExtract[:, 200:] = image[:, 400: 3200]
+        min_ = np.minimum(min_, imageExtract)
+    print(np.sum(min_))
+    return min_
 
 
 def stackVolume():
     startt = time.time()
     root = input("please enter a root directory where your 2D slices are ----")  # enter directory of entire KESM data set is
+    beginningFolder = input("please enter the starting folder----")  # enter the starting folder index ex:0000
     forMat = input("enter the format of the files ----")  # entire the format of image data set
     numberOfFolders = input("enter number of folders or cuts----")  # enter the number of cuts per each face of the image
-    beginningFolder = input("please enter the starting folder----")  # enter the starting folder index ex:0000
     listOfJpgsCutwise = []  # initialize the list of Jpgs collection
     # for each of the cuts on the face of block of the resin under KESM
     for i in range(0, int(numberOfFolders)):
@@ -68,39 +78,38 @@ def stackVolume():
         for presentIndex, jpgFilename in enumerate(listOfJpgsCutwise[i]):
             # enumerate all the elements in the string and collect the z dimension
             for index, items in enumerate(jpgFilename):
-                if items != 'z':
-                    continue
-                # strip of the underscore from the string in z0.0080_
-                # and get a floating point number of where the slice is
-                zdim = float(jpgFilename[index + 1].strip('_'))
-                # store the floating point reprsentation of z dimension from the filename
-                zdimlist.append(zdim)
-                directoryCut = root + beginningFolder + str(i) + '/'
-                # read the image
-                image = imread((os.path.join(directoryCut, jpgFilename)))
-                # remove the black pixels and extract 12000 x 3000 tissue region from 12000 * 4096 images
-                imageExtract = np.zeros((m, 3000), dtype=int)
-                # remove the black pixels on left dure to absence of tissue (tissue already cut)
-                imageExtract[:, 0:199] = image[:, 201:400]
-                # remove the black pixels on the right beacuse light is focused only in the center and left
-                # to pixels on the line scan camera
-                imageExtract[:, 200:] = image[:, 400: 3200]
-                # skip every 200 rows and 200 columns and downsample the 12000 x 3000 to 60 x 15
-                downSampledimage = ndimage.interpolation.zoom(imageExtract, zoom=resFactor, order=0)
-                # shape of the downsampled image
-                x, y = downSampledimage.shape
-                # delete the image and imageExtract to save memory
-                del image; del imageExtract;
-                # if it is not the first file in the cut displace it by the starting index of the z file for the cut
-                # or subdirectory - (startingIndex[i]) and copy the downSampledImage at the displaced index
-                if presentIndex != 0:
-                    inputIm[(startingIndex[i] + (1000 * (zdim - zdimlist[presentIndex - 1]))), :, :] = downSampledimage
-                else:
-                    # if it is the first file then copy the downsampled index at the starting index of the
-                    # total array for tthe subdirectory
-                    inputIm[startingIndex[i], :, :] = downSampledimage
-                # del the downsampledimage after copying to save memory
-                del downSampledimage
+                if items == 'z':
+                    # strip of the underscore from the string in z0.0080_
+                    # and get a floating point number of where the slice is
+                    zdim = float(jpgFilename[index + 1].strip('_'))
+                    # store the floating point reprsentation of z dimension from the filename
+                    zdimlist.append(zdim)
+            directoryCut = root + beginningFolder + str(i) + '/'
+            # read the image
+            image = imread((os.path.join(directoryCut, jpgFilename)))
+            # remove the black pixels and extract 12000 x 3000 tissue region from 12000 * 4096 images
+            imageExtract = np.zeros((m, 3000), dtype=int)
+            # remove the black pixels on left dure to absence of tissue (tissue already cut)
+            imageExtract[:, 0:199] = image[:, 201:400]
+            # remove the black pixels on the right beacuse light is focused only in the center and left
+            # to pixels on the line scan camera
+            imageExtract[:, 200:] = image[:, 400: 3200]
+            # skip every 200 rows and 200 columns and downsample the 12000 x 3000 to 60 x 15
+            downSampledimage = ndimage.interpolation.zoom(imageExtract, zoom=resFactor, order=0)
+            # shape of the downsampled image
+            x, y = downSampledimage.shape
+            # delete the image and imageExtract to save memory
+            del image; del imageExtract;
+            # if it is not the first file in the cut displace it by the starting index of the z file for the cut
+            # or subdirectory - (startingIndex[i]) and copy the downSampledImage at the displaced index
+            if presentIndex != 0:
+                inputIm[(startingIndex[i] + (1000 * (zdim - zdimlist[presentIndex - 1]))), :, :] = downSampledimage
+            else:
+                # if it is the first file then copy the downsampled index at the starting index of the
+                # total array for tthe subdirectory
+                inputIm[startingIndex[i], :, :] = downSampledimage
+            # del the downsampledimage after copying to save memory
+            del downSampledimage
         # copy or place all the nth sub-directory/cut images at the nth offset of the total volume/cube of dataset - totalArray
         totalArray[:, :, (i * y): (i + 1) * y] = inputIm
         # delete the nth subdirectory/cut images after copying
@@ -113,10 +122,10 @@ def stackVolume():
 
 def getProjection():
     root = input("please enter a root directory where your 2D slices are ----")  # enter directory of entire KESM data set is
+    beginningFolder = input("please enter the starting folder----")  # enter the starting folder index ex:0000
     startt = time.time()
     forMat = input("enter the format of the files ----")  # entire the format of image data set
     numberOfFolders = input("enter number of folders or cuts----")  # enter the number of cuts per each face of the image
-    beginningFolder = input("please enter the starting folder----")  # enter the starting folder index ex:0000
     listOfJpgsCutwise = []  # initialize the list of Jpgs collection
     # for each of the cuts on the face of block of the resin under KESM
     for i in range(0, int(numberOfFolders)):
@@ -127,7 +136,7 @@ def getProjection():
         # store the file names ending with entered format
         for file in listOffiles:
             if file.endswith(forMat):
-                listOfJpgs.append(file)
+                listOfJpgs.append((os.path.join(directoryCut, file)))
                 count += 1
         listOfJpgsCutwise.append(listOfJpgs)
         # print jpgs per each cut read
@@ -136,24 +145,32 @@ def getProjection():
     directoryCut = root + beginningFolder + str(0) + '/'
     image = imread((os.path.join(directoryCut, listOfJpgsCutwise[0][0])))
     m, n = np.shape(image)  # m = 12000, n = 4096
+    print(listOfJpgsCutwise)
     totalArraymip = np.zeros((m, int(numberOfFolders) * 3000), dtype=int)
-    listOfMips = []
+    listOfMips = []; p = Pool(8)
     mip = np.ones((m, 3000), dtype=int) * 255
-    for i in range(0, int(numberOfFolders)):
-        print("in cut", i)
-        for presentIndex, jpgFilename in enumerate(listOfJpgsCutwise[i]):
-            directoryCut = root + beginningFolder + str(i) + '/'
-            # read the image
-            image = imread((os.path.join(directoryCut, jpgFilename)))
-            # remove the black pixels and extract 12000 x 3000 tissue region from 12000 * 4096 images
-            imageExtract = np.zeros((m, 3000), dtype=int)
-            # remove the black pixels on left dure to absence of tissue (tissue already cut)
-            imageExtract[:, 0:199] = image[:, 201:400]
-            # remove the black pixels on the right beacuse light is focused only in the center and left
-            # to pixels on the line scan camera
-            imageExtract[:, 200:] = image[:, 400: 3200]
-            inds = imageExtract < mip  # find where image intensity < min intensity
-            mip[inds] = imageExtract[inds]  # update the minimum value at each pixel
+    for cut in range(0, int(numberOfFolders)):
+        print("in cut", cut)
+        file_chunks = []
+        chunksize = 500
+        file_chunks = [listOfJpgsCutwise[i:i + chunksize]
+                      for i in range(0, len(listOfJpgsCutwise[cut]), chunksize)]
+        ranges = range(0, len(listOfJpgsCutwise[cut]), chunksize)
+
+        for chunk_idx in ranges:
+            file_chunks.append(listOfJpgsCutwise[cut][chunk_idx:chunk_idx + chunksize])
+
+        #  find the minimum x,y vals in chunks of 100
+        first = True
+        print("file chunks are", file_chunks)
+        min_arrays = p.map(process, file_chunks)
+
+        #  Find the minimum from the minimums returned from each process
+        for array in min_arrays:
+            if first:
+                mini = array
+                first = False
+            mip = np.minimum(array, mini)
         listOfMips.append(mip)
         # copy or place all the nth sub-directory/cut images mip at the nth offset of totalArray
         totalArraymip[:, (i * 3000): (i + 1) * 3000] = mip
@@ -170,7 +187,8 @@ def upsample():
 
 
 if __name__ == '__main__':
-    # getProjection()
+    from multiprocessing import Pool
+    listOfMips, totalArraymip = getProjection()
     #  p = Pool(8)
 
     # chunksize = 1500  # 12000/8 = 1500, might have less overhead
@@ -183,5 +201,5 @@ if __name__ == '__main__':
     #     # this returns an array of (len(files)/chunksize, 4000, 4000)
     #     min_arrays = np.array(p.map(process, chunks))
     #     mini = np.amin(min_arrays, axis=0)
-    stackVolume()
+    # stackVolume()
 
