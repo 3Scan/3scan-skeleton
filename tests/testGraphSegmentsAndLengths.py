@@ -109,7 +109,7 @@ def test_treeNocycle2d():
 
 def test_disjointDoublecycle():
     multiloopgraph = getDisjointCyclesNoTrees2d()
-    ddisjointCyclescount, ddisjointCycleslength, segmentTortuositycycles, totalSegmentsDisjointCycles = getSegmentsAndLengths(multiloopgraph, True, False)
+    disjointCyclescount, ddisjointCycleslength, segmentTortuositycycles, totalSegmentsDisjointCycles = getSegmentsAndLengths(multiloopgraph, True, False)
     # plotGraphWithCount(multiloopgraph, ddisjointCyclescount)
     assert totalSegmentsDisjointCycles == 2
 
@@ -123,13 +123,13 @@ def test_treeNocycle3d():
 
 def test_balancedtree():
     balancedTree = nx.balanced_tree(2, 1)
-    dlinecount, dlinelength, segmentTortuosityline, totalSegmentsLine = getSegmentsAndLengths(balancedTree, True, False)
+    dlinecountbaltree, dlinebaltree, segmentTortuositybaltree, totalSegmentsBalancedTree = getSegmentsAndLengths(balancedTree, True, False)
     # plotGraphWithCount(balancedTree, dlinecount)
-    assert totalSegmentsLine == 2
+    assert totalSegmentsBalancedTree == 2
 
 
 def test_touchingCycles():
     diamondGraph = nx.diamond_graph()
-    dlinecount, dlinelength, segmentTortuosityline, totalSegmentsCycles = getSegmentsAndLengths(diamondGraph, True, False)
+    dcyclescount, dcycleslength, segmentTortuositycycles, totalSegmentsCycles = getSegmentsAndLengths(diamondGraph, True, False)
     # plotGraphWithCount(diamondGraph, dlinecount)
     assert totalSegmentsCycles == 2
