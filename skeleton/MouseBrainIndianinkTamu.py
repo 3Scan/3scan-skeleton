@@ -5,7 +5,9 @@ from time import localtime, strftime
 from scipy import ndimage
 import os
 
-from convOptimize import getSkeletonize3D
+from skeleton.radiusOfNodes import _getBouondariesOfimage
+from skeleton.convOptimize import getSkeletonize3D
+from skeleton.unitwidthcurveskeleton import getShortestPathskeleton
 
 """
     takes in 2D image slices from the root directory
@@ -44,7 +46,8 @@ def getDiceSimilarityCOefficient(inputIm, thresholdedIm):
     dsc = numerator / denominator
     return dsc
 
-if __name__ == '__main__':
+
+def skeletonizeAndSave(contrast=False, aspectRatio=[1, 1, 1], zoom=True):
     startt = time.time()
     count = 0
     root = input("please enter a root directory where your 2D slices are----")
@@ -71,7 +74,6 @@ if __name__ == '__main__':
     inputIm = np.zeros((count, m, n), dtype=np.uint8)
     count1 = 0
     print("x, y, z dimensions are %i %i %i  " % (m, n, count))
-    dimensions = (m, n, count)
     mip = np.ones((m, n), dtype=int) * 255
     for fileName in listOfJpgs:
         image = imread((os.path.join(root, fileName)))
@@ -79,23 +81,46 @@ if __name__ == '__main__':
         inds = image < mip  # find where image intensity < min intensity
         mip[inds] = image[inds]  # update the minimum value at each pixel
         count1 += 1
-    inputIm = ndimage.interpolation.zoom(inputIm, zoom=[1, 0.6, 0.7], order=0)
-    inputIm = ndimage.filters.gaussian_filter(inputIm, sigma=1)
-    thresholdedIm, globalThreshold = convertToBinary(inputIm, False)
+    inputIm = ndimage.filters.gaussian_filter(inputIm, sigma=2)
+    thresholdedIm, globalThreshold = convertToBinary(inputIm, contrast)
+    if zoom is True:
+        thresholdedIm = ndimage.interpolation.zoom(thresholdedIm, zoom=aspectRatio, order=0)
+    else:
+        thresholdedIm = thresholdedIm
+    boundaryIm = _getBouondariesOfimage(thresholdedIm)
     print("skeletonizing started at")
     print(strftime("%a, %d %b %Y %H:%M:%S ", localtime()))
-    print("threshold of the 3d volume is", globalThreshold)
-    os.mkdir(root + 'twodkskeletonslices')
-    np.save(root + 'twodkskeletonslices/' + 'Greyscale.npy', inputIm)
-    np.save(root + 'twodkskeletonslices/' + 'Binary.npy', thresholdedIm)
-    skeletonIm = getSkeletonize3D(thresholdedIm)
-    np.save(root + 'Skeleton.npy', skeletonIm)
-    for i in range(skeletonIm.shape[0]):
-        imsave(root + 'twodkskeletonslices/' + 'skeletonIm%i.png' % i, skeletonIm[i] * 255)
+    if os.path.isdir(root + 'twodbinaryslices/') == 0 and os.path.isdir(root + 'twodkskeletonslices/') == 0:
+        print("directory doesnt exist")
+        print("threshold of the 3d volume is", globalThreshold)
+        os.mkdir(root + 'twodbinaryslices')
+        for i in range(thresholdedIm.shape[0]):
+            imsave(root + 'twodbinaryslices/' + 'binaryIm%i.png' % i, thresholdedIm[i] * 255)
+        os.mkdir(root + 'twodkskeletonslices')
+        np.save(root + 'twodkskeletonslices/' + 'Boundaries.npy', boundaryIm)
+        np.save(root + 'twodkskeletonslices/' + 'mip.npy', mip)
+        np.save(root + 'twodkskeletonslices/' + 'Greyscale.npy', inputIm)
+        np.save(root + 'twodkskeletonslices/' + 'Binary.npy', thresholdedIm)
+        skeletonIm = getSkeletonize3D(thresholdedIm)
+        np.save(root + 'twodkskeletonslices/' + 'Skeleton.npy', skeletonIm)
+        shortestPathSkel = getShortestPathskeleton(skeletonIm)
+        for i in range(skeletonIm.shape[0]):
+            imsave(root + 'twodkskeletonslices/' + 'skeletonIm%i.png' % i, skeletonIm[i] * 255)
+        np.save(root + 'twodkskeletonslices/' + 'ShortestPathskeleton.npy', shortestPathSkel)
+    else:
+        print("already skeletonized and saved directory existsexists")
+        shortestPathSkel = np.load(root + 'twodkskeletonslices/' + 'ShortestPathskeleton.npy')
+        boundaryIm = np.load(root + 'twodkskeletonslices/' + 'Boundaries.npy')
+        skeletonIm = np.load(root + 'twodkskeletonslices/' + 'Skeleton.npy')
     print("skeletonizing ended at")
     print(strftime("%a, %d %b %Y %H:%M:%S", localtime()))
-    print("\ttime taken to skeletonize the {} sized image is {}.".format(dimensions, (time.time() - startt)))
+    print("\ttime taken to obtain skeleton and save all the outputs is %0.3f seconds" % (time.time() - startt))
     label_img1, countObjects = ndimage.measurements.label(thresholdedIm, structure=np.ones((3, 3, 3), dtype=np.uint8))
     label_img2, countObjectsSkel = ndimage.measurements.label(skeletonIm, structure=np.ones((3, 3, 3), dtype=np.uint8))
     assert countObjects == countObjectsSkel
+    shortestPathSkel = skeletonIm
+    return shortestPathSkel, boundaryIm
 
+
+if __name__ == '__main__':
+    shortestPathSkel, boundaryIm = skeletonizeAndSave(aspectRatio=[1, 0.6, 0.7])

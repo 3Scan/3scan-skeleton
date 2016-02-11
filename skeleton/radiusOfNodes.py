@@ -23,35 +23,27 @@ def _getBouondariesOfimage(image):
        function to find boundaries/border/edges of the array/image
     """
     assert image.shape[0] != 1
-    if image.shape[0] == 1:
-        print("Single slice, not a 3d image")
-    sElement = ndimage.generate_binary_structure(3, 1)
+    if len(image.shape) == 3:
+        sElement = ndimage.generate_binary_structure(3, 1)
+    elif len(image.shape) == 2:
+        sElement = ndimage.generate_binary_structure(2, 1)
     erode_im = ndimage.morphology.binary_erosion(image, sElement)
     boundaryIm = image - erode_im
     assert np.sum(boundaryIm) <= np.sum(image)
     return boundaryIm
 
 
-def getRadiusByPointsOnCenterline(skeletonIm, boundaryIm, inputIm, aspectRatio=[1, 1, 1]):
+def getRadiusByPointsOnCenterline(skeletonIm, boundaryIm, aspectRatio=[1, 1, 1]):
     """
-       removes voxels with radius 0.0
+       find radius
     """
     skeletonImCopy = copy.deepcopy(skeletonIm)
-    inputImCopy = copy.deepcopy(inputIm)
     startt = time.time()
     skeletonImCopy[skeletonIm == 0] = 255
     skeletonImCopy[boundaryIm == 1] = 0
     distTransformedIm = ndimage.distance_transform_edt(skeletonImCopy, aspectRatio)
     listNZI = list(set(map(tuple, np.transpose(np.nonzero(skeletonIm)))))
     dictOfNodesAndRadius = list_to_dict(listNZI, distTransformedIm)
-    label, countBefore = scipy.ndimage.measurements.label(inputIm, structure=np.ones((3, 3, 3), dtype=np.uint8))
-    inputImCopy[distTransformedIm == 0.0] = 0
-    label, countAfter = scipy.ndimage.measurements.label(inputIm, structure=np.ones((3, 3, 3), dtype=np.uint8))
-    if countAfter == countBefore:
-        print("voxels with radius 0.00 can be removed")
-    else:
-        print("voxels with radius 0.00 cannot be removed")
-
     print("time taken to find the nodes and their radius is ", time.time() - startt, "seconds")
     return dictOfNodesAndRadius, distTransformedIm
 
@@ -134,11 +126,10 @@ if __name__ == '__main__':
     startt = time.time()
     # load the skeletonized image
     skeletonIm = np.load('/home/pranathi/Downloads/mouseBrainSkeleton.npy')
-    thresholdIm = np.load('/home/pranathi/Downloads/mouseBrainBinary.npy')
     inputIm = np.load('/home/pranathi/Downloads/mouseBrainGreyscale.npy')
     # finding edges of the microvasculature
     boundaryIm = _getBouondariesOfimage(thresholdIm)
-    dictOfNodesAndRadius, distTransformedIm = getRadiusByPointsOnCenterline(skeletonIm, boundaryIm, thresholdIm, aspectRatio=[1, 1, 1])
+    dictOfNodesAndRadius, distTransformedIm = getRadiusByPointsOnCenterline(skeletonIm, boundaryIm, aspectRatio=[1, 1, 1])
     reconstructedImage = getReconstructedVasculature(distTransformedIm, skeletonIm)
     # dictOfNodesAndRadiusz, distTransformedImz = getRadiusByPointsOnCenterlineslicewise(skeletonIm, boundaryIm, inputIm, aspectRatio=[0.7, 0.7], plane=0)
     # dictOfNodesAndRadiusy, distTransformedImz = getRadiusByPointsOnCenterlineslicewise(skeletonIm, boundaryIm, inputIm, aspectRatio=[0.7, 0.7], plane=1)
