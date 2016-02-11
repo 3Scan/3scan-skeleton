@@ -1,17 +1,16 @@
 import numpy as np
-import os
 import time
 from scipy import ndimage
 from scipy.ndimage.filters import convolve
-from skeleton.rotationalOperators import directionList
 from skeleton.radiusOfNodes import _getBouondariesOfimage
+from skeleton.rotationalOperators import directionList
 
 """
    reference paper
    http://web.inf.u-szeged.hu/ipcg/publications/papers/PalagyiKuba_GMIP1999.pdf
 """
 
-
+import os
 lookUparray = np.load(os.path.join(os.path.dirname(__file__), 'lookuparray.npy'))
 sElement = ndimage.generate_binary_structure(3, 1)
 
@@ -54,11 +53,9 @@ def _applySubiter(image, convImage):
        different image named temp_del and finally multiply it with the original
        image to delete the voxels so marked
     """
-    boundaries = _getBouondariesOfimage(image)
-    nzi = list(set(map(tuple, np.transpose(np.nonzero(boundaries)))))
     temp_del = np.zeros_like(image)
-    for index in nzi:
-        temp_del[index] = lookUparray[convImage[index]]
+    boundaries = _getBouondariesOfimage(image)
+    temp_del[boundaries != 0] = lookUparray[convImage[boundaries != 0]]
     numpixel_removed = np.einsum('ijk->', image * temp_del, dtype=int)
     image[temp_del == 1] = 0
     return numpixel_removed, image
@@ -83,7 +80,12 @@ def getSkeletonize3D(image):
     print("done %i number of pixels in %0.2f seconds" % (np.sum(image), time.time() - start_skeleton))
     return np.uint8(padImage[1:zOrig + 1, 1:yOrig + 1, 1:xOrig + 1])
 
-if __name__ == '__main__':
+
+def main():
     sample = np.ones((5, 5, 5), dtype=np.uint8)
     resultSkel = getSkeletonize3D(sample)
     print("resultSkel", resultSkel)
+
+if __name__ == '__main__':
+    import cProfile
+    cProfile.run("main")
