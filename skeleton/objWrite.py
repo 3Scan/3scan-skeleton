@@ -22,9 +22,9 @@ def getObjWrite(imArray, pathTosave):
        takes in a numpy array and converts it to a obj file and writes it to pathTosave
     """
     startt = time.time()  # for calculating time taken to write to an obj file
-    if type(imArray) == np.ndarray():
+    if type(imArray) == np.ndarray:
         networkxGraph = getNetworkxGraphFromarray(imArray, True)  # converts array to a networkx graph(based on non zero coordinates and the adjacent nonzeros)
-        removeCliqueEdges(networkxGraph)  # remove cliques in the graph
+        networkxGraph = removeCliqueEdges(networkxGraph)  # remove cliques in the graph
     else:
         networkxGraph = imArray
     objFile = open(pathTosave, "w")  # open a obj file in the given path
@@ -36,7 +36,7 @@ def getObjWrite(imArray, pathTosave):
     strsVertices = []
     for index, vertex in enumerate(verticesSorted):
         mapping[vertex] = index + 1  # a mapping to transform the vertices (x, y, z) to indexes (beginining with 1)
-        strsVertices.append("v " + " ".join(str(dim) for dim in vertex) + "\n")  # add strings of vertices to obj file
+        strsVertices.append("v " + " ".join(str(vertex[i - 2]) for i in range(0, len(vertex))) + "\n")  # add strings of vertices to obj file
     objFile.writelines(strsVertices)  # write strings to obj file
     networkGraphIntegerNodes = nx.relabel_nodes(networkxGraph, mapping, False)
     strsSeq = []
@@ -127,7 +127,7 @@ def getObjWriteWithradius(imArray, pathTosave, dictOfNodesAndRadius):
     startt = time.time()  # for calculating time taken to write to an obj file
     if type(imArray) == np.ndarray:
         networkxGraph = getNetworkxGraphFromarray(imArray, True)  # converts array to a networkx graph(based on non zero coordinates and the adjacent nonzeros)
-        removeCliqueEdges(networkxGraph)  # remove cliques in the graph
+        networkxGraph = removeCliqueEdges(networkxGraph)  # remove cliques in the graph
     else:
         networkxGraph = imArray
     objFile = open(pathTosave, "w")  # open a obj file in the given path
@@ -139,7 +139,7 @@ def getObjWriteWithradius(imArray, pathTosave, dictOfNodesAndRadius):
     strsVertices = [0] * (2 * len(verticesSorted))
     for index, vertex in enumerate(verticesSorted):
         mapping[vertex] = index + 1  # a mapping to transform the vertices (x, y, z) to indexes (beginining with 1)
-        strsVertices[index] = "v " + " ".join(str(dim) for dim in vertex) + "\n"  # add strings of vertices to obj file
+        strsVertices[index] = "v " + " ".join(str(vertex[i - 2]) for i in range(0, len(vertex))) + "\n"  # add strings of vertices to obj file
         strsVertices[index + len(verticesSorted)] = "vt " + " " + str(dictOfNodesAndRadius[vertex]) + "\n"
     objFile.writelines(strsVertices)  # write strings to obj file
     networkGraphIntegerNodes = nx.relabel_nodes(networkxGraph, mapping, False)
