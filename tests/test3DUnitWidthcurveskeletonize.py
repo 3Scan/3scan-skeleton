@@ -111,7 +111,7 @@ def checkAlgorithmSinglePixeled(image):
     newImage = getShortestPathskeleton(getSkeletonize3D(image))
     label_img, countObjectsn = ndimage.measurements.label(newImage, structure=np.ones((3, 3, 3), dtype=np.uint8))
     label_img, countObjects = ndimage.measurements.label(image, structure=np.ones((3, 3, 3), dtype=np.uint8))
-    assert (countObjectsn == countObjects)
+    assert (countObjectsn <= countObjects)
 
 
 def checkCycles(image):

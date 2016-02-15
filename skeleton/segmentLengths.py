@@ -74,7 +74,7 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
         networkxGraph = imArray
     else:
         networkxGraph = getNetworkxGraphFromarray(imArray, skelOrNot)
-        removeCliqueEdges(networkxGraph)
+        networkxGraph = removeCliqueEdges(networkxGraph)
     assert networkxGraph.number_of_selfloops() == 0
     # intitialize all the common variables
     startt = time.time()

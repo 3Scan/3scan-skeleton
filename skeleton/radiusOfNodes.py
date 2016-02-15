@@ -126,10 +126,9 @@ if __name__ == '__main__':
     startt = time.time()
     # load the skeletonized image
     skeletonIm = np.load('/home/pranathi/Downloads/mouseBrainSkeleton.npy')
-    inputIm = np.load('/home/pranathi/Downloads/mouseBrainGreyscale.npy')
     # finding edges of the microvasculature
-    boundaryIm = _getBouondariesOfimage(thresholdIm)
-    dictOfNodesAndRadius, distTransformedIm = getRadiusByPointsOnCenterline(skeletonIm, boundaryIm, aspectRatio=[1, 1, 1])
+    boundaryIm = np.load('/media/pranathi/DATA/twodimageslices/twodkskeletonslices/boundaries.npy')
+    dictOfNodesAndRadius, distTransformedIm = getRadiusByPointsOnCenterline(skeletonIm, boundaryIm, aspectRatio=[5, 0.7, 0.7])
     reconstructedImage = getReconstructedVasculature(distTransformedIm, skeletonIm)
     # dictOfNodesAndRadiusz, distTransformedImz = getRadiusByPointsOnCenterlineslicewise(skeletonIm, boundaryIm, inputIm, aspectRatio=[0.7, 0.7], plane=0)
     # dictOfNodesAndRadiusy, distTransformedImz = getRadiusByPointsOnCenterlineslicewise(skeletonIm, boundaryIm, inputIm, aspectRatio=[0.7, 0.7], plane=1)

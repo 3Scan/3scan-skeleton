@@ -35,14 +35,14 @@ def getSingleVoxelLineNobranches(size=(5, 5, 5)):
     sampleLine = np.zeros(size, dtype=np.uint8)
     sampleLine[1, :, 4] = 1
     lineGraph = getNetworkxGraphFromarray(sampleLine, True)
-    removeCliqueEdges(lineGraph)
+    lineGraph = removeCliqueEdges(lineGraph)
     return lineGraph
 
 
 def getCycleNotree():
     donut = getDonut()
     donutGraph = getNetworkxGraphFromarray(donut, False)
-    removeCliqueEdges(donutGraph)
+    donutGraph = removeCliqueEdges(donutGraph)
     return donutGraph
 
 
@@ -51,7 +51,7 @@ def getTreeNoCycle2d(size=(5, 5)):
     cros[:, 2] = 1
     cros[2, :] = 1
     crosGraph = getNetworkxGraphFromarray(cros, False)
-    removeCliqueEdges(crosGraph)
+    crosGraph = removeCliqueEdges(crosGraph)
     return crosGraph
 
 
@@ -63,7 +63,7 @@ def getDisjointTreesNoCycle3d(size=(10, 10, 10)):
     crosPair[0, 0:5, 0:5] = cros
     crosPair[5, 5:10, 5:10] = cros
     crosPairgraph = getNetworkxGraphFromarray(crosPair, True)
-    removeCliqueEdges(crosPairgraph)
+    crosPairgraph = removeCliqueEdges(crosPairgraph)
     return crosPairgraph
 
 
@@ -75,7 +75,7 @@ def getDisjointCyclesNoTrees2d(size=(10, 10)):
     multiLoop[2:5, 2:5] = tinyLoop
     multiLoop[7:10, 7:10] = tinyLoop
     multiloopgraph = getNetworkxGraphFromarray(multiLoop, True)
-    removeCliqueEdges(multiloopgraph)
+    multiloopgraph = removeCliqueEdges(multiloopgraph)
     return multiloopgraph
 
 

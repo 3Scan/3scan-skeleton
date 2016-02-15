@@ -52,10 +52,12 @@ def dict_to_image(dictAdjacency, shape=(101, 101, 101)):
 if __name__ == '__main__':
     networkGraphFloatNodes, dictOfNodesAndRadiusgt = xmlToNetworkx()
     nx.draw(networkGraphFloatNodes, node_size=[0.5] * networkGraphFloatNodes.number_of_nodes())
+    disjointGraphs = len(list(nx.connected_component_subgraphs(networkGraphFloatNodes)))
+    print("disjointGraphs in the original centerline is", disjointGraphs)
     # plt.show()
     dictGraph = nx.to_dict_of_lists(networkGraphFloatNodes)
     im = dict_to_image(dictGraph)
     getObjWriteWithradius(networkGraphFloatNodes, "/media/pranathi/A336-5F43/image1/VascuSynth-GT.obj", dictOfNodesAndRadiusgt)
     shortestPathSkel, boundaryIm = skeletonizeAndSave(contrast=True, zoom=False)
     dictOfNodesAndRadiust, distIm = getRadiusByPointsOnCenterline(shortestPathSkel, boundaryIm)
-    getObjWriteWithradius(shortestPathSkel, "/media/pranathi/A336-5F43/image1/VascuSynth-T.obj", dictOfNodesAndRadiust)
+    getObjWriteWithradius(shortestPathSkel, "/media/pranathi/A336-5F43/image1/VascuSynth-T2.obj", dictOfNodesAndRadiust)

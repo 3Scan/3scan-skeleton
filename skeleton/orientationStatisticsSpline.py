@@ -84,8 +84,8 @@ def plotKDEAndHistogram(ndimarray):
     plt.show()
 
 
-def plotKde(segmentTortuositydict):
-    arr = np.array(list(segmentTortuositydict.values()))
+def plotKde(dictionary):
+    arr = np.array(list(dictionary.values()))
     X = np.reshape(arr, (arr.size, 1))
     X_plot = np.linspace(X.min(), X.max(), 1000)[:, np.newaxis]
     kde = KernelDensity(kernel='gaussian', bandwidth=0.75).fit(X)
