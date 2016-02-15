@@ -2,7 +2,7 @@ import numpy as np
 import time
 from scipy import ndimage
 from scipy.ndimage.filters import convolve
-from skeleton.radiusOfNodes import _getBouondariesOfimage
+# from skeleton.radiusOfNodes import _getBouondariesOfimage
 from skeleton.rotationalOperators import directionList
 
 """
@@ -36,13 +36,13 @@ def _skeletonPass(image):
         each pass consists of 12 serial subiterations and finding the
         boundaries of the padded image/array
     """
-    numPixelsremovedList = [] * 12
+    numPixelsremoved = 0
+    # boundaries = _getBouondariesOfimage(image)
     for i in range(0, 12):
         convImage = _convolveImage(image, directionList[i])
-        totalPixels, image = _applySubiter(image, convImage)
+        totalPixels = _applySubiter(image, convImage)
         # print("number of pixels removed in the {} direction is {}". format(i, totalPixels))
-        numPixelsremovedList.append(totalPixels)
-    numPixelsremoved = sum(numPixelsremovedList)
+        numPixelsremoved += totalPixels
     return numPixelsremoved, image
 
 
@@ -54,11 +54,11 @@ def _applySubiter(image, convImage):
        image to delete the voxels so marked
     """
     temp_del = np.zeros_like(image)
-    boundaries = _getBouondariesOfimage(image)
-    temp_del[boundaries != 0] = lookUparray[convImage[boundaries != 0]]
-    numpixel_removed = np.einsum('ijk->', image * temp_del, dtype=int)
+    temp_del[:] = lookUparray[convImage[:]]
+    numpixel_removed = temp_del.sum()
     image[temp_del == 1] = 0
-    return numpixel_removed, image
+    # boundaries[temp_del == 1] = 0
+    return numpixel_removed
 
 
 def getSkeletonize3D(image):
@@ -85,7 +85,3 @@ def main():
     sample = np.ones((5, 5, 5), dtype=np.uint8)
     resultSkel = getSkeletonize3D(sample)
     print("resultSkel", resultSkel)
-
-if __name__ == '__main__':
-    import cProfile
-    cProfile.run("main")
