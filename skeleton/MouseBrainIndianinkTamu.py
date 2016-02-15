@@ -16,7 +16,7 @@ from skeleton.unitwidthcurveskeleton import getShortestPathskeleton
     under name twodkskeletonslices
 """
 
-from skimage.filters import threshold_yen
+from skimage.filters import threshold_otsu
 
 
 def convertToBinary(image, convert):
@@ -25,7 +25,7 @@ def convertToBinary(image, convert):
        if convert is True,
        object is in brighter contrast and viceversa
     """
-    global_thresh = threshold_yen(image)
+    global_thresh = threshold_otsu(image)
     if convert:
         binary_global = image > global_thresh
     else:
@@ -132,6 +132,10 @@ def skeletonizeAndSave(contrast=False, aspectRatio=[1, 1, 1], zoom=True, findMip
     return shortestPathSkel, boundaryIm
 
 
+def main():
+    ShortestPathskeleton, boundaryIm = skeletonizeAndSave(zoom=False)
+
+
 if __name__ == '__main__':
-    shortestPathSkel, boundaryIm = skeletonizeAndSave(zoom=False)
+    main()
 

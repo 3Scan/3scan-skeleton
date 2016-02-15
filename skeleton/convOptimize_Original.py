@@ -15,10 +15,11 @@ sElement = ndimage.generate_binary_structure(3, 1)
 
 
 def _convolveImage(arr, flippedKernel):
-    arr = np.uint64(arr)
+    arr = np.ascontiguousarray(arr, dtype=np.uint64)
     result = convolve(arr, flippedKernel, mode='constant', cval=0)
     result[arr == 0] = 0
     return result
+
 
 """
 each of the 12 iterations corresponds to each of the following
@@ -34,15 +35,28 @@ def _skeletonPass(image):
         each pass consists of 12 serial subiterations and finding the
         boundaries of the padded image/array
     """
-    numPixelsremoved = 0
+    numPixelsremovedList = [] * 12
     for i in range(0, 12):
         convImage = _convolveImage(image, directionList[i])
-        pixBefore = image.sum()
-        image[lookUparray[convImage[:]] == 1] = 0
-        numPixelsremoved = pixBefore - image.sum()
-        # print("number of pixels removed in the {} direction is {}". format(i, numPixelsremoved))
-        numPixelsremoved += numPixelsremoved
+        totalPixels, image = _applySubiter(image, convImage)
+        print("number of pixels removed in the {} direction is {}". format(i, totalPixels))
+        numPixelsremovedList.append(totalPixels)
+    numPixelsremoved = sum(numPixelsremovedList)
     return numPixelsremoved, image
+
+
+def _applySubiter(image, convImage):
+    """
+       each subiteration paralleley reduces the border voxels in 12 directions
+       going through each voxel and marking if it can be deleted or not in a
+       different image named temp_del and finally multiply it with the original
+       image to delete the voxels so marked
+    """
+    temp_del = np.zeros_like(image)
+    temp_del[:] = lookUparray[convImage[:]]
+    numpixel_removed = np.einsum('ijk->', image * temp_del, dtype=int)
+    image[temp_del == 1] = 0
+    return numpixel_removed, image
 
 
 def getSkeletonize3D(image):
@@ -51,6 +65,7 @@ def getSkeletonize3D(image):
     In other words, 1 = object, 0 = background
     """
     assert np.max(image) in [0, 1]
+    image = image.astype(bool)
     zOrig, yOrig, xOrig = np.shape(image)
     padImage = np.lib.pad(image, 1, 'constant', constant_values=0)
     start_skeleton = time.time()
