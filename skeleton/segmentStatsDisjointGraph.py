@@ -31,7 +31,7 @@ def getStatsDisjoint(imArray, skelOrNot=True, arrayOrNot=True):
         networkxGraph = imArray
     else:
         networkxGraph = getNetworkxGraphFromarray(imArray, skelOrNot)
-        removeCliqueEdges(networkxGraph)
+        networkxGraph = removeCliqueEdges(networkxGraph)
     assert networkxGraph.number_of_selfloops() == 0
     # intitialize all the common variables
     startt = time.time()
@@ -137,7 +137,6 @@ def getStatsDisjoint(imArray, skelOrNot=True, arrayOrNot=True):
                 # as the starting vertex and end points - points with degree equal to one as the
                 # ending vertex
                 listOfPerms = list(itertools.permutations(branchpoints, 2))
-                lengthList = [];
                 for sourceOnTree, item in listOfPerms:
                     if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
                         simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
@@ -152,13 +151,13 @@ def getStatsDisjoint(imArray, skelOrNot=True, arrayOrNot=True):
                                     segmentdict[sourceOnTree][0] = 1; lengthList = []; tortuosityList = [];
                                 else:
                                     segmentdict[sourceOnTree][0] = segmentdict[sourceOnTree][0] + 1
-                                lengthList.append(curveLength)
-                                tortuosityList.append(tortuosity)
+                                    lengthList.insert(0, segmentdict[sourceOnTree][1]); tortuosityList.insert(0, segmentdict[sourceOnTree][2])
+                                lengthList.append(curveLength); tortuosityList.append(tortuosity)
                                 totalSegmentLengths.append(curveLength)
                                 totalSegmentsTortuosity.append(tortuosity)
-                                segmentdict[sourceOnTree] = [segmentdict[sourceOnTree][0], lengthList, tortuosityList]
                                 visitedSources.append(sourceOnTree)
                                 _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
+                                segmentdict[sourceOnTree] = [segmentdict[sourceOnTree][0], lengthList, tortuosityList]
                 totalSegmentsinDisjoint = len(totalSegmentLengths)
                 disjointgraphDict[ithDisjointgraph] = [totalSegmentsinDisjoint, max(totalSegmentLengths), mean(totalSegmentLengths), max(totalSegmentsTortuosity), mean(totalSegmentsTortuosity)]
             else:
@@ -185,13 +184,14 @@ def getStatsDisjoint(imArray, skelOrNot=True, arrayOrNot=True):
                                     segmentdict[sourceOnTree][0] = 1; lengthList = []; tortuosityList = [];
                                 else:
                                     segmentdict[sourceOnTree][0] += 1
+                                    lengthList.insert(segmentdict[0, sourceOnTree][1]); tortuosityList.insert(0, segmentdict[sourceOnTree][2])
                                 lengthList.append(curveLength)
                                 tortuosityList.append(tortuosity)
                                 totalSegmentLengths.append(curveLength)
                                 totalSegmentsTortuosity.append(tortuosity)
-                                segmentdict[sourceOnTree] = [segmentdict[sourceOnTree][0], lengthList, tortuosityList]
                                 visitedSources.append(sourceOnTree)
                                 _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
+                                segmentdict[sourceOnTree] = [segmentdict[sourceOnTree][0], lengthList, tortuosityList]
                 totalSegmentsinDisjoint = len(totalSegmentLengths)
                 disjointgraphDict[ithDisjointgraph] = [totalSegmentsinDisjoint, max(totalSegmentLengths), mean(totalSegmentLengths), max(totalSegmentsTortuosity), mean(totalSegmentsTortuosity)]
             assert subGraphskeleton.number_of_edges() == 0
@@ -199,23 +199,62 @@ def getStatsDisjoint(imArray, skelOrNot=True, arrayOrNot=True):
     return segmentdict, disjointgraphDict
 
 
-def xlsxWrite(dictionary):
+def removekey(d, key):
+    r = dict(d)
+    del r[key]
+    return r
 
-    workbook = xlsxwriter.Workbook('data.xlsx')
+
+def xlsxWrite(listOfDicts, path):
+
+    dictR = listOfDicts[0]
+    workbook = xlsxwriter.Workbook(path)
     worksheet = workbook.add_worksheet()
     row = 0
-    col = 0
-
-    for key in dictionary.keys():
-        row += 1
-        worksheet.write(row, col, key)
-        for item in dictionary[key]:
-            worksheet.write(row, col + 1, item)
-            row += 1
-
+    for key in list(dictR.keys()):  # for each of the nodes with radius
+        row += 1; col = 0
+        worksheet.write(row, col, str(key))
+        for i in range(0, 4):    # increment a column and copy the corresponding lengths and tortuosities at the branch node
+            d = listOfDicts[i]
+            if i not in [0, 1]:   # for dictionaries with a key that includes end points
+                listOfKeys = [allKeys for allKeys in list(d.keys()) if key == tuple(list(allKeys[1]))]
+                visKeys = []
+                if len(listOfKeys) > 1:
+                    listOfVals = []
+                    for j in listOfKeys:  # multiple segments at the same branch node
+                        listOfVals.append(d[j])
+                        visKeys.append(j)
+                    worksheet.write(row, col + i + 1, str(listOfVals))
+                elif key not in visKeys:  # if only one branch at the node
+                    for allKeys in list(d.keys()):
+                        if key == tuple(list(allKeys[1])):
+                            worksheet.write(row, col + i + 1, d[allKeys])
+            else:
+                worksheet.write(row, col + i + 1, d[key])
     workbook.close()
 
 
 if __name__ == '__main__':
-    shskel = np.load("/home/pranathi/Downloads/shortestPathSkel.npy")
+    from skeleton.segmentLengths import getSegmentsAndLengths
+    from skeleton.radiusOfNodes import getRadiusByPointsOnCenterline
+    shskel = np.load(input("enter a path to shortest path skeleton volume------"))
+    boundaryIm = np.load(input("enter a path to boundary of thresholded volume------"))
+    path = input("enter a path to save analysis xlsx file at")
     segmentdict, disjointgraphDict = getStatsDisjoint(shskel)
+    d1, d2, d3, t = getSegmentsAndLengths(shskel)
+    d, di = getRadiusByPointsOnCenterline(shskel, boundaryIm)
+    dictR = {your_key: d[your_key] for your_key in d1.keys()}
+    d = {}
+    for keys in list(dictR.keys()):
+        d[keys] = (str(round(dictR[keys], 2)), str(d1[keys]))
+        d[keys] = '   '.join(d[keys])
+    listOfDicts = [dictR, d1, d2, d3]
+    xlsxWrite(listOfDicts, path)
+    from mayavi import mlab
+    # to plot text on an mlab figure
+    for coord in list(d.keys()):
+        x = coord[0]; y = coord[1]; z = coord[2];
+        mlab.text3d(x, y, z, d[coord], color=(0, 0, 0), scale=2.0)
+
+
+
