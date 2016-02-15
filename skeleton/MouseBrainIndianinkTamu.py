@@ -16,7 +16,7 @@ from skeleton.unitwidthcurveskeleton import getShortestPathskeleton
     under name twodkskeletonslices
 """
 
-from skimage.filters import threshold_otsu
+from skimage.filters import threshold_yen
 
 
 def convertToBinary(image, convert):
@@ -25,7 +25,7 @@ def convertToBinary(image, convert):
        if convert is True,
        object is in brighter contrast and viceversa
     """
-    global_thresh = threshold_otsu(image)
+    global_thresh = threshold_yen(image)
     if convert:
         binary_global = image > global_thresh
     else:
@@ -47,7 +47,7 @@ def getDiceSimilarityCOefficient(inputIm, thresholdedIm):
     return dsc
 
 
-def skeletonizeAndSave(contrast=False, aspectRatio=[1, 1, 1], zoom=True):
+def skeletonizeAndSave(contrast=False, aspectRatio=[1, 1, 1], zoom=True, findMip=False):
     startt = time.time()
     count = 0
     root = input("please enter a root directory where your 2D slices are----")
@@ -71,22 +71,28 @@ def skeletonizeAndSave(contrast=False, aspectRatio=[1, 1, 1], zoom=True):
             count = count + 1
     i = imread((os.path.join(root, listOffiles[0])))
     m, n = np.shape(i)
-    inputIm = np.zeros((count, m, n), dtype=np.uint8)
+    inputIm = np.zeros((298, m, n), dtype=np.uint8)
     count1 = 0
-    print("x, y, z dimensions are %i %i %i  " % (m, n, count))
-    mip = np.ones((m, n), dtype=int) * 255
-    for fileName in listOfJpgs:
+    if findMip:
+        mip = np.ones((m, n), dtype=int) * 255
+    print("x, y, z dimensions are %i %i %i  " % (m, n, 298))
+    for fileName in listOfJpgs[:298]:
         image = imread((os.path.join(root, fileName)))
         inputIm[count1][:][:] = image
-        inds = image < mip  # find where image intensity < min intensity
-        mip[inds] = image[inds]  # update the minimum value at each pixel
+        if findMip == 1:
+            if contrast is False:
+                inds = image < mip  # find where image intensity < min intensity
+            else:
+                inds = image > mip
+                mip[inds] = image[inds]  # update the minimum value at each pixel
         count1 += 1
-    inputIm = ndimage.filters.gaussian_filter(inputIm, sigma=2)
-    thresholdedIm, globalThreshold = convertToBinary(inputIm, contrast)
     if zoom is True:
-        thresholdedIm = ndimage.interpolation.zoom(thresholdedIm, zoom=aspectRatio, order=0)
+        inputIm = ndimage.interpolation.zoom(image, zoom=aspectRatio, order=0)
+        inputIm = ndimage.filters.gaussian_filter(inputIm, sigma=1)
+        thresholdedIm, globalThreshold = convertToBinary(inputIm, contrast)
     else:
-        thresholdedIm = thresholdedIm
+        # inputIm = ndimage.filters.gaussian_filter(inputIm, sigma=1)
+        thresholdedIm, globalThreshold = convertToBinary(inputIm, contrast)
     boundaryIm = _getBouondariesOfimage(thresholdedIm)
     print("skeletonizing started at")
     print(strftime("%a, %d %b %Y %H:%M:%S ", localtime()))
@@ -98,7 +104,8 @@ def skeletonizeAndSave(contrast=False, aspectRatio=[1, 1, 1], zoom=True):
             imsave(root + 'twodbinaryslices/' + 'binaryIm%i.png' % i, thresholdedIm[i] * 255)
         os.mkdir(root + 'twodkskeletonslices')
         np.save(root + 'twodkskeletonslices/' + 'Boundaries.npy', boundaryIm)
-        np.save(root + 'twodkskeletonslices/' + 'mip.npy', mip)
+        if findMip:
+            np.save(root + 'twodkskeletonslices/' + 'mip.npy', mip)
         np.save(root + 'twodkskeletonslices/' + 'Greyscale.npy', inputIm)
         np.save(root + 'twodkskeletonslices/' + 'Binary.npy', thresholdedIm)
         skeletonIm = getSkeletonize3D(thresholdedIm)
@@ -117,10 +124,14 @@ def skeletonizeAndSave(contrast=False, aspectRatio=[1, 1, 1], zoom=True):
     print("\ttime taken to obtain skeleton and save all the outputs is %0.3f seconds" % (time.time() - startt))
     label_img1, countObjects = ndimage.measurements.label(thresholdedIm, structure=np.ones((3, 3, 3), dtype=np.uint8))
     label_img2, countObjectsSkel = ndimage.measurements.label(skeletonIm, structure=np.ones((3, 3, 3), dtype=np.uint8))
+    label_img2, countObjectsShkel = ndimage.measurements.label(shortestPathSkel, structure=np.ones((3, 3, 3), dtype=np.uint8))
     assert countObjects == countObjectsSkel
-    shortestPathSkel = skeletonIm
+    print("disjoint objects in the input image", countObjects)
+    print("disjoint objects in the skeletonized image", countObjectsSkel)
+    print("disjoint objects in the ShortestPathskeleton image", countObjectsShkel)
     return shortestPathSkel, boundaryIm
 
 
 if __name__ == '__main__':
-    shortestPathSkel, boundaryIm = skeletonizeAndSave(aspectRatio=[1, 0.6, 0.7])
+    shortestPathSkel, boundaryIm = skeletonizeAndSave(zoom=False)
+
