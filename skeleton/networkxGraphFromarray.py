@@ -96,7 +96,7 @@ def getNetworkxGraphFromarray(arr, skeletonIm=True):
     from skeleton.unitwidthsurfaceskeleton import getShortestPathskeleton2D
     from skimage.morphology import skeletonize as getSkeletonize2D
     assert arr.max() == 1
-    assert arr.min() == 0
+    assert arr.min() in [0, 1]
     startt = time.time()
     if arr.ndim == 3 and skeletonIm == 0:
         skeleton = getShortestPathskeleton(getSkeletonize3D(arr))
