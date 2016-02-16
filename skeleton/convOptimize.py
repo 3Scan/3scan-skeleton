@@ -1,6 +1,5 @@
 import numpy as np
 import time
-from scipy import ndimage
 from scipy.ndimage.filters import convolve
 from skeleton.rotationalOperators import directionList
 
@@ -11,14 +10,6 @@ from skeleton.rotationalOperators import directionList
 
 import os
 lookUparray = np.load(os.path.join(os.path.dirname(__file__), 'lookuparray.npy'))
-sElement = ndimage.generate_binary_structure(3, 1)
-
-
-def _convolveImage(arr, flippedKernel):
-    arr = np.uint64(arr)
-    result = convolve(arr, flippedKernel, mode='constant', cval=0)
-    result[arr == 0] = 0
-    return result
 
 """
 each of the 12 iterations corresponds to each of the following
@@ -27,22 +18,6 @@ imported from template expressions
 evaluated in advance using pyeda
 https://pyeda.readthedocs.org/en/latest/expr.html
 """
-
-
-def _skeletonPass(image):
-    """
-        each pass consists of 12 serial subiterations and finding the
-        boundaries of the padded image/array
-    """
-    numPixelsremoved = 0
-    for i in range(0, 12):
-        convImage = _convolveImage(image, directionList[i])
-        pixBefore = image.sum()
-        image[lookUparray[convImage[:]] == 1] = 0
-        numPixelsremoved = pixBefore - image.sum()
-        # print("number of pixels removed in the {} direction is {}". format(i, numPixelsremoved))
-        numPixelsremoved += numPixelsremoved
-    return numPixelsremoved, image
 
 
 def getSkeletonize3D(image):
@@ -55,10 +30,16 @@ def getSkeletonize3D(image):
     padImage = np.lib.pad(image, 1, 'constant', constant_values=0)
     start_skeleton = time.time()
     pass_no = 0
-    numpixel_removed = 0
-    while pass_no == 0 or numpixel_removed > 0:
-        numpixel_removed, padImage = _skeletonPass(padImage)
-        # print("number of pixels removed in pass {} is {}".format(pass_no, numpixel_removed))
+    numPixelsremoved = 0
+    while pass_no == 0 or numPixelsremoved > 0:
+        for i in range(0, 12):
+            convImage = convolve(np.uint64(padImage), directionList[i], mode='constant', cval=0)
+            pixBefore = padImage.sum()
+            padImage[lookUparray[convImage[:]] == 1] = 0
+            numPixelsremoved = pixBefore - padImage.sum()
+            # print("number of pixels removed in the {} direction is {}". format(i, numPixelsremoved))
+            numPixelsremoved += numPixelsremoved
+            # print("number of pixels removed in pass {} is {}".format(pass_no, numpixel_removed))
         pass_no += 1
     print("done %i number of pixels in %0.2f seconds" % (np.sum(image), time.time() - start_skeleton))
     return np.uint8(padImage[1:zOrig + 1, 1:yOrig + 1, 1:xOrig + 1])
