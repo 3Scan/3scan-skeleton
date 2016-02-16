@@ -71,14 +71,17 @@ def skeletonizeAndSave(contrast=False, aspectRatio=[1, 1, 1], zoom=True, findMip
             count = count + 1
     i = imread((os.path.join(root, listOffiles[0])))
     m, n = np.shape(i)
-    inputIm = np.zeros((298, m, n), dtype=np.uint8)
+    inputIm = np.zeros((73, 512, 512), dtype=np.uint8)
     count1 = 0
     if findMip:
         mip = np.ones((m, n), dtype=int) * 255
-    print("x, y, z dimensions are %i %i %i  " % (m, n, 298))
-    for fileName in listOfJpgs[:298]:
+    print("x, y, z dimensions are %i %i %i  " % (m, n, 514))
+    for fileName in listOfJpgs[:512]:
+        imageExtract = np.zeros((512, 512), dtype=np.uint8)
         image = imread((os.path.join(root, fileName)))
-        inputIm[count1][:][:] = image
+        imageExtract = image[0:512, 0:512]
+        imageExtract = ndimage.filters.gaussian_filter(imageExtract, sigma=1.4)
+        inputIm[count1][:][:] = imageExtract
         if findMip == 1:
             if contrast is False:
                 inds = image < mip  # find where image intensity < min intensity
@@ -87,11 +90,10 @@ def skeletonizeAndSave(contrast=False, aspectRatio=[1, 1, 1], zoom=True, findMip
                 mip[inds] = image[inds]  # update the minimum value at each pixel
         count1 += 1
     if zoom is True:
-        inputIm = ndimage.interpolation.zoom(image, zoom=aspectRatio, order=0)
-        inputIm = ndimage.filters.gaussian_filter(inputIm, sigma=1)
+        inputIm = ndimage.interpolation.zoom(inputIm, zoom=aspectRatio, order=0)
         thresholdedIm, globalThreshold = convertToBinary(inputIm, contrast)
     else:
-        # inputIm = ndimage.filters.gaussian_filter(inputIm, sigma=1)
+        inputIm = ndimage.filters.gaussian_filter(inputIm, sigma=1)
         thresholdedIm, globalThreshold = convertToBinary(inputIm, contrast)
     boundaryIm = _getBouondariesOfimage(thresholdedIm)
     print("skeletonizing started at")
@@ -133,9 +135,18 @@ def skeletonizeAndSave(contrast=False, aspectRatio=[1, 1, 1], zoom=True, findMip
 
 
 def main():
-    ShortestPathskeleton, boundaryIm = skeletonizeAndSave(zoom=False)
+    ShortestPathskeleton, boundaryIm = skeletonizeAndSave(zoom=True, aspectRatio=[7, 1, 1])
 
 
 if __name__ == '__main__':
     main()
 
+
+# plt.subplot(3, 1, 1)
+# plt.imshow(imageExtract, cmap='gray')
+# plt.subplot(3, 1, 2)
+# plt.imshow(smoothImageExtract, cmap='gray')
+# plt.subplot(3, 1, 3)
+# plt.imshow(otsuThresholded, cmap='gray')
+# # plt.subplot(4, 1, 4)
+# # plt.imshow(localThresholded, cmap='gray')
