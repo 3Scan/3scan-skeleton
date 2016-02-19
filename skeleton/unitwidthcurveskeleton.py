@@ -267,10 +267,14 @@ def getShortestPathskeleton(skeletonIm):
             # skeletonImNew[np.logical_and(valencearray == 0, skeletonIm == 1)] = 1  # see if isolated voxels can be removed (answer: yes)
             stopp = time.time()
             print("time taken to find the shortest path skeleton is", (stopp - startt), "seconds")
+            label_img1, countObjects = ndimage.measurements.label(skeletonIm, structure=np.ones((3, 3, 3), dtype=np.uint8))
+            label_img2, countObjectsShorty = ndimage.measurements.label(skeletonImNew, structure=np.ones((3, 3, 3), dtype=np.uint8))
+            assert countObjects >= countObjectsShorty
             return np.uint8(skeletonImNew[1:z + 1, 1:m + 1, 1:n + 1])
 
 
-def list_to_dict(listNZI, skeletonLabelled):
+def list_to_dict(skeletonLabelled):
+    listNZI = map(tuple, np.transpose(np.nonzero(skeletonLabelled)))
     dictOfIndicesAndlabels = {item: skeletonLabelled[item] for item in listNZI}
     return dictOfIndicesAndlabels
 
@@ -279,6 +283,3 @@ if __name__ == '__main__':
     skeletonIm = np.load('/home/pranathi/Downloads/twodimageslices/Skeleton.npy')
     shortestPathSkel = getShortestPathskeleton(skeletonIm)
     np.save("/home/pranathi/Downloads/twodimageslices/shortestPathSkel.npy", shortestPathSkel)
-    label_img1, countObjects = ndimage.measurements.label(skeletonIm, structure=np.ones((3, 3, 3), dtype=np.uint8))
-    label_img2, countObjectsShorty = ndimage.measurements.label(shortestPathSkel, structure=np.ones((3, 3, 3), dtype=np.uint8))
-    assert countObjects == countObjectsShorty
