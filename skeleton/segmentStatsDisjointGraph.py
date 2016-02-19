@@ -234,7 +234,7 @@ def xlsxWrite(listOfDicts, path):
     workbook.close()
 
 
-if __name__ == '__main__':
+def excelWrite():
     from skeleton.segmentLengths import getSegmentsAndLengths
     from skeleton.radiusOfNodes import getRadiusByPointsOnCenterline
     shskel = np.load(input("enter a path to shortest path skeleton volume------"))
@@ -250,11 +250,12 @@ if __name__ == '__main__':
         d[keys] = '   '.join(d[keys])
     listOfDicts = [dictR, d1, d2, d3]
     xlsxWrite(listOfDicts, path)
-    from mayavi import mlab
-    # to plot text on an mlab figure
-    for coord in list(d.keys()):
-        x = coord[0]; y = coord[1]; z = coord[2];
-        mlab.text3d(x, y, z, d[coord], color=(0, 0, 0), scale=2.0)
 
 
-
+if __name__ == '__main__':
+    excelWrite()
+    # from mayavi import mlab
+    # # to plot text on an mlab figure
+    # for coord in list(d.keys()):
+    #     x = coord[0]; y = coord[1]; z = coord[2];
+    #     mlab.text3d(x, y, z, d[coord], color=(0, 0, 0), scale=2.0)
