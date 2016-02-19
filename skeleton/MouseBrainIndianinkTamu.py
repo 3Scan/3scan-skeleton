@@ -69,28 +69,35 @@ def skeletonizeAndSave(contrast=False, aspectRatio=[1, 1, 1], zoom=True, findMip
         if file.endswith(formatOfFiles):
             listOfJpgs.append(file)
             count = count + 1
-    i = imread((os.path.join(root, listOffiles[0])))
-    m, n = np.shape(i)
+    # i = imread((os.path.join(root, listOffiles[0])))
+    # m, n = np.shape(i)
     inputIm = np.zeros((73, 512, 512), dtype=np.uint8)
     count1 = 0
     if findMip:
-        mip = np.ones((m, n), dtype=int) * 255
-    print("x, y, z dimensions are %i %i %i  " % (m, n, 514))
-    for fileName in listOfJpgs[:512]:
+        mip = np.ones((512, 512), dtype=int) * 255
+    # print("x, y, z dimensions are %i %i %i  " % (m, n, 514))
+    for fileName in listOfJpgs[:73]:
         imageExtract = np.zeros((512, 512), dtype=np.uint8)
         image = imread((os.path.join(root, fileName)))
         imageExtract = image[0:512, 0:512]
         imageExtract = ndimage.filters.gaussian_filter(imageExtract, sigma=1.4)
         inputIm[count1][:][:] = imageExtract
+        count1 += 1
+    # stackSmoothedReplicated = ndimage.interpolation.zoom(stackSmoothed, zoom=aspectRatio, order=0)
+    # stackSmoothedLinearInterpolated = ndimage.interpolation.zoom(stackSmoothed, zoom=aspectRatio, order=1)
+    # stackSmoothedQuadratic = ndimage.interpolation.zoom(stackSmoothed, zoom=aspectRatio, order=2)
+    # stackUnSmoothedQuadratic = ndimage.interpolation.zoom(stackUnsmoothed, zoom=aspectRatio, order=2)
+    # stackSmoothedCubic = ndimage.interpolation.zoom(stackSmoothed, zoom=aspectRatio, order=3, prefilter=False)
+    # stackUnSmoothedReplicated = ndimage.interpolation.zoom(stackUnsmoothed, zoom=aspectRatio, order=0)
+    # stackUnSmoothedLinearInterpolated = ndimage.interpolation.zoom(stackUnsmoothed, zoom=aspectRatio, order=1)
+    # stackUnSmoothedCubic = ndimage.interpolation.zoom(stackUnsmoothed, zoom=aspectRatio, order=3, prefilter=False)
         if findMip == 1:
             if contrast is False:
                 inds = image < mip  # find where image intensity < min intensity
             else:
                 inds = image > mip
                 mip[inds] = image[inds]  # update the minimum value at each pixel
-        count1 += 1
     if zoom is True:
-        inputIm = ndimage.interpolation.zoom(inputIm, zoom=aspectRatio, order=0)
         thresholdedIm, globalThreshold = convertToBinary(inputIm, contrast)
     else:
         inputIm = ndimage.filters.gaussian_filter(inputIm, sigma=1)
@@ -142,11 +149,45 @@ if __name__ == '__main__':
     main()
 
 
-# plt.subplot(3, 1, 1)
-# plt.imshow(imageExtract, cmap='gray')
-# plt.subplot(3, 1, 2)
-# plt.imshow(smoothImageExtract, cmap='gray')
-# plt.subplot(3, 1, 3)
-# plt.imshow(otsuThresholded, cmap='gray')
-# # plt.subplot(4, 1, 4)
-# # plt.imshow(localThresholded, cmap='gray')
+# maxip = np.amin(stackUnSmoothedQuadratic, 0)
+# maxipS = np.amin(stackSmoothedQuadratic, 0)
+# maxip1 = np.amax(stackUnSmoothedQuadratic < tu, 0)
+# maxip1S = np.amax(stackSmoothedQuadratic < ts, 0)
+# plt.subplot(2, 1, 1)
+# plt.imshow(1-maxip, cmap='gray')
+# # plt.title('grey scale mip of unsmoothed quadratic interpolated volume pf = True')
+# plt.subplot(2, 1, 2)
+# plt.imshow(1-maxip1, cmap='gray')
+# # plt.title('thresholded mip of unsmoothed quadratic interpolated volume (no clipping) pf = True')
+# plt.subplot(2, 1, 3)
+# plt.imshow(maxipS, cmap='gray')
+# plt.title('grey scale mip of smoothed quadratic interpolated volume')
+# plt.subplot(2, 2, 4)
+# plt.imshow(1 - maxip1S, cmap='gray')
+# plt.title('thresholded mip of smoothed quadratic interpolated volume (no clipping)')
+
+# stackSmoothedQuadratic = ndimage.interpolation.zoom(stackSmoothed, zoom=aspectRatio, order=2, prefilter=False)
+# stackUnSmoothedQuadratic = ndimage.interpolation.zoom(stackUnsmoothed, zoom=aspectRatio, order=2, prefilter=False)
+
+# plt.subplot(1, 3, 1)
+# plt.imshow(unSmoothedQuad[0], cmap='gray')
+# plt.subplot(1, 3, 2)
+# plt.imshow(unSc[0], cmap='gray')
+# plt.subplot(1, 3, 3)
+# plt.imshow(unSc2[0], cmap='gray')
+
+# plt.subplot(2, 1, 1)
+# plt.hist(z,256,[0,256]),plt.show()
+# plt.subplot(2, 1, 2)
+# A = z[labels==0]
+# B = z[labels==1]
+# plt.hist(A,256,[0,256],color = 'r')
+# plt.hist(B,256,[0,256],color = 'b')
+# plt.hist(centers,32,[0,256],color = 'y')
+# plt.show()
+
+
+# plt.subplot(2, 1, 1)
+# plt.imshow(th, cmap='gray')
+# plt.subplot(2, 1, 2)
+# plt.imshow(r, cmap='gray')
