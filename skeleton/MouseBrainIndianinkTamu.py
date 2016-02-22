@@ -188,6 +188,6 @@ if __name__ == '__main__':
 
 
 # plt.subplot(2, 1, 1)
-# plt.imshow(th, cmap='gray')
+# plt.imshow(subVolc[0], cmap='gray')
 # plt.subplot(2, 1, 2)
-# plt.imshow(r, cmap='gray')
+# plt.imshow( cmap='gray')
