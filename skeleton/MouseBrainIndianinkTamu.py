@@ -71,16 +71,16 @@ def skeletonizeAndSave(contrast=False, aspectRatio=[1, 1, 1], zoom=True, findMip
             count = count + 1
     # i = imread((os.path.join(root, listOffiles[0])))
     # m, n = np.shape(i)
-    inputIm = np.zeros((73, 512, 512), dtype=np.uint8)
+    inputIm = np.zeros((298, 512, 512), dtype=np.uint8)
     count1 = 0
     if findMip:
         mip = np.ones((512, 512), dtype=int) * 255
     # print("x, y, z dimensions are %i %i %i  " % (m, n, 514))
-    for fileName in listOfJpgs[:73]:
-        imageExtract = np.zeros((512, 512), dtype=np.uint8)
+    for fileName in listOfJpgs[:298]:
+        # imageExtract = np.zeros((512, 512), dtype=np.uint8)
         image = imread((os.path.join(root, fileName)))
-        imageExtract = image[0:512, 0:512]
-        imageExtract = ndimage.filters.gaussian_filter(imageExtract, sigma=1.4)
+        # imageExtract = image[0:512, 0:512]
+        imageExtract = ndimage.filters.gaussian_filter(image, sigma=1.4)
         inputIm[count1][:][:] = imageExtract
         count1 += 1
     # stackSmoothedReplicated = ndimage.interpolation.zoom(stackSmoothed, zoom=aspectRatio, order=0)
