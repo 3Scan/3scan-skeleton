@@ -62,7 +62,7 @@ def _setAdjacencylistarray(arr):
     result[arr == 0] = 0
     dictOfIndicesAndAdjacentcoordinates = {}
     # list of nonzero tuples
-    nonZeros = map(tuple, np.transpose(np.nonzero(arr)))
+    nonZeros = list(set(map(tuple, np.transpose(np.nonzero(arr)))))
     if np.sum(arr) == 1:
         # if there is just one nonzero elemenet there are no adjacent coordinates
         dictOfIndicesAndAdjacentcoordinates[nonZeros[0]] = []
