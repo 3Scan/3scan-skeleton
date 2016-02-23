@@ -1,6 +1,6 @@
 import itertools
 import numpy as np
-import time
+# import time
 
 from scipy import ndimage
 from scipy.ndimage.filters import convolve
@@ -221,7 +221,7 @@ def _findShortestPathFromCRcenterToexit(valencearray, source, dest):
 def getShortestPathskeleton(skeletonIm):
     se = np.ones((3, 3, 3), dtype=np.uint8)
     z, m, n = np.shape(skeletonIm)
-    startt = time.time()
+    # startt = time.time()
     labelInput, noOfObjects = ndimage.measurements.label(skeletonIm, structure=se)
     skeletonIm = np.lib.pad(skeletonIm, 1, 'constant', constant_values=0)
     skeletonImNew = np.zeros_like(skeletonIm)
@@ -237,17 +237,17 @@ def getShortestPathskeleton(skeletonIm):
         if noOfObjects == 1 and np.sum(skeletonIm) > 50 and noOfCrowdedregions == 1:
             src = _getSourcesOfShortestpaths(valencearray)
             skeletonImNew[src] = 1
-            print(" a large number of elements belong to one region")
+            # print(" a large number of elements belong to one region")
             return np.uint8(skeletonImNew[1:z + 1, 1:m + 1, 1:n + 1])
         if np.max(skeletonLabelled) <= 4:
-            print("there are no crowded joint points in the image")
+            # print("there are no crowded joint points in the image")
             return skeletonIm[1:z + 1, 1:m + 1, 1:n + 1]
         else:
-            print("crowded joint points exist")
+            # print("crowded joint points exist")
             skeletonImNew = np.zeros_like(skeletonIm)
             objectify = ndimage.find_objects(label)
             exits = np.uint8(np.logical_or(skeletonLabelled == 1, skeletonLabelled == 2))
-            print(noOfCrowdedregions)
+            # print(noOfCrowdedregions)
             for i in range(0, noOfCrowdedregions):
                 loc = objectify[i]
                 zcoords = loc[0]; ycoords = loc[1]; xcoords = loc[2]
@@ -265,8 +265,8 @@ def getShortestPathskeleton(skeletonIm):
             skeletonImNew[skeletonLabelled < 5] = 1
             skeletonImNew[skeletonLabelled == 0] = 0
             # skeletonImNew[np.logical_and(valencearray == 0, skeletonIm == 1)] = 1  # see if isolated voxels can be removed (answer: yes)
-            stopp = time.time()
-            print("time taken to find the shortest path skeleton is", (stopp - startt), "seconds")
+            # stopp = time.time()
+            # print("time taken to find the shortest path skeleton is", (stopp - startt), "seconds")
             label_img1, countObjects = ndimage.measurements.label(skeletonIm, structure=np.ones((3, 3, 3), dtype=np.uint8))
             label_img2, countObjectsShorty = ndimage.measurements.label(skeletonImNew, structure=np.ones((3, 3, 3), dtype=np.uint8))
             assert countObjects >= countObjectsShorty
