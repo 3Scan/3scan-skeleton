@@ -15,7 +15,7 @@ def generateLookuparray(stop, iterationNumber):
        iterationNumber is the rotation of the cube into one of the directions
        refer to the paper Parallel 3D thinning algorithm with 12 directions for more details
     """
-    lookuparray = np.zeros(stop, dtype=np.uint8)
+    lookuparray = np.zeros(stop, dtype=bool)
     print(iterationNumber)
     for item in range(0, stop):
         neighborValues = [(item >> digit) & 0x01 for digit in range(26)]

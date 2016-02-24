@@ -186,8 +186,17 @@ if __name__ == '__main__':
 # plt.hist(centers,32,[0,256],color = 'y')
 # plt.show()
 
+# for I in range(0, skeleton.shape[0], 7):
+#     plt.subplot(1, 3, 1)
+#     plt.imshow(interpolatedIm[I], cmap='gray')
+#     plt.subplot(1, 3, 2)
+#     plt.imshow(thresh[I], cmap='gray')
+#     plt.subplot(1, 3, 3)
+#     plt.imshow(skeleton[I], cmap='gray')
+#     plt.show()
 
-# plt.subplot(2, 1, 1)
-# plt.imshow(subVolc[0], cmap='gray')
-# plt.subplot(2, 1, 2)
-# plt.imshow( cmap='gray')
+
+#     plt.subplot(1, 3, 1)
+#     plt.imshow(maxip, cmap='gray')
+#     plt.subplot(1, 3, 2)
+#     plt.imshow(maxip2, cmap='gray')

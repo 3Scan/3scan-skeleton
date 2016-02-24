@@ -43,9 +43,9 @@ def getSkeletonize3D(image):
         pass_no += 1
     # print("done %i number of pixels in %0.2f seconds" % (np.sum(image), time.time() - start_skeleton))
     label_img1, countObjects = ndimage.measurements.label(image, structure=np.ones((3, 3, 3), dtype=np.uint8))
-    label_img2, countObjectsSkel = ndimage.measurements.label(padImage, structure=np.ones((3, 3, 3), dtype=np.uint8))
+    label_img2, countObjectsSkel = ndimage.measurements.label(padImage[1:zOrig + 1, 1:yOrig + 1, 1:xOrig + 1], structure=np.ones((3, 3, 3), dtype=np.uint8))
     assert countObjects == countObjectsSkel
-    return np.uint8(padImage[1:zOrig + 1, 1:yOrig + 1, 1:xOrig + 1])
+    return padImage[1:zOrig + 1, 1:yOrig + 1, 1:xOrig + 1]
 
 
 def main():

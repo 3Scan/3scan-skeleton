@@ -224,7 +224,7 @@ def getShortestPathskeleton(skeletonIm):
     # startt = time.time()
     labelInput, noOfObjects = ndimage.measurements.label(skeletonIm, structure=se)
     skeletonIm = np.lib.pad(skeletonIm, 1, 'constant', constant_values=0)
-    skeletonImNew = np.zeros_like(skeletonIm)
+    skeletonImNew = np.zeros(skeletonIm.shape, dtype=bool)
     listOfLabelledArrays = []
     valencearray, dict1 = _setValenceOfarray(skeletonIm)
     if np.sum(valencearray) == 0:
@@ -244,7 +244,6 @@ def getShortestPathskeleton(skeletonIm):
             return skeletonIm[1:z + 1, 1:m + 1, 1:n + 1]
         else:
             # print("crowded joint points exist")
-            skeletonImNew = np.zeros_like(skeletonIm)
             objectify = ndimage.find_objects(label)
             exits = np.uint8(np.logical_or(skeletonLabelled == 1, skeletonLabelled == 2))
             # print(noOfCrowdedregions)
@@ -262,15 +261,15 @@ def getShortestPathskeleton(skeletonIm):
                 for dest in dests:
                     dilatedLabelledObjectLoc1 = _findShortestPathFromCRcenterToexit(dilatedLabelledObjectLoc, src, dest)
                     skeletonImNew[regionLowerBoundZ: regionUpperBoundZ, regionLowerBoundY: regionUpperBoundY, regionLowerBoundX: regionUpperBoundX] = np.logical_or(skeletonImNew[regionLowerBoundZ: regionUpperBoundZ, regionLowerBoundY: regionUpperBoundY, regionLowerBoundX: regionUpperBoundX], dilatedLabelledObjectLoc1)
-            skeletonImNew[skeletonLabelled < 5] = 1
-            skeletonImNew[skeletonLabelled == 0] = 0
+            skeletonImNew[skeletonLabelled < 5] = True
+            skeletonImNew[skeletonLabelled == 0] = False
             # skeletonImNew[np.logical_and(valencearray == 0, skeletonIm == 1)] = 1  # see if isolated voxels can be removed (answer: yes)
             # stopp = time.time()
             # print("time taken to find the shortest path skeleton is", (stopp - startt), "seconds")
             label_img1, countObjects = ndimage.measurements.label(skeletonIm, structure=np.ones((3, 3, 3), dtype=np.uint8))
             label_img2, countObjectsShorty = ndimage.measurements.label(skeletonImNew, structure=np.ones((3, 3, 3), dtype=np.uint8))
             assert countObjects >= countObjectsShorty
-            return np.uint8(skeletonImNew[1:z + 1, 1:m + 1, 1:n + 1])
+            return skeletonImNew[1:z + 1, 1:m + 1, 1:n + 1]
 
 
 def list_to_dict(skeletonLabelled):
