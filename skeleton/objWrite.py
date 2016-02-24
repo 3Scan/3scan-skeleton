@@ -34,11 +34,10 @@ def getObjWrite(imArray, pathTosave):
     mapping = {}  # initialize variables for writing string of vertex v followed by x, y, x coordinates in the obj file
     #  for each of the sorted vertices
     strsVertices = []
+    listVertex = list(map(list, verticesSorted))
     for index, vertex in enumerate(verticesSorted):
         mapping[vertex] = index + 1  # a mapping to transform the vertices (x, y, z) to indexes (beginining with 1)
-        originalVertex = list(vertex)
-        newVertex = [0] * len(vertex)
-        newVertex[0] = originalVertex[0] / 1; newVertex[1] = originalVertex[2] * 0.6; newVertex[2] = originalVertex[1] * 0.6; vertex = tuple(newVertex)
+        vertex = tuple((listVertex[index][0], listVertex[index][1] * 0.6, listVertex[index][2] * 0.6))
         strsVertices.append("v " + " ".join(str(vertex[i - 2]) for i in range(0, len(vertex))) + "\n")  # add strings of vertices to obj file
     objFile.writelines(strsVertices)  # write strings to obj file
     networkGraphIntegerNodes = nx.relabel_nodes(networkxGraph, mapping, False)
