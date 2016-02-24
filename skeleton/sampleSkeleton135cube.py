@@ -24,19 +24,17 @@ listOfJpgs = [os.path.join(root, files) for files in os.listdir(root) if formatO
 listOfJpgs.sort()
 subVolume = np.zeros((19, 17480, 8026), dtype=np.uint8)
 for i in range(9, 799 - 10, iskpz):
-    print(i)
+    # print(i)
     subList = listOfJpgs[i - 9: i + 10]
     count = 0
     for fileName in subList:
         subVolume[count][:][:] = imread(fileName)
         count += 1
     assert count == subVolume.shape[0]
-    izd = int(i / 20)
     for j in range(67, 17480 - 68, iskpy):
-        iyd = int(j / 140)
         for k in range(67, 8026 - 68, iskpx):
-            ixd = int(k / 140)
             if k < 1600 or (k > 2350 and k < 4800) or (k > 5520 and k < 8020):
+                izd = int(i / 20); ixd = int(k / 140); iyd = int(j / 140)
                 if mask[izd, iyd, ixd]:
                     isum = isum + 1
                     subSubvolume = subVolume[:, j - 67:j + 68, k - 67: k + 68]
@@ -52,7 +50,7 @@ for i in range(9, 799 - 10, iskpz):
                     strLists.append("shortest path skeleton in %i number of pixels in %0.2f seconds" % (thinned.sum(), time.time() - sh))
                     np.save("/media/pranathi/DATA/subsubVolumeSkeletons/skeleton_{}_{}_{}.npy".format(i, j, k), skeleton)
                     np.save("/media/pranathi/DATA/subsubVolumeThresholds/threshold_{}_{}_{}.npy".format(i, j, k), thresh)
-                    count = ndimage.measurements.label(skeleton, structure=np.ones((3, 3, 3), dtype=np.uint8))
+                    l, count = ndimage.measurements.label(skeleton, structure=np.ones((3, 3, 3), dtype=np.uint8))
                     strLists.append("disjoint objects of {} shortest path skeleton subvolume is {}". format(isum, count))
 f.writelines(strLists)
 f.close()

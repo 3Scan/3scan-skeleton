@@ -52,7 +52,7 @@ for i in range(18, 799 - 19, iskpz):
                     strLists.append("shortest path skeleton in %i number of pixels in %0.2f seconds" % (thinned.sum(), time.time() - sh))
                     np.save("/media/pranathi/User Data/subsubVolumeSkeletons/skeleton_{}_{}_{}.npy".format(i, j, k), skeleton)
                     np.save("/media/pranathi/User Data/subsubVolumeThresholds/threshold_{}_{}_{}.npy".format(i, j, k), thresh)
-                    count = ndimage.measurements.label(skeleton, structure=np.ones((3, 3, 3), dtype=np.uint8))
+                    l, count = ndimage.measurements.label(skeleton, structure=np.ones((3, 3, 3), dtype=np.uint8))
                     strLists.append("disjoint objects of {} shortest path skeleton subvolume is {}". format(isum, count))
 f.writelines(strLists)
 f.close()
