@@ -5,7 +5,8 @@ import xlsxwriter
 import numpy as np
 import networkx as nx
 from statistics import mean
-
+from skeleton.BifurcatedsegmentLengths import getBifurcatedSegmentsAndLengths
+from skeleton.radiusOfNodes import getRadiusByPointsOnCenterline
 from skeleton.networkxGraphFromarray import getNetworkxGraphFromarray
 from skeleton.cliqueRemovig import removeCliqueEdges
 from skeleton.segmentLengths import _getDistanceBetweenPointsInpath, _removeEdgesInVisitedPath
@@ -235,13 +236,11 @@ def xlsxWrite(listOfDicts, path):
 
 
 def excelWrite():
-    from skeleton.segmentLengths import getSegmentsAndLengths
-    from skeleton.radiusOfNodes import getRadiusByPointsOnCenterline
     shskel = np.load(input("enter a path to shortest path skeleton volume------"))
     boundaryIm = np.load(input("enter a path to boundary of thresholded volume------"))
     path = input("enter a path to save analysis xlsx file at")
-    segmentdict, disjointgraphDict = getStatsDisjoint(shskel)
-    d1, d2, d3, t = getSegmentsAndLengths(shskel)
+    # segmentdict, disjointgraphDict = getStatsDisjoint(shskel)
+    d1, d2, d3, t = getBifurcatedSegmentsAndLengths(shskel)
     d, di = getRadiusByPointsOnCenterline(shskel, boundaryIm)
     dictR = {your_key: d[your_key] for your_key in d1.keys()}
     d = {}
@@ -250,12 +249,13 @@ def excelWrite():
         d[keys] = '   '.join(d[keys])
     listOfDicts = [dictR, d1, d2, d3]
     xlsxWrite(listOfDicts, path)
+    return d
 
 
 if __name__ == '__main__':
-    excelWrite()
+    d = excelWrite()
     # from mayavi import mlab
-    # # to plot text on an mlab figure
+    # to plot text on an mlab figure
     # for coord in list(d.keys()):
     #     x = coord[0]; y = coord[1]; z = coord[2];
-    #     mlab.text3d(x, y, z, d[coord], color=(0, 0, 0), scale=2.0)
+    #     mlab.text3d(x, y, z, d[coord], color=(0, 0, 0))

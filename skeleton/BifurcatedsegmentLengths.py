@@ -45,6 +45,8 @@ def getBifurcatedSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
             nodes.sort()
             nodeDegreedict = nx.degree(subGraphskeleton)
             degreeList = list(nodeDegreedict.values())
+            cycleList = nx.cycle_basis(subGraphskeleton)
+            cycleCount = len(cycleList)
             if set(degreeList) == set((1, 2)):
                 continue
             elif set(degreeList) == {2}:
@@ -56,8 +58,44 @@ def getBifurcatedSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
                 segmentLengthdict[1, sourceOnCycle, sourceOnCycle] = _getDistanceBetweenPointsInpath(cycle, 1)
                 segmentTortuositydict[1, sourceOnCycle, sourceOnCycle] = 0
                 _removeEdgesInVisitedPath(subGraphskeleton, cycle, 1)
+            elif cycleCount >= 1:
+                visitedSources = []
+                """go through each of the cycles and find the lengths, set tortuosity to NaN (circle)"""
+                for nthCycle, cyclePath in enumerate(cycleList):
+                    sourceOnCycle = cyclePath[0]
+                    if sourceOnCycle not in visitedSources:
+                        "check if the same source has multiple loops/cycle"
+                        segmentCountdict[sourceOnCycle] = 1
+                    else:
+                        segmentCountdict[sourceOnCycle] = segmentCountdict[sourceOnCycle] + 1
+                    visitedSources.append(sourceOnCycle)
+                    segmentLengthdict[segmentCountdict[sourceOnCycle], sourceOnCycle, sourceOnCycle] = _getDistanceBetweenPointsInpath(cyclePath, 1)
+                    segmentTortuositydict[segmentCountdict[sourceOnCycle], sourceOnCycle, sourceOnCycle] = 0
+                    _removeEdgesInVisitedPath(subGraphskeleton, cyclePath, 1)
+                if subGraphskeleton.number_of_edges() != 0:
+                    "all the cycles in the graph are checked now look for the tree characteristics in this subgraph"
+                    # collecting all the branch and endpoints
+                    branchpoints = [k for (k, v) in nodeDegreedict.items() if v > 2]
+                    listOfPerms = list(itertools.permutations(branchpoints, 2))
+                    branchpoints.sort()
+                    for sourceOnTree, item in listOfPerms:
+                        if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
+                            simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
+                            for simplePath in simplePaths:
+                                if len(list(set(branchpoints) & set(simplePath))) == 2:
+                                    if sourceOnTree not in visitedSources:
+                                        "check if the same source has multiple segments"
+                                        segmentCountdict[sourceOnTree] = 1
+                                    else:
+                                        segmentCountdict[sourceOnTree] = segmentCountdict[sourceOnTree] + 1
+                                    visitedSources.append(sourceOnTree)
+                                    curveLength = _getDistanceBetweenPointsInpath(simplePath)
+                                    curveDisplacement = np.sqrt(np.sum((np.array(sourceOnTree) - np.array(item)) ** 2))
+                                    segmentLengthdict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength
+                                    segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength / curveDisplacement
+                                    _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
             else:
-                """ acyclic tree with degrees greater than 2 exist"""
+                """ acyclic tree nodes with degrees greater than 2 exist"""
                 branchpoints = [k for (k, v) in nodeDegreedict.items() if v > 2]
                 listOfPerms = list(itertools.permutations(branchpoints, 2))
                 branchpoints.sort()
