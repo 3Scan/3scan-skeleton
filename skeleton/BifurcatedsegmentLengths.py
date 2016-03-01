@@ -5,6 +5,10 @@ import numpy as np
 import networkx as nx
 
 from skeleton.networkxGraphFromarray import getNetworkxGraphFromarray
+<<<<<<< HEAD
+=======
+from skeleton.cliqueRemovig import removeCliqueEdges
+>>>>>>> dabc0f3b6bcb1524a4adaa5d6dd20d93dc5e79be
 from skeleton.segmentLengths import _removeEdgesInVisitedPath, _getDistanceBetweenPointsInpath
 
 
@@ -44,7 +48,10 @@ def getBifurcatedSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
             nodeDegreedict = nx.degree(subGraphskeleton)
             degreeList = list(nodeDegreedict.values())
             cycleList = nx.cycle_basis(subGraphskeleton)
+<<<<<<< HEAD
             cycleList = [item for item in cycleList if len(item) != 3]
+=======
+>>>>>>> dabc0f3b6bcb1524a4adaa5d6dd20d93dc5e79be
             cycleCount = len(cycleList)
             if set(degreeList) == set((1, 2)):
                 continue
@@ -115,6 +122,10 @@ def getBifurcatedSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
                                 segmentLengthdict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength
                                 segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength / curveDisplacement
                                 _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
+<<<<<<< HEAD
+=======
+    # print(sum(segmentCountdict.values()), len(segmentTortuositydict), len(segmentLengthdict))
+>>>>>>> dabc0f3b6bcb1524a4adaa5d6dd20d93dc5e79be
     totalSegments = len(segmentLengthdict)
     print("time taken to calculate segments and their lengths is %0.3f seconds" % (time.time() - startt))
     return segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments
