@@ -27,13 +27,13 @@ def convert(tupValList):
         interpolatedIm = interpolatedIm > t
         thinned = getSkeletonize3D(interpolatedIm)
         skeleton = getShortestPathskeleton(thinned)
-        np.save("/media/pranathi/User Data/subsubVolumeSkeletons/skeleton_{}_{}_{}.npy".format(i, j, k), skeleton)
-        np.save("/media/pranathi/User Data/subsubVolumeThresholds/threshold_{}_{}_{}.npy".format(i, j, k), interpolatedIm)
+        np.save("/media/pranathi/User Data/subsubVolumeSkeletons/skeleton_{}_{}_{}.npy".format(i + 160, j, k), skeleton)
+        np.save("/media/pranathi/User Data/subsubVolumeThresholds/threshold_{}_{}_{}.npy".format(i + 160, j, k), interpolatedIm)
 
 
 if __name__ == '__main__':
     mask = np.load('/media/pranathi/User Data/maskDownsampled.npy')
-    iskpy = iskpx = 560; iskpz = int(0.5 + iskpx * 0.7 / 5.0)
+    iskpy = iskpx = 280; iskpz = int(0.5 + 560 * 0.7 / 5.0)
     root = '/media/pranathi/User Data/ii-5016-15-ms-brain_1920/filt/'
     formatOfFiles = 'png'
     listOfJpgs = [os.path.join(root, files) for files in os.listdir(root) if formatOfFiles in files]
