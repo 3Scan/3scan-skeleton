@@ -5,57 +5,7 @@ import numpy as np
 import networkx as nx
 
 from skeleton.networkxGraphFromarray import getNetworkxGraphFromarray
-from skeleton.cliqueRemovig import removeCliqueEdges
-
-
-def _getDistanceBetweenPointsInpath(cyclePath, cycle=0):
-    """
-       finds distance between points in a given path
-       if it is a cycle then distance from last coordinate
-       to first coordinate in the path is added to the
-       distance list (since a cycle contains this edge as
-       the last edge in its path)
-    """
-    distList = []
-    if cycle:
-        for index, item in enumerate(cyclePath):
-            if index + 1 < len(cyclePath):
-                item2 = cyclePath[index + 1]
-            elif index + 1 == len(cyclePath):
-                item2 = cyclePath[0]
-            dist = np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2))
-            distList.append(dist)
-    else:
-        for index, item in enumerate(cyclePath):
-            if index + 1 != len(cyclePath):
-                item2 = cyclePath[index + 1]
-                dist = np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2))
-                distList.append(dist)
-    return sum(distList)
-
-
-def _removeEdgesInVisitedPath(subGraphskeleton, path, cycle):
-    """
-       given a visited path in variable path, the edges in the
-       path are removed in the graph
-       if cycle = 1 , the given path belongs to a cycle,
-       so an additional edge is formed between the last and the
-       first node to form a closed cycle/ path and is removed
-    """
-    shortestPathedges = []
-    if cycle == 0:
-        for index, item in enumerate(path):
-            if index + 1 != len(path):
-                shortestPathedges.append(tuple((item, path[index + 1])))
-        subGraphskeleton.remove_edges_from(shortestPathedges)
-    else:
-        for index, item in enumerate(path):
-            if index + 1 != len(path):
-                shortestPathedges.append(tuple((item, path[index + 1])))
-            else:
-                item = path[0]
-                shortestPathedges.append(tuple((item, path[-1])))
-        subGraphskeleton.remove_edges_from(shortestPathedges)
+from skeleton.segmentLengths import _removeEdgesInVisitedPath, _getDistanceBetweenPointsInpath
 
 
 def getBifurcatedSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
@@ -74,7 +24,6 @@ def getBifurcatedSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
         networkxGraph = imArray
     else:
         networkxGraph = getNetworkxGraphFromarray(imArray, skelOrNot)
-        networkxGraph = removeCliqueEdges(networkxGraph)
     assert networkxGraph.number_of_selfloops() == 0
     # intitialize all the common variables
     startt = time.time()
@@ -90,64 +39,24 @@ def getBifurcatedSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
             " if it is a single node"
         else:
             """ if there are more than one nodes decide what kind of subgraph it is
-                if it has cycles alone, or is a cyclic graph with a tree or an
-                acyclic graph with tree """
+                if it has cycles alone, or it's a cyclic/acyclic graph"""
             nodes.sort()
-            cycleList = nx.cycle_basis(subGraphskeleton)
-            cycleCount = len(cycleList)
             nodeDegreedict = nx.degree(subGraphskeleton)
             degreeList = list(nodeDegreedict.values())
-            endPointdegree = min(degreeList)
-            branchPointdegree = max(degreeList)
-            if endPointdegree == branchPointdegree and nx.is_biconnected(subGraphskeleton) and cycleCount != 0:
-                """ if the maximum degree is equal to minimum degree it is a circle, set
-                tortuosity to infinity (NaN) """
+            cycleList = nx.cycle_basis(subGraphskeleton)
+            cycleList = [item for item in cycleList if len(item) != 3]
+            cycleCount = len(cycleList)
+            if set(degreeList) == set((1, 2)):
+                continue
+            elif set(degreeList) == {2}:
+                """ it is a circle, set tortuosity to infinity (NaN) """
+                cycleList = nx.cycle_basis(subGraphskeleton)
                 cycle = cycleList[0]
                 sourceOnCycle = cycle[0]
                 segmentCountdict[sourceOnCycle] = 1
                 segmentLengthdict[1, sourceOnCycle, sourceOnCycle] = _getDistanceBetweenPointsInpath(cycle, 1)
                 segmentTortuositydict[1, sourceOnCycle, sourceOnCycle] = 0
                 _removeEdgesInVisitedPath(subGraphskeleton, cycle, 1)
-            elif set(degreeList) == set((1, 2)) or set(degreeList) == {1}:
-                """ doesn't have points with degree greater than 2, a straight line or a dichotomous tree"""
-                branchpoints = nodes
-                listOfPerms = list(itertools.permutations(branchpoints, 2))
-                if type(nodes[0]) == int:
-                    modulus = [[start - end] for start, end in listOfPerms]
-                    dists = [abs(i[0]) for i in modulus]
-                else:
-                    dims = len(nodes[0])
-                    modulus = [[start[dim] - end[dim] for dim in range(0, dims)] for start, end in listOfPerms]
-                    dists = [sum(modulus[i][dim] * modulus[i][dim] for dim in range(0, dims)) for i in range(0, len(modulus))]
-                if len(list(nx.articulation_points(subGraphskeleton))) == 1 and set(dists) != 1:
-                    """ each node is connected to one or two other nodes which are not a distance of 1 implies there is a
-                        one branch point with two end points in a single dichotomous tree"""
-                    visitedSources = []
-                    for sourceOnTree, item in listOfPerms:
-                        if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
-                            simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
-                            for simplePath in simplePaths:
-                                if len(list(set(branchpoints) & set(simplePath))) == 2:
-                                    if sourceOnTree not in visitedSources:
-                                        "check if the same source has multiple segments"
-                                        segmentCountdict[sourceOnTree] = 1
-                                    else:
-                                        segmentCountdict[sourceOnTree] = segmentCountdict[sourceOnTree] + 1
-                                    visitedSources.append(sourceOnTree)
-                                    curveLength = _getDistanceBetweenPointsInpath(simplePath)
-                                    curveDisplacement = np.sqrt(np.sum((np.array(sourceOnTree) - np.array(item)) ** 2))
-                                    segmentLengthdict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength
-                                    segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength / curveDisplacement
-                                    _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
-                else:
-                    """ each node is connected to one or two other nodes implies it is a line,
-                    set tortuosity to 1"""
-                    sourceOnLine = nodes[0]; targetOnLine = nodes[-1]
-                    segmentCountdict[sourceOnLine] = 1
-                    segmentLengthdict[1, sourceOnLine, targetOnLine] = _getDistanceBetweenPointsInpath(nodes, 0)
-                    segmentTortuositydict[1, sourceOnLine, targetOnLine] = 1
-                    edges = subGraphskeleton.edges()
-                    subGraphskeleton.remove_edges_from(edges)
             elif cycleCount >= 1:
                 visitedSources = []
                 """go through each of the cycles and find the lengths, set tortuosity to NaN (circle)"""
@@ -185,7 +94,7 @@ def getBifurcatedSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
                                     segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength / curveDisplacement
                                     _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
             else:
-                """ acyclic tree """
+                """ acyclic tree nodes with degrees greater than 2 exist"""
                 branchpoints = [k for (k, v) in nodeDegreedict.items() if v > 2]
                 listOfPerms = list(itertools.permutations(branchpoints, 2))
                 branchpoints.sort()
@@ -206,8 +115,6 @@ def getBifurcatedSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
                                 segmentLengthdict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength
                                 segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength / curveDisplacement
                                 _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
-            # assert subGraphskeleton.number_of_edges() == 0
-    print(sum(segmentCountdict.values()), len(segmentTortuositydict), len(segmentLengthdict))
     totalSegments = len(segmentLengthdict)
     print("time taken to calculate segments and their lengths is %0.3f seconds" % (time.time() - startt))
     return segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments
@@ -217,9 +124,6 @@ if __name__ == '__main__':
     from skeleton.orientationStatisticsSpline import plotKde
     shskel = np.load("/home/pranathi/Downloads/twodimageslices/twodkskeletonslices/Skeleton.npy")
     segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments = getBifurcatedSegmentsAndLengths(shskel)
-    # getStatistics(segmentCountdict, 'segmentCount')
-    # getStatistics(segmentLengthdict, 'segmentLength')
-    # getStatistics(segmentTortuositydict, 'segmentTortuosity')
     plotKde(segmentCountdict)
     plotKde(segmentLengthdict)
     plotKde(segmentTortuositydict)
