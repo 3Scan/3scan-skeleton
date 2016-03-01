@@ -37,6 +37,7 @@ def removeCliqueEdges(networkxGraph):
         for mainDim, item in enumerate(subGraphEdgelengths):
             for subDim, length in enumerate(item):
                 if length == max(max(list(zip(*subGraphEdgelengths)))):
+                    print(length, item)
                     cliquEdges.append(combEdge[mainDim][subDim])
         networkxGraphAfter.remove_edges_from(cliquEdges)
         disjointGraphsAfter = len(list(nx.connected_component_subgraphs(networkxGraphAfter)))
