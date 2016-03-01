@@ -4,7 +4,6 @@ import itertools
 
 import time
 
-from skeleton.cliqueRemovig import removeCliqueEdges
 from skeleton.networkxGraphFromarray import getNetworkxGraphFromarray
 from skeleton.radiusOfNodes import getRadiusByPointsOnCenterline
 from skeleton.segmentLengths import _removeEdgesInVisitedPath
@@ -24,7 +23,6 @@ def getObjWrite(imArray, pathTosave):
     startt = time.time()  # for calculating time taken to write to an obj file
     if type(imArray) == np.ndarray:
         networkxGraph = getNetworkxGraphFromarray(imArray, True)  # converts array to a networkx graph(based on non zero coordinates and the adjacent nonzeros)
-        networkxGraph = removeCliqueEdges(networkxGraph)  # remove cliques in the graph
     else:
         networkxGraph = imArray
     objFile = open(pathTosave, "w")  # open a obj file in the given path
@@ -53,6 +51,7 @@ def getObjWrite(imArray, pathTosave):
             acyclic graph with tree """
         nodes.sort()
         cycleList = nx.cycle_basis(subGraphskeleton)
+        cycleList = [item for item in cycleList if len(item) != 3]
         cycleCount = len(cycleList)
         nodeDegreedict = nx.degree(subGraphskeleton)
         degreeList = list(nodeDegreedict.values())
@@ -129,7 +128,6 @@ def getObjWriteWithradius(imArray, pathTosave, dictOfNodesAndRadius):
     startt = time.time()  # for calculating time taken to write to an obj file
     if type(imArray) == np.ndarray:
         networkxGraph = getNetworkxGraphFromarray(imArray, True)  # converts array to a networkx graph(based on non zero coordinates and the adjacent nonzeros)
-        networkxGraph = removeCliqueEdges(networkxGraph)  # remove cliques in the graph
     else:
         networkxGraph = imArray
     objFile = open(pathTosave, "w")  # open a obj file in the given path
@@ -160,6 +158,7 @@ def getObjWriteWithradius(imArray, pathTosave, dictOfNodesAndRadius):
             acyclic graph with tree """
         nodes.sort()
         cycleList = nx.cycle_basis(subGraphskeleton)
+        cycleList = [item for item in cycleList if len(item) != 3]
         cycleCount = len(cycleList)
         nodeDegreedict = nx.degree(subGraphskeleton)
         degreeList = list(nodeDegreedict.values())
