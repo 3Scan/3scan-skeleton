@@ -154,11 +154,11 @@ if __name__ == '__main__':
 # maxip1 = np.amax(stackUnSmoothedQuadratic < tu, 0)
 # maxip1S = np.amax(stackSmoothedQuadratic < ts, 0)
 # plt.subplot(2, 1, 1)
-# plt.imshow(1-maxip, cmap='gray')
+# plt.imshow(maxip, cmap='gray')
 # # plt.title('grey scale mip of unsmoothed quadratic interpolated volume pf = True')
 # plt.subplot(2, 1, 2)
-# plt.imshow(1-maxip1, cmap='gray')
-# # plt.title('thresholded mip of unsmoothed quadratic interpolated volume (no clipping) pf = True')
+# plt.imshow(maxip1, cmap='gray')
+# plt.title('thresholded mip of unsmoothed quadratic interpolated volume (no clipping) pf = True')
 # plt.subplot(2, 1, 3)
 # plt.imshow(maxipS, cmap='gray')
 # plt.title('grey scale mip of smoothed quadratic interpolated volume')
@@ -186,17 +186,31 @@ if __name__ == '__main__':
 # plt.hist(centers,32,[0,256],color = 'y')
 # plt.show()
 
-# for I in range(0, skeleton.shape[0], 7):
+# for I in range(0, skeletonER.shape[0]):
 #     plt.subplot(1, 3, 1)
-#     plt.imshow(interpolatedIm[I], cmap='gray')
+#     # maxip = np.amax(interpolatedIm[I:I + 7], 0)
+#     plt.imshow(grey[I], cmap='gray')
 #     plt.subplot(1, 3, 2)
-#     plt.imshow(thresh[I], cmap='gray')
+#     plt.imshow(threshold[I], cmap='gray')
 #     plt.subplot(1, 3, 3)
-#     plt.imshow(skeleton[I], cmap='gray')
-#     plt.show()
+#     plt.imshow(skeletonER[I], cmap='gray')
+#     plt.savefig('Mosaic%i.png' % I, bbox_inches='tight')
 
 
-#     plt.subplot(1, 3, 1)
-#     plt.imshow(maxip, cmap='gray')
-#     plt.subplot(1, 3, 2)
-#     plt.imshow(maxip2, cmap='gray')
+# #     plt.subplot(1, 3, 1)
+# #     plt.imshow(maxip, cmap='gray')
+# #     plt.subplot(1, 3, 2)
+# #     plt.imshow(maxip2, cmap='gray')
+
+
+# plt.subplot(1, 2, 1)
+# plt.imshow(subSubvolume[0], cmap='gray')
+# plt.subplot(1, 2, 2)
+# plt.imshow(255-subSubvolume[0], cmap='gray')
+
+
+# for i in range(threshold.shape[0]):
+#     imsave(root + 'twodThresholdslicesgoodRegionOT/' + 'thresholdot%i.png' % i, threshold[i] * 255)
+
+# for i in range(subSubvolume.shape[0]):
+#     imsave(root + 'twodGreyslicesgoodRegion/' + 'GreyGR%i.png' % i, subSubvolume[i])
