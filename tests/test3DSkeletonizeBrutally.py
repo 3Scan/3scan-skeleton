@@ -188,10 +188,10 @@ def test_convex2DBlob():
     hull = ConvexHull(xys)
 
     xf, yf = np.mgrid[-1:1:50j, -1:1:50j]
-    i = np.zeros(xf.shape, dtype=bool)
+    i = np.ones(xf.shape, dtype=bool)
     for x, y, c in hull.equations:
         mask = (xf * x) + (yf * y) - c < 0
-        i[mask] = 1
+        i[mask] = 0
     c = doEmbeddedTest(i)
     assert c == 1
 
@@ -276,9 +276,9 @@ def test_convex3DBlob():
     hullz = ConvexHull(xyzs)
 
     xf, yf, zf = np.mgrid[-1:1:50j, -1:1:50j, -1:1:50j]
-    i = np.zeros(xf.shape, dtype=bool)
+    i = np.ones(xf.shape, dtype=bool)
     for x, y, z, c in hullz.equations:
         mask = (xf * x) + (yf * y) + (zf * z) - c < 0
-        i[mask] = 1
+        i[mask] = 0
     i = i.astype(bool)
     allOrientationsTest(i, 1)

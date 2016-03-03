@@ -4,7 +4,7 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 
-from skeleton.cliqueRemovig import removeCliqueEdges
+from skeleton.cliqueRemoving import removeCliqueEdges
 from skeleton.segmentLengths import getSegmentsAndLengths
 
 """

@@ -5,6 +5,7 @@ import numpy as np
 import networkx as nx
 
 from skeleton.networkxGraphFromarray import getNetworkxGraphFromarray
+from skeleton.cliqueRemoving import removeCliqueEdges
 from skeleton.segmentLengths import _removeEdgesInVisitedPath, _getDistanceBetweenPointsInpath
 
 
@@ -24,6 +25,7 @@ def getBifurcatedSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
         networkxGraph = imArray
     else:
         networkxGraph = getNetworkxGraphFromarray(imArray, skelOrNot)
+        networkxGraph = removeCliqueEdges(networkxGraph)
     assert networkxGraph.number_of_selfloops() == 0
     # intitialize all the common variables
     startt = time.time()
@@ -44,7 +46,7 @@ def getBifurcatedSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
             nodeDegreedict = nx.degree(subGraphskeleton)
             degreeList = list(nodeDegreedict.values())
             cycleList = nx.cycle_basis(subGraphskeleton)
-            cycleList = [item for item in cycleList if len(item) != 3]
+            # cycleList = [item for item in cycleList if len(item) != 3]
             cycleCount = len(cycleList)
             if set(degreeList) == set((1, 2)):
                 continue
