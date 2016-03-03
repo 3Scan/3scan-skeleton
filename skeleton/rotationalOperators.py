@@ -100,6 +100,149 @@ def _rot3D90(cubeArray=referenceArray, rotAxis='z', k=0):
             return rotMatrix
 
 
+def firstSubIter(validateMatrix):
+    """
+    returns a decision if there is a valid borders voxels
+    that can be removed in up or south
+    """
+    assert np.ndim(validateMatrix) == 3
+    listedMatrix = list(np.reshape(validateMatrix, 27))
+    del(listedMatrix[13])
+    return listedMatrix
+
+
+def secondSubIter(validateMatrix):
+    """
+    returns a decision if there is a valid borders voxels
+    that can be removed in north or east
+    """
+    assert np.ndim(validateMatrix) == 3
+    firstTransition = _rot3D90(_rot3D90(validateMatrix, 'y', 2), 'x', 3)
+    listedMatrix = list(np.reshape(firstTransition, 27))
+    del(listedMatrix[13])
+    return listedMatrix
+
+
+def thirdSubIter(validateMatrix):
+    """
+    returns a decision if there is a valid borders voxels
+    that can be removed in west or down
+    """
+    assert np.ndim(validateMatrix) == 3
+    secondTransition = _rot3D90(_rot3D90(validateMatrix, 'x', 1), 'z', 1)
+    listedMatrix = list(np.reshape(secondTransition, 27))
+    del(listedMatrix[13])
+    return listedMatrix
+
+
+def fourthSubIter(validateMatrix):
+    """
+    returns a decision if there is a valid borders voxels
+    that can be removed in east or south
+    """
+    assert np.ndim(validateMatrix) == 3
+    thirdTransition = _rot3D90(validateMatrix, 'x', 3)
+    listedMatrix = list(np.reshape(thirdTransition, 27))
+    del(listedMatrix[13])
+    return listedMatrix
+
+
+def fifthSubIter(validateMatrix):
+    """
+    returns a decision if there is a valid borders voxels
+    that can be removed in up or west
+    """
+    assert np.ndim(validateMatrix) == 3
+    fourthTransition = _rot3D90(validateMatrix, 'y', 3)
+    listedMatrix = list(np.reshape(fourthTransition, 27))
+    del(listedMatrix[13])
+    return listedMatrix
+
+
+def sixthSubIter(validateMatrix):
+    """
+    returns a decision if there is a valid borders voxels
+    that can be removed in north or down
+    """
+    assert np.ndim(validateMatrix) == 3
+    fifthTransition = _rot3D90(_rot3D90(_rot3D90(validateMatrix, 'x', 3), 'z', 1), 'y', 1)
+    listedMatrix = list(np.reshape(fifthTransition, 27))
+    del(listedMatrix[13])
+    return listedMatrix
+
+
+def seventhSubIter(validateMatrix):
+    """
+    returns a decision if there is a valid borders voxels
+    that can be removed in south or west
+    """
+    assert np.ndim(validateMatrix) == 3
+    sixthTransition = _rot3D90(validateMatrix, 'x', 1)
+    listedMatrix = list(np.reshape(sixthTransition, 27))
+    del(listedMatrix[13])
+    return listedMatrix
+
+
+def eighthSubIter(validateMatrix):
+    """
+    returns a decision if there is a valid borders voxels
+    that can be removed in up or north
+    """
+    assert np.ndim(validateMatrix) == 3
+    seventhTransition = _rot3D90(validateMatrix, 'y', 2)
+    listedMatrix = list(np.reshape(seventhTransition, 27))
+    del(listedMatrix[13])
+    return listedMatrix
+
+
+def ninthSubIter(validateMatrix):
+    """
+    returns a decision if there is a valid borders voxels
+    that can be removed in east or down
+    """
+    assert np.ndim(validateMatrix) == 3
+    eighthTransition = _rot3D90(_rot3D90(validateMatrix, 'x', 3), 'z', 1)
+    listedMatrix = list(np.reshape(eighthTransition, 27))
+    del(listedMatrix[13])
+    return listedMatrix
+
+
+def tenthSubIter(validateMatrix):
+    """
+    returns a decision if there is a valid borders voxels
+    that can be removed in north or west
+    """
+    assert np.ndim(validateMatrix) == 3
+    ninthTransition = _rot3D90(_rot3D90(validateMatrix, 'y', 2), 'x', 1)
+    listedMatrix = list(np.reshape(ninthTransition, 27))
+    del(listedMatrix[13])
+    return listedMatrix
+
+
+def eleventhSubIter(validateMatrix):
+    """
+    returns a decision if there is a valid borders voxels
+    that can be removed in up or east
+    """
+    assert np.ndim(validateMatrix) == 3
+    tenthTransition = _rot3D90(validateMatrix, 'y', 1)
+    listedMatrix = list(np.reshape(tenthTransition, 27))
+    del(listedMatrix[13])
+    return listedMatrix
+
+
+def twelvethSubIter(validateMatrix):
+    """
+    returns a decision if there is a valid borders voxels
+    that can be removed in south or down
+    """
+    assert np.ndim(validateMatrix) == 3
+    eleventhTransition = _rot3D90(validateMatrix, 'x', 2)
+    listedMatrix = list(np.reshape(eleventhTransition, 27))
+    del(listedMatrix[13])
+    return listedMatrix
+
+
 firstSubiteration = referenceArray
 secondSubiteration = _rot3D90(_rot3D90(referenceArray, 'y', 2), 'x', 3)
 thirdSubiteration = _rot3D90(_rot3D90(referenceArray, 'x', 1), 'z', 1)
