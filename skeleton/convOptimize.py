@@ -35,6 +35,7 @@ def getSkeletonize3D(image):
     while pass_no == 0 or numPixelsremoved > 0:
         for i in range(0, 12):
             convImage = convolve(np.uint64(padImage), directionList[i], mode='constant', cval=0)
+            convImage[padImage == 0] = 0
             pixBefore = padImage.sum()
             padImage[lookUparray[convImage[:]] == 1] = 0
             numPixelsremoved = pixBefore - padImage.sum()
@@ -43,9 +44,11 @@ def getSkeletonize3D(image):
         pass_no += 1
     # print("done %i number of pixels in %0.2f seconds" % (np.sum(image), time.time() - start_skeleton))
     label_img1, countObjects = ndimage.measurements.label(image, structure=np.ones((3, 3, 3), dtype=np.uint8))
-    label_img2, countObjectsSkel = ndimage.measurements.label(padImage[1:zOrig + 1, 1:yOrig + 1, 1:xOrig + 1], structure=np.ones((3, 3, 3), dtype=np.uint8))
+    result = padImage[1:zOrig + 1, 1:yOrig + 1, 1:xOrig + 1]
+    label_img2, countObjectsSkel = ndimage.measurements.label(result, structure=np.ones((3, 3, 3), dtype=np.uint8))
     assert countObjects == countObjectsSkel
-    return padImage[1:zOrig + 1, 1:yOrig + 1, 1:xOrig + 1]
+    assert len(set(map(tuple, list(np.transpose(np.nonzero(result))))) - set(map(tuple, list(np.transpose(np.nonzero(image)))))) == 0
+    return result
 
 
 def main():
