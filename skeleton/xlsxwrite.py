@@ -1,7 +1,5 @@
 import xlsxwriter
 
-import numpy as np
-
 
 def removekey(d, key):
     r = dict(d)
@@ -16,7 +14,7 @@ def xlsxWrite(listOfDicts, path):
     workbook = xlsxwriter.Workbook(path)
     worksheet = workbook.add_worksheet()
     row = 0
-    for numColumn in range(0, 4):
+    for numColumn in range(0, 5):
         worksheet.write(row, numColumn, header[numColumn])
     for key in list(dictR.keys()):  # for each of the nodes with radius
         row += 1; col = 0
@@ -41,12 +39,9 @@ def xlsxWrite(listOfDicts, path):
     workbook.close()
 
 
-def excelWrite():
+def excelWrite(shskel, boundaryIm, path):
     from skeleton.BifurcatedsegmentLengths import getBifurcatedSegmentsAndLengths
     from skeleton.radiusOfNodes import getRadiusByPointsOnCenterline
-    shskel = np.load(input("enter a path to shortest path skeleton volume------"))
-    boundaryIm = np.load(input("enter a path to boundary of thresholded volume------"))
-    path = input("enter a path to save analysis xlsx file at------")
     # segmentdict, disjointgraphDict = getStatsDisjoint(shskel)
     d1, d2, d3, t = getBifurcatedSegmentsAndLengths(shskel)
     d, di = getRadiusByPointsOnCenterline(shskel, boundaryIm)
@@ -55,7 +50,7 @@ def excelWrite():
     xlsxWrite(listOfDicts, path)
     d = {}
     for keys in list(dictR.keys()):
-        d[keys] = (str(round(dictR[keys], 2)), str(d1[keys]))
+        d[keys] = str(d1[keys])
         d[keys] = '   '.join(d[keys])
     return d
 
@@ -66,4 +61,4 @@ if __name__ == '__main__':
     # to plot text on an mlab figure
     for coord in list(d.keys()):
         x = coord[0]; y = coord[1]; z = coord[2];
-        mlab.text3d(x, y, z, d[coord], color=(0, 0, 0), scale=2.0)
+        mlab.text3d(x, y, z, d[coord], color=(0, 0, 0), scale=4.0)
