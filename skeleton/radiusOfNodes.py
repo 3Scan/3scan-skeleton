@@ -44,7 +44,7 @@ def getRadiusByPointsOnCenterline(skeletonIm, boundaryIm, aspectRatio=[1, 1, 1])
     distTransformedIm = ndimage.distance_transform_edt(skeletonImCopy, aspectRatio)
     listNZI = list(set(map(tuple, np.transpose(np.nonzero(skeletonIm)))))
     dictOfNodesAndRadius = list_to_dict(listNZI, distTransformedIm)
-    print("time taken to find the nodes and their radius is ", time.time() - startt, "seconds")
+    print("time taken to reconstruct the skeleton is %0.3f seconds" % (time.time() - startt))
     return dictOfNodesAndRadius, distTransformedIm
 
 
@@ -70,7 +70,7 @@ def getRadiusByPointsOnCenterlineslicewise(skeletonIm, boundaryIm, inputIm, aspe
         print("voxels with radius 0.00 can be removed")
     else:
         print("voxels with radius 0.00 cannot be removed")
-    print("time taken to find the nodes and their radius is ", time.time() - startt, "seconds")
+    print("time taken to reconstruct the skeleton is %0.3f seconds" % (time.time() - startt))
     return dictOfNodesAndRadius, distTransformedIm
 
 
@@ -116,8 +116,7 @@ def getReconstructedVasculature(distTransformedIm, skeletonIm):
         mask[dest] = 1
         reconstructIthImage = ndimage.morphology.binary_dilation(skeletonIm, structure=selemBall, iterations=-1, mask=mask)
         reconstructedImage = np.logical_or(reconstructedImage, reconstructIthImage)
-    stopp = time.time()
-    print("time taken to reconstruct the skeleton is", (stopp - startt), "seconds")
+    print("time taken to reconstruct the skeleton is %0.3f seconds" % (time.time() - startt))
     return reconstructedImage
 
 
