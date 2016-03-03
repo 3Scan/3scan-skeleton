@@ -170,11 +170,11 @@ if __name__ == '__main__':
 # stackUnSmoothedQuadratic = ndimage.interpolation.zoom(stackUnsmoothed, zoom=aspectRatio, order=2, prefilter=False)
 
 # plt.subplot(1, 3, 1)
-# plt.imshow(unSmoothedQuad[0], cmap='gray')
+# plt.imshow(np.amax(thredhold, 0), cmap='gray')
 # plt.subplot(1, 3, 2)
-# plt.imshow(unSc[0], cmap='gray')
+# plt.imshow(np.amax(thin, 0), cmap='gray')
 # plt.subplot(1, 3, 3)
-# plt.imshow(unSc2[0], cmap='gray')
+# plt.imshow(np.amax(skel, 0), cmap='gray')
 
 # plt.subplot(2, 1, 1)
 # plt.hist(z,256,[0,256]),plt.show()
@@ -185,17 +185,35 @@ if __name__ == '__main__':
 # plt.hist(B,256,[0,256],color = 'b')
 # plt.hist(centers,32,[0,256],color = 'y')
 # plt.show()
+# kernel = np.ones((3, 3, 3), dtype=np.uint8)
+# for numOdd in range(1, len(listOfOddFiles)):
+#     os.mkdir('home/pranathi/mosaic%i' % numOdd)
+#     npy = listOfOddFiles[numOdd]
+#     skeleton = np.load(npy)
+#     threshold = threshold = np.load(npy.replace('skeleton', 'threshold'))
 
-# for I in range(0, skeletonER.shape[0]):
-#     plt.subplot(1, 3, 1)
-#     # maxip = np.amax(interpolatedIm[I:I + 7], 0)
-#     plt.imshow(grey[I], cmap='gray')
-#     plt.subplot(1, 3, 2)
-#     plt.imshow(threshold[I], cmap='gray')
-#     plt.subplot(1, 3, 3)
-#     plt.imshow(skeletonER[I], cmap='gray')
-#     plt.savefig('Mosaic%i.png' % I, bbox_inches='tight')
 
+#     for I in range(0, skeleton.shape[0]):
+#         plt.subplot(1, 3, 1)
+#         # maxip = np.amax(interpolatedIm[I:I + 7], 0)
+#         plt.imshow(grey[I], cmap='gray')
+#         plt.subplot(1, 3, 2)
+#         plt.imshow(threshold[I], cmap='gray')
+#         plt.subplot(1, 3, 3)
+#         plt.imshow(skeleton[I], cmap='gray')
+#         plt.savefig('Mosaic%i.png' % I, bbox_inches='tight')
+#     convImage = convolve(np.uint8(skeleton), kernel, mode='constant', cval=0)
+#     convImage[skeleton == 0] = 0
+#     print(np.sum(convImage == 1))
+#     x = list(range(1, 28))
+#     hist = np.array([np.sum(convImage == i) for i in x])
+#     f = open('/home/pranathi/mosaic%i/hist.vasc' % numOdd, 'wb')
+#     cPickle.dump(hist, f, protocol=cPickle.HIGHEST_PROTOCOL)
+#     f.close()
+    # fig = plt.figure(2)
+    # plt.plot(x, hist)
+    # plt.xticks(np.arange(min(x), max(x)+1, 1.0))
+#     plt.savefig('/home/pranathi/mosaic%i/hist.png' % numOdd, bbox_inches='tight')
 
 # #     plt.subplot(1, 3, 1)
 # #     plt.imshow(maxip, cmap='gray')
