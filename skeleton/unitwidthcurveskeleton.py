@@ -1,6 +1,7 @@
 import itertools
 import numpy as np
 # import time
+# import copy
 
 from scipy import ndimage
 from scipy.ndimage.filters import convolve
@@ -55,13 +56,10 @@ def _setLabelEndMiddlepoints(connNeighbors, nzi):
        between the non zero coordinates is considered
     """
     cNeighbors = int(np.sum(connNeighbors))
-    assert cNeighbors in [2]
+    assert cNeighbors == 2
 
-    if cNeighbors == 2:
-        if np.sum((nzi[0] - nzi[1]) ** 2) > 3:
-            return 2
-        else:
-            return 4
+    if np.sum((nzi[0] - nzi[1]) ** 2) > 3:
+        return 2
     else:
         return 4
 
@@ -139,7 +137,7 @@ def _getAllLabelledarray(skeletonIm, valencearray):
             nearByCoordinate = tuple(k + d)
             if outOfPixBounds(nearByCoordinate, aShape):
                 continue
-            if skeletonImLabel[nearByCoordinate] == 0:
+            if skeletonIm[nearByCoordinate] == 0:
                 continue
             connNeighbors = skeletonImLabel[nearByCoordinate]
             connNeighborsList.append(connNeighbors)
@@ -150,31 +148,57 @@ def _getAllLabelledarray(skeletonIm, valencearray):
 
 def _getSourcesOfShortestpaths(dilatedValenceObjectLoc, dilatedLabelledObjectLoc):
     listNZI = list(np.transpose(np.array(np.where(dilatedLabelledObjectLoc == 4))))
+    # print("listNZI", listNZI)
     listIndex = [(coord, dilatedValenceObjectLoc[tuple(coord)]) for coord in listNZI]
-    summationList = []
-    for value, valence in listIndex:
-        distList = []
-        for item in listNZI:
-            dist = np.sum(value - np.array(item) ** 2)
-            distList.append(dist)
-        summationList.append(sum(distList) / valence)
-    src = listNZI[np.argmin(summationList)]
+    if len(listNZI) == 1:
+        src = listNZI[0]
+    else:
+        summationList = []
+        for value, valence in listIndex:
+            distList = []
+            for item in listNZI:
+                # print(value, item)
+                dist = np.sum(np.square(value - item))
+                # print(dist)
+                distList.append(dist)
+            summationList.append(sum(distList) / valence)
+        assert len(summationList) == len(listNZI)
+        src = [tuple(item2) for item1, item2 in zip(summationList, listNZI) if item1 == min(summationList)]
+        # print(listIndex)
+        # print("srcs", src)
+        # print("summation list", summationList)
+        # print(np.argmin(summationList))
+        # src = listNZI[np.argmin(summationList)]
     return src
 
 
 def _getExitsOfShortestpaths(dilatedRegionExits, dilatedLabelledObjectLoc):
     """
-       exit is a end or middle point 26 connected to the crowded region
+    exit is a end or middle point which are 26 connected to the
+    any point in the crowded region. listExitIndices is the list
+    of coordinates with 1 or 2 (End or middle points) as labels.
+    listSourceIndices is the list of coordinates belonging to
+    crowded region
+
     """
-    a = set(map(tuple, list(np.transpose(np.nonzero(dilatedRegionExits)))))
-    dist = np.zeros_like(dilatedRegionExits)
-    dist[dilatedRegionExits != 0] = 1
-    dist[dilatedLabelledObjectLoc == 4] = 0
-    distTransformedIm = ndimage.distance_transform_edt(dist)
-    distTransformedIm = np.uint8(distTransformedIm * distTransformedIm)
-    b = np.array(np.where(distTransformedIm <= 3)).T
-    b = set(map(tuple, b))
-    return list(a & b)
+    listSourceIndices = list(np.transpose(np.array(np.where(dilatedLabelledObjectLoc == 4))))
+    # print("listSourceIndices", listSourceIndices)
+    listExitIndices = list(np.transpose(np.array(np.where(dilatedRegionExits != 0))))
+    listOfExits = []
+    for items in listExitIndices:
+        # check if the potential exit which is of label 1 or 2 is within 26
+        # connectivity i.e sqrt(3)^2 distance within any of the crowded region
+        # points
+        for item in listSourceIndices:
+            # print("item")
+            # print(items, item)
+            dist = np.sqrt(np.sum(np.square(items - item)))
+            # print("distance is", dist)
+            if dist > np.sqrt(3):
+                continue
+            listOfExits.append(tuple(items))
+    # print(listOfExits)
+    return list(set(listOfExits))
 
 
 def _findShortestPathFromCRcenterToexit(valencearray, source, dest):
@@ -194,8 +218,9 @@ def _findShortestPathFromCRcenterToexit(valencearray, source, dest):
 def getShortestPathskeleton(skeletonIm):
     se = np.ones((3, 3, 3), dtype=np.uint8)
     # startt = time.time()
+    aShape = skeletonIm.shape
     labelInput, noOfObjects = ndimage.measurements.label(skeletonIm, structure=se)
-    skeletonImNew = np.zeros(skeletonIm.shape, dtype=np.uint8)
+    skeletonImNew = np.zeros_like(skeletonIm)
     valencearray = _setValenceOfarray(skeletonIm)
     if np.sum(valencearray) == 0:
         return skeletonIm
@@ -204,43 +229,55 @@ def getShortestPathskeleton(skeletonIm):
         crowdedRegion = np.zeros_like(skeletonLabelled)
         crowdedRegion[skeletonLabelled == 4] = 1
         label, noOfCrowdedregions = ndimage.measurements.label(crowdedRegion, structure=se)
-        if noOfObjects == 1 and np.sum(skeletonIm) > 50 and noOfCrowdedregions == 1:
-            src = _getSourcesOfShortestpaths(valencearray, skeletonLabelled)
-            skeletonImNew[tuple(src)] = 1
-            print(" a large number of elements belong to one region")
-            return skeletonImNew
         if np.max(skeletonLabelled) < 4:
-            print(np.unique(skeletonLabelled))
-            print("there are no crowded regions in the image")
+            # print(np.unique(skeletonLabelled))
+            # print("there are no crowded regions in the image")
             return skeletonIm
+        elif np.array_equal(crowdedRegion, skeletonIm):
+            # print("all labels are either 0 or 4")
+            srcs = _getSourcesOfShortestpaths(valencearray, skeletonLabelled)
+            for i in srcs:
+                skeletonImNew[i] = True
+            return skeletonImNew
         else:
-            print(np.unique(skeletonLabelled))
-            print("crowded points exist", noOfCrowdedregions)
-            skeletonImNew[skeletonLabelled < 4] = True
-            skeletonImNew[skeletonLabelled == 0] = False
-            mask = np.logical_and(valencearray == 0, skeletonIm == 1)
-            skeletonImNew[mask == 1] = False  # see if isolated voxels can be removed (answer: yes)
+            # print(np.unique(skeletonLabelled))
+            # print("crowded points exist", noOfCrowdedregions)
             objectify = ndimage.find_objects(label)
             exits = np.logical_or(skeletonLabelled == 1, skeletonLabelled == 2)
+            # mask = np.zeros_like(skeletonIm)
             for i in range(0, noOfCrowdedregions):
                 loc = objectify[i]
+                # print(i, "crowdedRegion")
                 zcoords = loc[0]; ycoords = loc[1]; xcoords = loc[2]
                 regionLowerBoundZ = zcoords.start - 1; regionLowerBoundY = ycoords.start - 1; regionLowerBoundX = xcoords.start - 1
                 regionUpperBoundZ = zcoords.stop + 1; regionUpperBoundY = ycoords.stop + 1; regionUpperBoundX = xcoords.stop + 1
-                dilatedValenceObjectLoc = valencearray[regionLowerBoundZ: regionUpperBoundZ, regionLowerBoundY: regionUpperBoundY, regionLowerBoundX: regionUpperBoundX]
-                dilatedLabelledObjectLoc = skeletonLabelled[regionLowerBoundZ: regionUpperBoundZ, regionLowerBoundY: regionUpperBoundY, regionLowerBoundX: regionUpperBoundX]
+                bounds = [regionLowerBoundZ, regionLowerBoundY, regionLowerBoundX, regionUpperBoundZ, regionUpperBoundY, regionUpperBoundX]
+                if outOfPixBounds(tuple((bounds[0], bounds[1], bounds[2])), aShape) or outOfPixBounds(tuple((bounds[3], bounds[4], bounds[5])), aShape):
+                    for count, i in enumerate(bounds):
+                        if i < 0:
+                            bounds[count] = 0
+                # print(bounds)
+                dilatedValenceObjectLoc = valencearray[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]]
+                dilatedLabelledObjectLoc = skeletonLabelled[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]]
                 dilatedLabelledObjectLoc[dilatedLabelledObjectLoc == 0] = 255
-                dilatedRegionExits = exits[regionLowerBoundZ: regionUpperBoundZ, regionLowerBoundY: regionUpperBoundY, regionLowerBoundX: regionUpperBoundX]
-                src = _getSourcesOfShortestpaths(dilatedValenceObjectLoc, dilatedLabelledObjectLoc)
+                # print(np.unique(dilatedLabelledObjectLoc), "label")
+                dilatedRegionExits = exits[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]]
+                srcs = _getSourcesOfShortestpaths(dilatedValenceObjectLoc, dilatedLabelledObjectLoc)
+                # print("source", src)
                 dests = _getExitsOfShortestpaths(dilatedRegionExits, dilatedLabelledObjectLoc)
-                for dest in dests:
-                    dilatedLabelledObjectLoc1 = _findShortestPathFromCRcenterToexit(dilatedLabelledObjectLoc, tuple(src), dest)
-                    skeletonImNew[regionLowerBoundZ: regionUpperBoundZ, regionLowerBoundY: regionUpperBoundY, regionLowerBoundX: regionUpperBoundX] = np.logical_or(skeletonImNew[regionLowerBoundZ: regionUpperBoundZ, regionLowerBoundY: regionUpperBoundY, regionLowerBoundX: regionUpperBoundX], dilatedLabelledObjectLoc1)
+                for src, dest in itertools.product(srcs, dests):
+                    # print(counter, dest)
+                    dilatedLabelledObjectLoc1 = _findShortestPathFromCRcenterToexit(dilatedLabelledObjectLoc, src, dest)
+                    skeletonImNew[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]] = np.logical_or(skeletonImNew[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]], dilatedLabelledObjectLoc1)
+            skeletonImNew[skeletonLabelled < 4] = True
+            skeletonImNew[skeletonLabelled == 0] = False
+            skeletonImNew[np.logical_and(valencearray == 0, skeletonIm == 1)] = 1  # see if isolated voxels can be removed (answer: yes)
             # stopp = time.time()
             # print("time taken to find the shortest path skeleton is", (stopp - startt), "seconds")
             label_img1, countObjects = ndimage.measurements.label(skeletonIm, structure=np.ones((3, 3, 3), dtype=np.uint8))
             label_img2, countObjectsShorty = ndimage.measurements.label(skeletonImNew, structure=np.ones((3, 3, 3), dtype=np.uint8))
-            assert countObjects >= countObjectsShorty
+            # print(countObjects, countObjectsShorty)
+            # assert countObjects == countObjectsShorty
             return skeletonImNew
 
 
