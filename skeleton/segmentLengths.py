@@ -5,6 +5,7 @@ import numpy as np
 import networkx as nx
 
 from skeleton.networkxGraphFromarray import getNetworkxGraphFromarray
+from skeleton.cliqueRemoving import removeCliqueEdges
 
 
 def _getDistanceBetweenPointsInpath(cyclePath, cycle=0):
@@ -73,6 +74,7 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
         networkxGraph = imArray
     else:
         networkxGraph = getNetworkxGraphFromarray(imArray, skelOrNot)
+        networkxGraph = removeCliqueEdges(networkxGraph)
     assert networkxGraph.number_of_selfloops() == 0
     # intitialize all the common variables
     startt = time.time()
@@ -92,7 +94,7 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
                 acyclic graph with tree """
             nodes.sort()
             cycleList = nx.cycle_basis(subGraphskeleton)
-            cycleList = [item for item in cycleList if len(item) != 3]
+            # cycleList = [item for item in cycleList if len(item) != 3]
             cycleCount = len(cycleList)
             nodeDegreedict = nx.degree(subGraphskeleton)
             degreeList = list(nodeDegreedict.values())

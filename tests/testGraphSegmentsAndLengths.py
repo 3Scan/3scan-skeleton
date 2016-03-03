@@ -5,7 +5,7 @@ from skimage.morphology import skeletonize as getSkeletonize2D
 
 from skeleton.segmentLengths import getSegmentsAndLengths
 from skeleton.networkxGraphFromarray import getNetworkxGraphFromarray
-from skeleton.cliqueRemovig import removeCliqueEdges
+from skeleton.cliqueRemoving import removeCliqueEdges
 # from skeleton.segmentStatsDisjointGraph import plotGraphWithCount
 
 from tests.tests3DSkeletonize import getDonut
@@ -27,7 +27,7 @@ def getCyclesWithBranchesProtrude(size=(10, 10)):
     sampleImage = np.zeros((3, 10, 10), dtype=np.uint8)
     sampleImage[1] = frame
     sampleGraph = getNetworkxGraphFromarray(sampleImage, True)
-    removeCliqueEdges(sampleGraph)
+    sampleGraph = removeCliqueEdges(sampleGraph)
     return sampleGraph
 
 
@@ -74,7 +74,7 @@ def getDisjointCyclesNoTrees2d(size=(10, 10)):
     multiLoop = np.zeros(size, dtype=bool)
     multiLoop[2:5, 2:5] = tinyLoop
     multiLoop[7:10, 7:10] = tinyLoop
-    multiloopgraph = getNetworkxGraphFromarray(multiLoop, True)
+    multiloopgraph = getNetworkxGraphFromarray(multiLoop, False)
     multiloopgraph = removeCliqueEdges(multiloopgraph)
     return multiloopgraph
 
@@ -126,10 +126,3 @@ def test_balancedtree():
     dlinecountbaltree, dlinebaltree, segmentTortuositybaltree, totalSegmentsBalancedTree = getSegmentsAndLengths(balancedTree, True, False)
     # plotGraphWithCount(balancedTree, dlinecount)
     assert totalSegmentsBalancedTree == 2
-
-
-def test_touchingCycles():
-    diamondGraph = nx.diamond_graph()
-    dcyclescount, dcycleslength, segmentTortuositycycles, totalSegmentsCycles = getSegmentsAndLengths(diamondGraph, True, False)
-    # plotGraphWithCount(diamondGraph, dlinecount)
-    assert totalSegmentsCycles == 2

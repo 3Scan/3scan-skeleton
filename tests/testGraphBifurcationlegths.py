@@ -1,9 +1,12 @@
 import networkx as nx
 import numpy as np
+
 from skimage.morphology import skeletonize as getSkeletonize2D
 
 from skeleton.BifurcatedsegmentLengths import getBifurcatedSegmentsAndLengths
 from skeleton.networkxGraphFromarray import getNetworkxGraphFromarray
+from skeleton.cliqueRemoving import removeCliqueEdges
+# from skeleton.segmentStatsDisjointGraph import plotGraphWithCount
 
 from tests.tests3DSkeletonize import getDonut
 
@@ -24,6 +27,7 @@ def getCyclesWithBranchesProtrude(size=(10, 10)):
     sampleImage = np.zeros((3, 10, 10), dtype=np.uint8)
     sampleImage[1] = frame
     sampleGraph = getNetworkxGraphFromarray(sampleImage, True)
+    sampleGraph = removeCliqueEdges(sampleGraph)
     return sampleGraph
 
 
@@ -31,12 +35,14 @@ def getSingleVoxelLineNobranches(size=(5, 5, 5)):
     sampleLine = np.zeros(size, dtype=np.uint8)
     sampleLine[1, :, 4] = 1
     lineGraph = getNetworkxGraphFromarray(sampleLine, True)
+    lineGraph = removeCliqueEdges(lineGraph)
     return lineGraph
 
 
 def getCycleNotree():
     donut = getDonut()
     donutGraph = getNetworkxGraphFromarray(donut, False)
+    donutGraph = removeCliqueEdges(donutGraph)
     return donutGraph
 
 
@@ -46,10 +52,11 @@ def getTreeNoCycle2d(size=(7, 7)):
     cros[2, :] = 1
     cros[4, 3] = 1
     crosGraph = getNetworkxGraphFromarray(cros, True)
+    crosGraph = removeCliqueEdges(crosGraph)
     return crosGraph
 
 
-def getDisjointTreesNoCycle3d(size=(10, 10, 10)):
+def getDisjointTreesNoCycle3d(size=(14, 14, 14)):
     crosPair = np.zeros(size, dtype=np.uint8)
     cros = np.zeros((7, 7), dtype=np.uint8)
     cros[:, 2] = 1
@@ -58,6 +65,7 @@ def getDisjointTreesNoCycle3d(size=(10, 10, 10)):
     crosPair[0, 0:7, 0:7] = cros
     crosPair[7, 7:14, 7:14] = cros
     crosPairgraph = getNetworkxGraphFromarray(crosPair, True)
+    crosPairgraph = removeCliqueEdges(crosPairgraph)
     return crosPairgraph
 
 
@@ -69,7 +77,7 @@ def getDisjointCyclesNoTrees2d(size=(10, 10)):
     multiLoop[2:5, 2:5] = tinyLoop
     multiLoop[7:10, 7:10] = tinyLoop
     multiloopgraph = getNetworkxGraphFromarray(multiLoop, False)
-    multiloopgraph = getNetworkxGraphFromarray(multiLoop, True)
+    multiloopgraph = removeCliqueEdges(multiloopgraph)
     return multiloopgraph
 
 
@@ -78,7 +86,6 @@ def test_singlesegment():
     dlinecount, dlinelength, segmentTortuosityline, totalSegmentsLine = getBifurcatedSegmentsAndLengths(lineGraph, True, False)
     assert totalSegmentsLine == 0
     # plotGraphWithCount(lineGraph, dlinecount)
-    assert totalSegmentsLine == 1
 
 
 def test_singlecycle():
@@ -118,8 +125,3 @@ def test_balancedtree():
     dlinecountbaltree, dlinebaltree, segmentTortuositybaltree, totalSegmentsBalancedTree = getBifurcatedSegmentsAndLengths(balancedTree, True, False)
     assert totalSegmentsBalancedTree == 0
 
-
-def test_touchingCycles():
-    diamondGraph = nx.diamond_graph()
-    dcyclescount, dcycleslength, segmentTortuositycycles, totalSegmentsCycles = getBifurcatedSegmentsAndLengths(diamondGraph, True, False)
-    assert totalSegmentsCycles == 2
