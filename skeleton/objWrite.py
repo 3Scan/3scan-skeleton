@@ -4,6 +4,7 @@ import itertools
 
 import time
 
+from skeleton.cliqueRemoving import removeCliqueEdges
 from skeleton.networkxGraphFromarray import getNetworkxGraphFromarray
 from skeleton.radiusOfNodes import getRadiusByPointsOnCenterline
 from skeleton.segmentLengths import _removeEdgesInVisitedPath
@@ -16,13 +17,14 @@ from skeleton.segmentLengths import _removeEdgesInVisitedPath
 """
 
 
-def getObjWrite(imArray, pathTosave):
+def getObjWrite(imArray, pathTosave, aspectRatio=None):
     """
        takes in a numpy array and converts it to a obj file and writes it to pathTosave
     """
     startt = time.time()  # for calculating time taken to write to an obj file
     if type(imArray) == np.ndarray:
         networkxGraph = getNetworkxGraphFromarray(imArray, True)  # converts array to a networkx graph(based on non zero coordinates and the adjacent nonzeros)
+        networkxGraph = removeCliqueEdges(networkxGraph)  # remove cliques in the graph
     else:
         networkxGraph = imArray
     objFile = open(pathTosave, "w")  # open a obj file in the given path
@@ -32,10 +34,12 @@ def getObjWrite(imArray, pathTosave):
     mapping = {}  # initialize variables for writing string of vertex v followed by x, y, x coordinates in the obj file
     #  for each of the sorted vertices
     strsVertices = []
-    listVertex = list(map(list, verticesSorted))
     for index, vertex in enumerate(verticesSorted):
         mapping[vertex] = index + 1  # a mapping to transform the vertices (x, y, z) to indexes (beginining with 1)
-        vertex = tuple((listVertex[index][0], listVertex[index][1] * 0.6, listVertex[index][2] * 0.6))
+        if aspectRatio is not None:
+            originalVertex = list(vertex)
+            newVertex = [0] * len(vertex)
+            newVertex[0] = originalVertex[0] * aspectRatio[0]; newVertex[1] = originalVertex[2] * aspectRatio[1]; newVertex[2] = originalVertex[1] * aspectRatio[2]; vertex = tuple(newVertex)
         strsVertices.append("v " + " ".join(str(vertex[i - 2]) for i in range(0, len(vertex))) + "\n")  # add strings of vertices to obj file
     objFile.writelines(strsVertices)  # write strings to obj file
     networkGraphIntegerNodes = nx.relabel_nodes(networkxGraph, mapping, False)
@@ -51,7 +55,6 @@ def getObjWrite(imArray, pathTosave):
             acyclic graph with tree """
         nodes.sort()
         cycleList = nx.cycle_basis(subGraphskeleton)
-        cycleList = [item for item in cycleList if len(item) != 3]
         cycleCount = len(cycleList)
         nodeDegreedict = nx.degree(subGraphskeleton)
         degreeList = list(nodeDegreedict.values())
@@ -121,13 +124,14 @@ def getObjWrite(imArray, pathTosave):
     objFile.close()
 
 
-def getObjWriteWithradius(imArray, pathTosave, dictOfNodesAndRadius):
+def getObjWriteWithradius(imArray, pathTosave, dictOfNodesAndRadius, aspectRatio=None):
     """
        takes in a numpy array and converts it to a obj file and writes it to pathTosave
     """
     startt = time.time()  # for calculating time taken to write to an obj file
     if type(imArray) == np.ndarray:
         networkxGraph = getNetworkxGraphFromarray(imArray, True)  # converts array to a networkx graph(based on non zero coordinates and the adjacent nonzeros)
+        networkxGraph = removeCliqueEdges(networkxGraph)  # remove cliques in the graph
     else:
         networkxGraph = imArray
     objFile = open(pathTosave, "w")  # open a obj file in the given path
@@ -139,9 +143,10 @@ def getObjWriteWithradius(imArray, pathTosave, dictOfNodesAndRadius):
     strsVertices = [0] * (2 * len(verticesSorted))
     for index, vertex in enumerate(verticesSorted):
         mapping[vertex] = index + 1  # a mapping to transform the vertices (x, y, z) to indexes (beginining with 1)
-        originalVertex = list(vertex)
-        newVertex = [0] * len(vertex)
-        newVertex[0] = originalVertex[0] / 1; newVertex[1] = originalVertex[2] * 0.6; newVertex[2] = originalVertex[1] * 0.6; vertex = tuple(newVertex)
+        if aspectRatio is not None:
+            originalVertex = list(vertex)
+            newVertex = [0] * len(vertex)
+            newVertex[0] = originalVertex[0] * aspectRatio[0]; newVertex[1] = originalVertex[2] * aspectRatio[1]; newVertex[2] = originalVertex[1] * aspectRatio[2]; vertex = tuple(newVertex)
         strsVertices[index] = "v " + " ".join(str(vertex[i - 2]) for i in range(0, len(vertex))) + "\n"  # add strings of vertices to obj file
         strsVertices[index + len(verticesSorted)] = "vt " + " " + str(dictOfNodesAndRadius[vertex]) + "\n"
     objFile.writelines(strsVertices)  # write strings to obj file
@@ -158,7 +163,6 @@ def getObjWriteWithradius(imArray, pathTosave, dictOfNodesAndRadius):
             acyclic graph with tree """
         nodes.sort()
         cycleList = nx.cycle_basis(subGraphskeleton)
-        cycleList = [item for item in cycleList if len(item) != 3]
         cycleCount = len(cycleList)
         nodeDegreedict = nx.degree(subGraphskeleton)
         degreeList = list(nodeDegreedict.values())
@@ -233,8 +237,7 @@ if __name__ == '__main__':
     skeletonIm = np.load(input("enter a path to shortest path skeleton volume------"))
     boundaryIm = np.load(input("enter a path to boundary of thresholded volume------"))
     dictOfNodesAndRadius, distTransformedIm = getRadiusByPointsOnCenterline(skeletonIm, boundaryIm)
-    getObjWriteWithradius(skeletonIm, "PV_rT.obj", dictOfNodesAndRadius)
+    getObjWriteWithradius(skeletonIm, "PV_rT.obj", dictOfNodesAndRadius, aspectRatio=[1, 0.6, 0.6])
     # truthCase = np.load("/home/pranathi/Downloads/twodimageslices/output/Skeleton.npy")
     # groundTruth = np.load("/home/pranathi/Downloads/twodimageslices/output/Skeleton-gt.npy")
     # getObjWrite(truthCase, "PV_T.obj")
-    # getObjWrite(groundTruth, "PV_GT.obj")
