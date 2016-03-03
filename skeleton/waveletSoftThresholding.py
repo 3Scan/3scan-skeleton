@@ -1,4 +1,4 @@
-# from scipy import stats
+from six.moves import cPickle
 import numpy as np
 import pywt
 import matplotlib.pyplot as plt
@@ -97,12 +97,29 @@ def histogramNonzero():
     root = input("please enter a path where your numpy arrays are located-----")
     formatOfFiles = 'npy'
     listOfNpys = [os.path.join(root, files) for files in os.listdir(root) if formatOfFiles in files]
-    listOfNpys.sort()
+    listOfNpys.sort
+    listOfOddfiles = []
+    hist = np.zeros((27))
     for npy in listOfNpys:
         kernel = np.ones((3, 3, 3), dtype=np.uint8)
         skeletonUc = np.load(npy)
         convImage = convolve(np.uint8(skeletonUc), kernel, mode='constant', cval=0)
         convImage[skeletonUc == 0] = 0
         print(np.sum(convImage == 1))
-        hist = np.array([np.sum(convImage == i) for i in range(1, 28)])
-        return hist
+        hist += np.array([np.sum(convImage == i) for i in range(1, 28)])
+        if np.max(convImage[:]) > 7:
+            listOfOddfiles.append(npy)
+    return hist
+
+
+def saveAsbin(ng, path):
+    f = open(path)
+    cPickle.dump(ng, f, protocol=cPickle.HIGHEST_PROTOCOL)
+    f.close()
+
+# Print out 5 by 5 by 5 cubes
+#  for keys in d:
+#     aShape = (135, 135, 135)
+#     if outOfPixBounds(keys, aShape):
+#         continue
+#     print(keys, d[keys], skeleton[keys[0] - 2: keys[0] + 3, keys[1] - 2: keys[1] + 3, keys[2] - 2: keys[2] + 3])
