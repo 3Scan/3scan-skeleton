@@ -1,4 +1,3 @@
-from scipy.spatial import ConvexHull
 import itertools
 
 import networkx as nx
@@ -224,20 +223,3 @@ def test_ellipse():
         # pv congealing to a line
         c, d = doEmbeddedTest(i)
         assert c == 0 and d == 1
-
-
-def test_convex3DBlob():
-    xs = np.random.uniform(-1, 1, size=5)
-    ys = np.random.uniform(-1, 1, size=5)
-    zs = np.random.uniform(-1, 1, size=5)
-
-    xyzs = list(zip(xs, ys, zs))
-
-    hullz = ConvexHull(xyzs)
-
-    xf, yf, zf = np.mgrid[-1:1:50j, -1:1:50j, -1:1:50j]
-    i = np.zeros(xf.shape, dtype=np.uint8)
-    for x, y, z, c in hullz.equations:
-        mask = (xf * x) + (yf * y) + (zf * z) - c < 0
-        i[mask] = 1
-    allOrientationsTest(i, (0, 1))

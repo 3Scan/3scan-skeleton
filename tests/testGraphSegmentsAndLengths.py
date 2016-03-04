@@ -49,7 +49,7 @@ def getTreeNoCycle2d(size=(5, 5)):
     cros = np.zeros(size, dtype=np.uint8)
     cros[:, 2] = 1
     cros[2, :] = 1
-    crosGraph = getNetworkxGraphFromarray(cros, False)
+    crosGraph = getNetworkxGraphFromarray(cros, True)
     crosGraph = removeCliqueEdges(crosGraph)
     return crosGraph
 

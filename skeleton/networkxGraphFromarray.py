@@ -93,7 +93,6 @@ def getNetworkxGraphFromarray(arr, skeletonIm=True):
     """
     from skeleton.convOptimize import getSkeletonize3D
     from skeleton.unitwidthcurveskeleton import getShortestPathskeleton
-    from skeleton.unitwidthsurfaceskeleton import getShortestPathskeleton2D
     from skimage.morphology import skeletonize as getSkeletonize2D
     assert arr.max() == 1
     assert arr.min() in [0, 1]
@@ -101,7 +100,7 @@ def getNetworkxGraphFromarray(arr, skeletonIm=True):
     if arr.ndim == 3 and skeletonIm == 0:
         skeleton = getShortestPathskeleton(getSkeletonize3D(arr))
     elif arr.ndim == 2 and skeletonIm == 0:
-        skeleton = getShortestPathskeleton2D(getSkeletonize2D(arr))
+        skeleton = getShortestPathskeleton(getSkeletonize2D(arr))
     else:
         skeleton = arr
     dictOfIndicesAndAdjacentcoordinates = _setAdjacencylistarray(skeleton)

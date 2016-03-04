@@ -4,7 +4,6 @@ import numpy as np
 from numpy import random
 
 from scipy import ndimage
-from scipy.spatial import ConvexHull
 
 from skeleton.convOptimize import getSkeletonize3D
 from skimage.morphology import skeletonize as getskeletonize2d
@@ -54,7 +53,6 @@ def doEmbeddedTest(arr, expectedResult=None):
 
     for embedding in embed2in3(arr):
         allOrientationsTest(embedding, expectedResult)
-
     return twoResult
 
 
@@ -178,32 +176,6 @@ def test_framedSquare():
     assert d == 2
 
 
-def test_convex2DBlob():
-    xs = np.random.uniform(-1, 1, size=5)
-    ys = np.random.uniform(-1, 1, size=5)
-
-    xys = list(zip(xs, ys))
-
-    hull = ConvexHull(xys)
-
-    xf, yf = np.mgrid[-1:1:50j, -1:1:50j]
-    i = np.ones(xf.shape, dtype=bool)
-    for x, y, c in hull.equations:
-        mask = (xf * x) + (yf * y) - c < 0
-        i[mask] = 0
-    c = doEmbeddedTest(i)
-    assert c == 1
-
-
-def test_banana():
-    # https://en.wikipedia.org/wiki/Rosenbrock_function
-    xf, yf = np.mgrid[-1.5:3:50j, -1.5:2:50j]
-    f = (1 - xf) ** 2 + 100 * (yf - xf ** 2) ** 2
-    i = np.zeros(xf.shape, dtype=bool)
-    i = 1 * (f > 250)
-    i = i.astype(bool)
-    doEmbeddedTest(i)
-
 hevi = np.zeros((20, 20), dtype=bool)
 hevi[10:, :] = 1
 
@@ -263,21 +235,3 @@ def test_ellipse():
 def test_concentric():
     c = doEmbeddedTest(concentricCircles)
     assert c == 3
-
-
-def test_convex3DBlob():
-    xs = np.random.uniform(-1, 1, size=5)
-    ys = np.random.uniform(-1, 1, size=5)
-    zs = np.random.uniform(-1, 1, size=5)
-
-    xyzs = list(zip(xs, ys, zs))
-
-    hullz = ConvexHull(xyzs)
-
-    xf, yf, zf = np.mgrid[-1:1:50j, -1:1:50j, -1:1:50j]
-    i = np.ones(xf.shape, dtype=bool)
-    for x, y, z, c in hullz.equations:
-        mask = (xf * x) + (yf * y) + (zf * z) - c < 0
-        i[mask] = 0
-    i = i.astype(bool)
-    allOrientationsTest(i, 1)
