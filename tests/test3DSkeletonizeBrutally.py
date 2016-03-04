@@ -64,7 +64,6 @@ def allOrientationsTest(arr, expectedResult=None):
     for reoriented in reorders(arr):
         i += 1
         result = checkCycles(reoriented)
-        break
         assert result == expectedResult
 
 

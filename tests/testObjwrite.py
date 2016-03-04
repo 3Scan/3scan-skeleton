@@ -75,7 +75,7 @@ def test_singlesegment():
             if items == 'l':
                 totalSegments = totalSegments + 1
     os.remove("Line.obj")
-    assert totalSegments == 1
+    assert totalSegments == 0
 
 
 def test_singlecycle():
@@ -88,7 +88,7 @@ def test_singlecycle():
             if items == 'l':
                 totalSegmentsCycle = totalSegmentsCycle + 1
     os.remove("OneCycle.obj")
-    assert totalSegmentsCycle == 1
+    assert totalSegmentsCycle == 0
 
 
 def test_cycleAndTree():
@@ -127,7 +127,7 @@ def test_disjointDoublecycle():
             if items == 'l':
                 totalSegmentsDisjointCycles = totalSegmentsDisjointCycles + 1
     os.remove("DisjointCycles.obj")
-    assert totalSegmentsDisjointCycles == 2
+    assert totalSegmentsDisjointCycles == 0
 
 
 def test_treeNocycle3d():

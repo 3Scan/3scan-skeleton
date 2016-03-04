@@ -61,14 +61,10 @@ def doEmbeddedTest(arr, expectedResult=None):
 
 def allOrientationsTest(arr, expectedResult=None):
     assert arr.ndim == 3
-    print(expectedResult)
     i = 0
     for reoriented in reorders(arr):
         i += 1
-        print("ith reordering", i)
-        np.save("reoriented.npy", reoriented)
         result = getGraphProperties(removeCliqueEdges(skeletonGraph(reoriented, False)))
-        print(expectedResult, result)
         assert result[1] == expectedResult[1]
 
 

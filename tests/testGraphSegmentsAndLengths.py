@@ -1,4 +1,3 @@
-import networkx as nx
 import numpy as np
 
 from skimage.morphology import skeletonize as getSkeletonize2D
@@ -83,7 +82,7 @@ def test_singlesegment():
     lineGraph = getSingleVoxelLineNobranches()
     dlinecount, dlinelength, segmentTortuosityline, totalSegmentsLine = getSegmentsAndLengths(lineGraph, True, False)
     # plotGraphWithCount(lineGraph, dlinecount)
-    assert totalSegmentsLine == 1
+    assert totalSegmentsLine == 0
 
 
 def test_singlecycle():
@@ -120,9 +119,3 @@ def test_treeNocycle3d():
     # plotGraphWithCount(crosPairgraph, dTreescount)
     assert totalSegmentsTrees == 8
 
-
-def test_balancedtree():
-    balancedTree = nx.balanced_tree(2, 1)
-    dlinecountbaltree, dlinebaltree, segmentTortuositybaltree, totalSegmentsBalancedTree = getSegmentsAndLengths(balancedTree, True, False)
-    # plotGraphWithCount(balancedTree, dlinecount)
-    assert totalSegmentsBalancedTree == 2
