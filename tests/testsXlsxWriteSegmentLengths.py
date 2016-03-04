@@ -76,10 +76,10 @@ def test_cycleAndTree():
 def test_treeNocycle2d():
     crosGraph = getTreeNoCycle2d()
     d = excelWrite(crosGraph, crosGraph, "Cross.xlsx")
-    assert len(d) == 1
+    assert len(d) == 2
 
 
 def test_treeNocycle3d():
     crosPairgraph = getDisjointTreesNoCycle3d()
     d = excelWrite(crosPairgraph, crosPairgraph, "twoCrosses.xlsx")
-    assert len(d) == 2
+    assert len(d) == 4
