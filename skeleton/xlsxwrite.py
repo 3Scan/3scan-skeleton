@@ -40,10 +40,10 @@ def xlsxWrite(listOfDicts, path):
 
 
 def excelWrite(shskel, boundaryIm, path):
-    from skeleton.BifurcatedsegmentLengths import getBifurcatedSegmentsAndLengths
+    from skeleton.segmentLengths import getSegmentsAndLengths
     from skeleton.radiusOfNodes import getRadiusByPointsOnCenterline
     # segmentdict, disjointgraphDict = getStatsDisjoint(shskel)
-    d1, d2, d3, t = getBifurcatedSegmentsAndLengths(shskel)
+    d1, d2, d3, t = getSegmentsAndLengths(shskel)
     d, di = getRadiusByPointsOnCenterline(shskel, boundaryIm)
     dictR = {your_key: d[your_key] for your_key in d1.keys()}
     listOfDicts = [dictR, d1, d2, d3]

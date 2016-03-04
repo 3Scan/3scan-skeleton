@@ -44,7 +44,7 @@ def getRadiusByPointsOnCenterline(skeletonIm, boundaryIm, aspectRatio=[1, 1, 1])
     distTransformedIm = ndimage.distance_transform_edt(skeletonImCopy, aspectRatio)
     listNZI = list(set(map(tuple, np.transpose(np.nonzero(skeletonIm)))))
     dictOfNodesAndRadius = list_to_dict(listNZI, distTransformedIm)
-    print("time taken to reconstruct the skeleton is %0.3f seconds" % (time.time() - startt))
+    print("time taken to find radius at nodes is %0.3f seconds" % (time.time() - startt))
     return dictOfNodesAndRadius, distTransformedIm
 
 

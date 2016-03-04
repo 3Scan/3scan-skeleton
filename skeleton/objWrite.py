@@ -6,7 +6,7 @@ import time
 
 from skeleton.cliqueRemoving import removeCliqueEdges
 from skeleton.networkxGraphFromarray import getNetworkxGraphFromarray
-from skeleton.radiusOfNodes import getRadiusByPointsOnCenterline
+# from skeleton.radiusOfNodes import getRadiusByPointsOnCenterline
 from skeleton.segmentLengths import _removeEdgesInVisitedPath
 
 
@@ -50,9 +50,8 @@ def getObjWrite(imArray, pathTosave, aspectRatio=None):
         nodes = subGraphskeleton.nodes()
         if len(nodes) == 1:
             continue
-        """ if there are more than one nodes decide what kind of subgraph it is
-            if it has cycles alone, or is a cyclic graph with a tree or an
-            acyclic graph with tree """
+            """ if there are more than one nodes decide what kind of subgraph it is
+                if it has cycles alone, or a straight line or a directed cyclic/acyclic graph"""
         nodes.sort()
         cycleList = nx.cycle_basis(subGraphskeleton)
         cycleCount = len(cycleList)
@@ -63,59 +62,31 @@ def getObjWrite(imArray, pathTosave, aspectRatio=None):
         if endPointdegree == branchPointdegree and nx.is_biconnected(subGraphskeleton) and cycleCount != 0:
             """ if the maximum degree is equal to minimum degree it is a circle"""
             cycle = cycleList[0]
-            cycle.append(cycle[0])
-            strsSeq.append("l " + " ".join(str(x) for x in cycle) + "\n")
             _removeEdgesInVisitedPath(subGraphskeleton, cycle, 1)
         elif set(degreeList) == set((1, 2)) or set(degreeList) == {1}:
-            branchpoints = nodes
-            listOfPerms = list(itertools.permutations(branchpoints, 2))
-            modulus = [[start - end] for start, end in listOfPerms]
-            dists = [abs(i[0]) for i in modulus]
-            if len(list(nx.articulation_points(subGraphskeleton))) == 1 and set(dists) != 1:
-                """ each node is connected to one or two other nodes implies and there is a
-                    one branch point at a distance not equal to one it is a single dichotomous tree"""
+            """ each node is connected to one or two other nodes implies and there is a
+                one branch point at a distance not equal to one it is a single dichotomous tree"""
+            edges = subGraphskeleton.edges()
+            subGraphskeleton.remove_edges_from(edges)
+        else:
+            "acyclic tree characteristics"""
+            branchpoints = [k for (k, v) in nodeDegreedict.items() if v > 2]
+            endpoints = [k for (k, v) in nodeDegreedict.items() if v == 1]
+            branchpoints.sort()
+            listOfPerms = list(itertools.product(branchpoints, endpoints))
+            for sourceOnTree, item in listOfPerms:
+                if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
+                    simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
+                    for simplePath in simplePaths:
+                        strsSeq.append("l " + " ".join(str(x) for x in simplePath) + "\n")
+                        _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
+            if subGraphskeleton.number_of_edges() != 0:
+                listOfPerms = list(itertools.permutations(branchpoints, 2))
                 for sourceOnTree, item in listOfPerms:
                     if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
                         simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
                         for simplePath in simplePaths:
-                            if len(list(set(branchpoints) & set(simplePath))) == 2:
-                                strsSeq.append("l " + " ".join(str(x) for x in simplePath) + "\n")
-                                _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
-            else:
-                """ each node is connected to one or two other nodes implies it is a line,
-                set tortuosity to 1"""
-                edges = subGraphskeleton.edges()
-                subGraphskeleton.remove_edges_from(edges)
-                strsSeq.append("l " + " ".join(str(x) for x in nodes) + "\n")
-        elif cycleCount >= 1:
-            """go through each of the cycles"""
-            for nthCycle, cyclePath in enumerate(cycleList):
-                _removeEdgesInVisitedPath(subGraphskeleton, cyclePath, 1)
-                cyclePath.append(cyclePath[0])
-                strsSeq.append("l " + " ".join(str(x) for x in cyclePath) + "\n")
-            "all the cycles in the graph are checked now look for the tree characteristics in this subgraph"
-            # collecting all the branch and endpoints
-            branchpoints = [k for (k, v) in nodeDegreedict.items() if v != 2]
-            branchpoints.sort()
-            listOfPerms = list(itertools.permutations(branchpoints, 2))
-            for sourceOnTree, item in listOfPerms:
-                if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
-                    simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
-                    for simplePath in simplePaths:
-                        if len(list(set(branchpoints) & set(simplePath))) == 2:
-                            strsSeq.append("l " + " ".join(str(x) for x in simplePath) + "\n")
-                            _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
-        else:
-            "acyclic tree characteristics"""
-            branchpoints = [k for (k, v) in nodeDegreedict.items() if v != 2]
-            branchpoints.sort()
-            listOfPerms = list(itertools.permutations(branchpoints, 2))
-            for sourceOnTree, item in listOfPerms:
-                if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
-                    simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
-                    for simplePath in simplePaths:
-                        if len(list(set(branchpoints) & set(simplePath))) == 2:
-                            strsSeq.append("l " + " ".join(str(x) for x in simplePath) + "\n")
+                            strsSeq.append("l " + " ".join(str(x) + "/" + str(x) for x in simplePath) + "\n")
                             _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
         assert subGraphskeleton.number_of_edges() == 0
     objFile.writelines(strsSeq)
@@ -171,58 +142,30 @@ def getObjWriteWithradius(imArray, pathTosave, dictOfNodesAndRadius, aspectRatio
         if endPointdegree == branchPointdegree and nx.is_biconnected(subGraphskeleton) and cycleCount != 0:
             """ if the maximum degree is equal to minimum degree it is a circle"""
             cycle = cycleList[0]
-            cycle.append(cycle[0])
-            strsSeq.append("l " + " ".join(str(x) + "/" + str(x) for x in cycle) + "\n")
             _removeEdgesInVisitedPath(subGraphskeleton, cycle, 1)
         elif set(degreeList) == set((1, 2)) or set(degreeList) == {1}:
-            branchpoints = nodes
-            listOfPerms = list(itertools.permutations(branchpoints, 2))
-            modulus = [[start - end] for start, end in listOfPerms]
-            dists = [abs(i[0]) for i in modulus]
-            if len(list(nx.articulation_points(subGraphskeleton))) == 1 and set(dists) != 1:
-                """ each node is connected to one or two other nodes implies and there is a
-                    one branch point at a distance not equal to one it is a single dichotomous tree"""
+            """ each node is connected to one or two other nodes implies and there is a
+                one branch point at a distance not equal to one it is a single dichotomous tree"""
+            edges = subGraphskeleton.edges()
+            subGraphskeleton.remove_edges_from(edges)
+        else:
+            "acyclic tree characteristics"""
+            branchpoints = [k for (k, v) in nodeDegreedict.items() if v > 2]
+            endpoints = [k for (k, v) in nodeDegreedict.items() if v == 1]
+            branchpoints.sort()
+            listOfPerms = list(itertools.product(branchpoints, endpoints))
+            for sourceOnTree, item in listOfPerms:
+                if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
+                    simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
+                    for simplePath in simplePaths:
+                        strsSeq.append("l " + " ".join(str(x) + "/" + str(x) for x in simplePath) + "\n")
+                        _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
+            if subGraphskeleton.number_of_edges() != 0:
+                listOfPerms = list(itertools.permutations(branchpoints, 2))
                 for sourceOnTree, item in listOfPerms:
                     if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
                         simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
                         for simplePath in simplePaths:
-                            if len(list(set(branchpoints) & set(simplePath))) == 2:
-                                strsSeq.append("l " + " ".join(str(x) + "/" + str(x) for x in simplePath) + "\n")
-                                _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
-            else:
-                """ each node is connected to one or two other nodes implies it is a line,
-                set tortuosity to 1"""
-                edges = subGraphskeleton.edges()
-                subGraphskeleton.remove_edges_from(edges)
-                strsSeq.append("l " + " ".join(str(x) + "/" + str(x) for x in nodes) + "\n")
-        elif cycleCount >= 1:
-            """go through each of the cycles"""
-            for nthCycle, cyclePath in enumerate(cycleList):
-                _removeEdgesInVisitedPath(subGraphskeleton, cyclePath, 1)
-                cyclePath.append(cyclePath[0])
-                strsSeq.append("l " + " ".join(str(x) for x in cyclePath) + "\n")
-            "all the cycles in the graph are checked now look for the tree characteristics in this subgraph"
-            # collecting all the branch and endpoints
-            branchpoints = [k for (k, v) in nodeDegreedict.items() if v != 2]
-            branchpoints.sort()
-            listOfPerms = list(itertools.permutations(branchpoints, 2))
-            for sourceOnTree, item in listOfPerms:
-                if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
-                    simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
-                    for simplePath in simplePaths:
-                        if len(list(set(branchpoints) & set(simplePath))) == 2:
-                            strsSeq.append("l " + " ".join(str(x) + "/" + str(x) for x in simplePath) + "\n")
-                            _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
-        else:
-            "acyclic tree characteristics"""
-            branchpoints = [k for (k, v) in nodeDegreedict.items() if v != 2]
-            branchpoints.sort()
-            listOfPerms = list(itertools.permutations(branchpoints, 2))
-            for sourceOnTree, item in listOfPerms:
-                if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
-                    simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
-                    for simplePath in simplePaths:
-                        if len(list(set(branchpoints) & set(simplePath))) == 2:
                             strsSeq.append("l " + " ".join(str(x) + "/" + str(x) for x in simplePath) + "\n")
                             _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
         assert subGraphskeleton.number_of_edges() == 0
@@ -235,9 +178,9 @@ def getObjWriteWithradius(imArray, pathTosave, dictOfNodesAndRadius, aspectRatio
 if __name__ == '__main__':
     # read points into array
     skeletonIm = np.load(input("enter a path to shortest path skeleton volume------"))
-    boundaryIm = np.load(input("enter a path to boundary of thresholded volume------"))
-    dictOfNodesAndRadius, distTransformedIm = getRadiusByPointsOnCenterline(skeletonIm, boundaryIm)
-    getObjWriteWithradius(skeletonIm, "PV_rT.obj", dictOfNodesAndRadius, aspectRatio=[1, 0.6, 0.6])
+    # boundaryIm = np.load(input("enter a path to boundary of thresholded volume------"))
+    # dictOfNodesAndRadius, distTransformedIm = getRadiusByPointsOnCenterline(skeletonIm, boundaryIm)
+    getObjWrite(skeletonIm, "PV_rT.obj")
     # truthCase = np.load("/home/pranathi/Downloads/twodimageslices/output/Skeleton.npy")
     # groundTruth = np.load("/home/pranathi/Downloads/twodimageslices/output/Skeleton-gt.npy")
     # getObjWrite(truthCase, "PV_T.obj")

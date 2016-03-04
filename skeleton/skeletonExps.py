@@ -152,3 +152,95 @@ f.close()
 #     image = imread((os.path.join(root, 'thresh%i.png' %i)))
 #     imsave(root + 'rotatedThresh/' + 'binaryIm%i.png' % i, np.rot90(image, 3))
 
+# stackSmoothedReplicated = ndimage.interpolation.zoom(stackSmoothed, zoom=aspectRatio, order=0)
+# stackSmoothedLinearInterpolated = ndimage.interpolation.zoom(stackSmoothed, zoom=aspectRatio, order=1)
+# stackSmoothedQuadratic = ndimage.interpolation.zoom(stackSmoothed, zoom=aspectRatio, order=2)
+# stackUnSmoothedQuadratic = ndimage.interpolation.zoom(stackUnsmoothed, zoom=aspectRatio, order=2)
+# stackSmoothedCubic = ndimage.interpolation.zoom(stackSmoothed, zoom=aspectRatio, order=3, prefilter=False)
+# stackUnSmoothedReplicated = ndimage.interpolation.zoom(stackUnsmoothed, zoom=aspectRatio, order=0)
+# stackUnSmoothedLinearInterpolated = ndimage.interpolation.zoom(stackUnsmoothed, zoom=aspectRatio, order=1)
+# stackUnSmoothedCubic = ndimage.interpolation.zoom(stackUnsmoothed, zoom=aspectRatio, order=3, prefilter=False)
+
+# maxip = np.amin(stackUnSmoothedQuadratic, 0)
+# maxipS = np.amin(stackSmoothedQuadratic, 0)
+# maxip1 = np.amax(stackUnSmoothedQuadratic < tu, 0)
+# maxip1S = np.amax(stackSmoothedQuadratic < ts, 0)
+# plt.subplot(2, 1, 1)
+# plt.imshow(maxip, cmap='gray')
+# # plt.title('grey scale mip of unsmoothed quadratic interpolated volume pf = True')
+# plt.subplot(2, 1, 2)
+# plt.imshow(maxip1, cmap='gray')
+# plt.title('thresholded mip of unsmoothed quadratic interpolated volume (no clipping) pf = True')
+# plt.subplot(2, 1, 3)
+# plt.imshow(maxipS, cmap='gray')
+# plt.title('grey scale mip of smoothed quadratic interpolated volume')
+# plt.subplot(2, 2, 4)
+# plt.imshow(1 - maxip1S, cmap='gray')
+# plt.title('thresholded mip of smoothed quadratic interpolated volume (no clipping)')
+
+# stackSmoothedQuadratic = ndimage.interpolation.zoom(stackSmoothed, zoom=aspectRatio, order=2, prefilter=False)
+# stackUnSmoothedQuadratic = ndimage.interpolation.zoom(stackUnsmoothed, zoom=aspectRatio, order=2, prefilter=False)
+
+# plt.subplot(1, 3, 1)
+# plt.imshow(np.amax(thredhold, 0), cmap='gray')
+# plt.subplot(1, 3, 2)
+# plt.imshow(np.amax(thin, 0), cmap='gray')
+# plt.subplot(1, 3, 3)
+# plt.imshow(np.amax(skel, 0), cmap='gray')
+
+# plt.subplot(2, 1, 1)
+# plt.hist(z,256,[0,256]),plt.show()
+# plt.subplot(2, 1, 2)
+# A = z[labels==0]
+# B = z[labels==1]
+# plt.hist(A,256,[0,256],color = 'r')
+# plt.hist(B,256,[0,256],color = 'b')
+# plt.hist(centers,32,[0,256],color = 'y')
+# plt.show()
+# kernel = np.ones((3, 3, 3), dtype=np.uint8)
+# for numOdd in range(1, len(listOfOddFiles)):
+#     os.mkdir('home/pranathi/mosaic%i' % numOdd)
+#     npy = listOfOddFiles[numOdd]
+#     skeleton = np.load(npy)
+#     threshold = threshold = np.load(npy.replace('skeleton', 'threshold'))
+
+
+#     for I in range(0, skeleton.shape[0]):
+#         plt.subplot(1, 3, 1)
+#         # maxip = np.amax(interpolatedIm[I:I + 7], 0)
+#         plt.imshow(grey[I], cmap='gray')
+#         plt.subplot(1, 3, 2)
+#         plt.imshow(threshold[I], cmap='gray')
+#         plt.subplot(1, 3, 3)
+#         plt.imshow(skeleton[I], cmap='gray')
+#         plt.savefig('Mosaic%i.png' % I, bbox_inches='tight')
+#     convImage = convolve(np.uint8(skeleton), kernel, mode='constant', cval=0)
+#     convImage[skeleton == 0] = 0
+#     print(np.sum(convImage == 1))
+#     x = list(range(1, 28))
+#     hist = np.array([np.sum(convImage == i) for i in x])
+#     f = open('/home/pranathi/mosaic%i/hist.vasc' % numOdd, 'wb')
+#     cPickle.dump(hist, f, protocol=cPickle.HIGHEST_PROTOCOL)
+#     f.close()
+# fig = plt.figure(2)
+# plt.plot(x, hist)
+# plt.xticks(np.arange(min(x), max(x)+1, 1.0))
+#     plt.savefig('/home/pranathi/mosaic%i/hist.png' % numOdd, bbox_inches='tight')
+
+# #     plt.subplot(1, 3, 1)
+# #     plt.imshow(maxip, cmap='gray')
+# #     plt.subplot(1, 3, 2)
+# #     plt.imshow(maxip2, cmap='gray')
+
+
+# plt.subplot(1, 2, 1)
+# plt.imshow(subSubvolume[0], cmap='gray')
+# plt.subplot(1, 2, 2)
+# plt.imshow(255-subSubvolume[0], cmap='gray')
+
+
+# for i in range(threshold.shape[0]):
+#     imsave(root + 'twodThresholdslicesgoodRegionOT/' + 'thresholdot%i.png' % i, threshold[i] * 255)
+
+# for i in range(subSubvolume.shape[0]):
+#     imsave(root + 'twodGreyslicesgoodRegion/' + 'GreyGR%i.png' % i, subSubvolume[i])

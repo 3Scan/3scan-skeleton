@@ -32,6 +32,7 @@ def getBifurcatedSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
     segmentCountdict = {}
     segmentLengthdict = {}
     segmentTortuositydict = {}
+    # segmentBranchAngledict = {}
     totalSegments = 0
     # list of disjointgraphs
     disjointGraphs = list(nx.connected_component_subgraphs(networkxGraph))
