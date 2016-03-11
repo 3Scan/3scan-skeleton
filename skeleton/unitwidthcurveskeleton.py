@@ -151,30 +151,22 @@ def _getAllLabelledarray(skeletonIm, valencearray):
 
 
 def _getSourcesOfShortestpaths(dilatedValenceObjectLoc, dilatedLabelledObjectLoc):
+    # print("in _getSourcesOfShortestpaths")
     listNZI = list(np.transpose(np.array(np.where(dilatedLabelledObjectLoc == 4))))
-    # print("listNZI", listNZI)
     listIndex = [(coord, dilatedValenceObjectLoc[tuple(coord)]) for coord in listNZI]
     if len(listNZI) == 1:
         src = listNZI[0]
     else:
-        summationList = []
-        for value, valence in listIndex:
-            distList = []
-            for item in listNZI:
-                # print(value, item)
-                dist = np.sum(np.square(value - item))
-                # print(dist)
-                distList.append(dist)
-            summationList.append(sum(distList) / valence)
-        assert len(summationList) == len(listNZI)
-        src = [tuple(item2) for item1, item2 in zip(summationList, listNZI) if item1 == min(summationList)]
-    return src
+        summationList = [sum([np.sum(np.square(value - pt)) for pt in listNZI]) / valence for value, valence in listIndex]
+    src = listNZI[np.argmin(summationList)]
+    return tuple(src)
 
 
-def _getExitsOfShortestpathsDist(dilatedRegionExits, dilatedLabelledObjectLoc):
+def _getExitsOfShortestpaths(dilatedRegionExits, dilatedLabelledObjectLoc):
     """
        exit is a end or middle point
     """
+    # print("in _getExitsOfShortestpaths")
     a = set(map(tuple, list(np.transpose(np.nonzero(dilatedRegionExits)))))
     dilatedRegionExits[dilatedRegionExits == 0] = 2
     dilatedRegionExits[dilatedLabelledObjectLoc == 4] = 0
@@ -184,40 +176,12 @@ def _getExitsOfShortestpathsDist(dilatedRegionExits, dilatedLabelledObjectLoc):
     return list(a & b)
 
 
-def _getExitsOfShortestpaths(dilatedRegionExits, dilatedLabelledObjectLoc):
-    """
-    exit is a end or middle point which are 26 connected to the
-    any point in the crowded region. listExitIndices is the list
-    of coordinates with 1 or 2 (End or middle points) as labels.
-    listSourceIndices is the list of coordinates belonging to
-    crowded region
-
-    """
-    listSourceIndices = list(np.transpose(np.array(np.where(dilatedLabelledObjectLoc == 4))))
-    # print("listSourceIndices", listSourceIndices)
-    listExitIndices = list(np.transpose(np.array(np.where(dilatedRegionExits != 0))))
-    listOfExits = []
-    for items in listExitIndices:
-        # check if the potential exit which is of label 1 or 2 is within 26
-        # connectivity i.e sqrt(3)^2 distance within any of the crowded region
-        # points
-        for item in listSourceIndices:
-            # print("item")
-            # print(items, item)
-            dist = np.sqrt(np.sum(np.square(items - item)))
-            # print("distance is", dist)
-            if dist > np.sqrt(3):
-                continue
-            listOfExits.append(tuple(items))
-    # print(listOfExits)
-    return list(set(listOfExits))
-
-
 def _findShortestPathFromCRcenterToexit(valencearray, source, dest):
     """
        dijkstra's shortest path, route through the array across the
        minimum cost path
     """
+    # print("in _findShortestPathFromCRcenterToexit")
     assert type(source) == tuple
     assert type(dest) == tuple
     indices, weight = route_through_array(valencearray, source, dest, fully_connected=True)
@@ -240,6 +204,7 @@ def getShortestPathskeleton(skeletonIm):
         crowdedRegion = np.zeros_like(skeletonLabelled)
         crowdedRegion[skeletonLabelled == 4] = 1
         label, noOfCrowdedregions = ndimage.measurements.label(crowdedRegion, structure=se)
+        # print(noOfCrowdedregions)
         if np.max(skeletonLabelled) < 4:
             return skeletonIm
         elif np.array_equal(crowdedRegion, skeletonIm):
@@ -251,6 +216,7 @@ def getShortestPathskeleton(skeletonIm):
             objectify = ndimage.find_objects(label)
             exits = np.logical_or(skeletonLabelled == 1, skeletonLabelled == 2)
             for i in range(0, noOfCrowdedregions):
+                # print("ith crowded Region", i)
                 loc = objectify[i]
                 if skeletonIm.ndim == 3:
                     zcoords = loc[0]; ycoords = loc[1]; xcoords = loc[2]
@@ -265,12 +231,10 @@ def getShortestPathskeleton(skeletonIm):
                     dilatedLabelledObjectLoc = skeletonLabelled[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]]
                     dilatedLabelledObjectLoc[dilatedLabelledObjectLoc == 0] = 255
                     dilatedRegionExits = exits[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]]
-                    srcs = _getSourcesOfShortestpaths(dilatedValenceObjectLoc, dilatedLabelledObjectLoc)
+                    src = _getSourcesOfShortestpaths(dilatedValenceObjectLoc, dilatedLabelledObjectLoc)
                     dests = _getExitsOfShortestpaths(dilatedRegionExits, dilatedLabelledObjectLoc)
-                    dests2 = _getExitsOfShortestpathsDist(dilatedRegionExits, dilatedLabelledObjectLoc)
-                    print(dests)
-                    print("dests2, ", dests2)
-                    for src, dest in itertools.product(srcs, dests):
+                    for dest in dests:
+                        # print(dest)
                         dilatedLabelledObjectLoc1 = _findShortestPathFromCRcenterToexit(dilatedLabelledObjectLoc, src, dest)
                         skeletonImNew[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]] = np.logical_or(skeletonImNew[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]], dilatedLabelledObjectLoc1)
                 else:
@@ -288,9 +252,6 @@ def getShortestPathskeleton(skeletonIm):
                     dilatedRegionExits = exits[bounds[0]: bounds[2], bounds[1]: bounds[3]]
                     srcs = _getSourcesOfShortestpaths(dilatedValenceObjectLoc, dilatedLabelledObjectLoc)
                     dests = _getExitsOfShortestpaths(dilatedRegionExits, dilatedLabelledObjectLoc)
-                    dests2 = _getExitsOfShortestpathsDist(dilatedRegionExits, dilatedLabelledObjectLoc)
-                    print(dests)
-                    print("dests2, ", dests2)
                     for src, dest in itertools.product(srcs, dests):
                         dilatedLabelledObjectLoc1 = _findShortestPathFromCRcenterToexit(dilatedLabelledObjectLoc, src, dest)
                         skeletonImNew[bounds[0]: bounds[2], bounds[1]: bounds[3]] = np.logical_or(skeletonImNew[bounds[0]: bounds[2], bounds[1]: bounds[3]], dilatedLabelledObjectLoc1)
