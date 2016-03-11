@@ -24,9 +24,11 @@ def getBinWrite(imArray, pathTosave):
     verticesSorted = list(GraphList.keys())  # list and sort the keys so they are geometrically in the same order when writing to an obj file as (l_prefix paths)
     verticesSorted.sort()
     mapping = {}  # initialize variables for writing string of vertex v followed by x, y, x coordinates in the obj file
+    mappingReturn = {}
     #  for each of the sorted vertices
     for index, vertex in enumerate(verticesSorted):
         mapping[vertex] = index + 1  # a mapping to transform the vertices (x, y, z) to indexes (beginining with 1)
+        mappingReturn[index + 1] = vertex
     networkGraphIntegerNodes = nx.relabel_nodes(networkxGraph, mapping, False)
     # line prefixes for the obj file
     disjointGraphs = list(nx.connected_component_subgraphs(networkGraphIntegerNodes))
@@ -104,13 +106,52 @@ def getBinWrite(imArray, pathTosave):
     dictBinary = {}
     dictBinary["edge"] = Fibers
     dictBinary["vertices"] = dictBranchPoints
-    dictBinary["mapping"] = mapping
+    dictBinary["mapping"] = mappingReturn
     cPickle.dump(dictBinary, binFile, protocol=cPickle.HIGHEST_PROTOCOL)
     print("binFile file write took %0.3f seconds" % (time.time() - startt))
     binFile.close()
-    return Fibers, dictBranchPoints, mapping
+    return Fibers, dictBranchPoints, mappingReturn
 
 
 if __name__ == '__main__':
     skeletonIm = np.load(input("enter a path to shortest path skeleton volume------"))
     Fibers, dictBranchPoints, mapping = getBinWrite(skeletonIm, "PV_rT.bionet")
+    import struct
+
+    f = open('/media/pranathi/DATA/PV_rT.bionet', 'rb')
+    loaded_info = cPickle.load(f)
+    f.close()
+    mapping = loaded_info['mapping']
+    edge = loaded_info['edge']
+    vertices = loaded_info['vertices']
+    numEdges = len(edge)
+    numEdgesBin = (numEdges).to_bytes((numEdges.bit_length() // 8) + 1, byteorder='little', signed=False)
+    f = open('network.bionet', 'wb')
+    f.write(numEdgesBin)
+    for pointsOnEdge in edge:
+        numPointsOnFiber = len(pointsOnEdge)
+        numPointsOnFiberBin = (numPointsOnFiber).to_bytes((numPointsOnFiber.bit_length() // 8) + 1, byteorder='little', signed=False)
+        f.write(numPointsOnFiberBin)
+        for i in pointsOnEdge:
+            floatlist = list(mapping[i])
+            buf = struct.pack("{}f".format(len(floatlist)), *floatlist)
+            f.write(buf)
+    numVertices = len(vertices)
+    numVerticesBin = (numVertices).to_bytes((numVertices.bit_length() // 8) + 1, byteorder='little', signed=False)
+    f.write(numVerticesBin)
+    for vertexId, edgeIDs in vertices.items():
+        floatlist = list(mapping[vertexId])
+        buf = struct.pack("{}f".format(len(floatlist)), *floatlist)
+        f.write(buf)
+        if type(edgeIDs) is int:
+            f.write((edgeIDs).to_bytes((edgeIDs.bit_length() // 8) + 1, byteorder='little', signed=False))
+        else:
+            for edgeID in edgeIDs:
+                f.write((edgeID).to_bytes((edgeID.bit_length() // 8) + 1, byteorder='little', signed=False))
+
+    f.close()
+
+    f = open('/home/pranathi/src/3scan-skeleton/network.bionet', 'rb')
+    f.read()
+    f.close()
+
