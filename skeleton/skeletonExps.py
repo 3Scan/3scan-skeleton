@@ -9,8 +9,7 @@ from skimage.filters import threshold_otsu
 from skeleton.unitwidthcurveskeleton import getShortestPathskeleton
 from skeleton.convOptimize import getSkeletonize3D
 
-root = '/media/pranathi/A336-5F43/'
-
+root = '/media/pranathi/DATA/ii-5016-15-ms-brain_1920/downsampledslices/'
 f = open("/media/pranathi/A336-5F43/skeletonStatsSubVolume.txt", 'w')
 strLists = []
 volume = np.load('/media/pranathi/A336-5F43/stackUnSmoothedQuadratic.npy')
@@ -19,6 +18,26 @@ volume1 = volume[0:256, 0:256, 0:256]
 volume2 = volume[0:128, 0:128, 0:128]
 subVolumes = [volume1, volume2]
 j = 1
+
+
+shape = (len(listOfJpgs), 2497, 1147)
+mask = np.zeros(shape, dtype=np.uint8)
+for i in range(0, 800, 10):
+    print(i)
+    image = cv2.imread(root + 'maskedSliceSub%i.png' % i)
+    # o = np.flipud(np.rot90(image, 3))
+    # imsave(root + 'rot/' 'maskBrainSliceRot%i.png' % i, o)
+    mask[count] = image[:, :, 0].astype(bool)
+    # assert [mask[count].flatten()] != 0
+    count = count + 1
+
+onesIm = np.ones_like(image)
+for i in range(0, len(listOfJpgs), 10):
+    print(i)
+    print(root + 'downsampledslice%i.png' % i)
+    image = imread(root + 'downsampledslice%i.png' % i)
+    image = np.subtract(image, onesIm)
+    imsave('/home/pranathi/subtractedDownsampled/' + 'subDsSlice%i.png' % i, image)
 for grey in subVolumes:
     maskOut = copy.deepcopy(grey)
     np.save("/media/pranathi/A336-5F43/grey%i.npy" % j, grey)
