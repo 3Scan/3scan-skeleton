@@ -154,7 +154,7 @@ def getProjection():
         file_chunks = []
         chunksize = 500
         file_chunks = [listOfJpgsCutwise[i:i + chunksize]
-        for i in range(0, len(listOfJpgsCutwise[cut]), chunksize)]
+        for i in range(0, len(listOfJpgsCutwise[cut]), chunksize):
             ranges = range(0, len(listOfJpgsCutwise[cut]), chunksize)
 
         for chunk_idx in ranges:
