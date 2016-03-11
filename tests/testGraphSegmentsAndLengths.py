@@ -80,42 +80,42 @@ def getDisjointCyclesNoTrees2d(size=(10, 10)):
 
 def test_singlesegment():
     lineGraph = getSingleVoxelLineNobranches()
-    dlinecount, dlinelength, segmentTortuosityline, totalSegmentsLine = getSegmentsAndLengths(lineGraph, True, False)
+    dlinecount, dlinelength, segmentTortuosityline, totalSegmentsLine, typeGraphdict = getSegmentsAndLengths(lineGraph, True, False)
     # plotGraphWithCount(lineGraph, dlinecount)
-    assert totalSegmentsLine == 0
+    assert totalSegmentsLine == 0 and typeGraphdict[0] == 2
 
 
 def test_singlecycle():
     donutGraph = getCycleNotree()
-    dcyclecount, dcyclelength, segmentTortuositycycle, totalSegmentsDonut = getSegmentsAndLengths(donutGraph, True, False)
+    dcyclecount, dcyclelength, segmentTortuositycycle, totalSegmentsDonut, typeGraphdict = getSegmentsAndLengths(donutGraph, True, False)
     # plotGraphWithCount(donutGraph, dcyclecount)
-    assert totalSegmentsDonut == 1
+    assert totalSegmentsDonut == 1 and typeGraphdict[0] == 1
 
 
 def test_cycleAndTree():
     sampleGraph = getCyclesWithBranchesProtrude()
-    dcycleTreecount, dcycleTreelength, segmentTortuositycycletree, totalSegmentsSampleGraph = getSegmentsAndLengths(sampleGraph, True, False)
+    dcycleTreecount, dcycleTreelength, segmentTortuositycycletree, totalSegmentsSampleGraph, typeGraphdict = getSegmentsAndLengths(sampleGraph, True, False)
     # plotGraphWithCount(sampleGraph, dcycleTreecount)
-    assert totalSegmentsSampleGraph == 3
+    assert totalSegmentsSampleGraph == 3 and typeGraphdict[0] == 3
 
 
 def test_treeNocycle2d():
     crosGraph = getTreeNoCycle2d()
-    dTreecount, dTreelength, segmentTortuositytree, totalSegmentsTree = getSegmentsAndLengths(crosGraph, True, False)
+    dTreecount, dTreelength, segmentTortuositytree, totalSegmentsTree, typeGraphdict = getSegmentsAndLengths(crosGraph, True, False)
     # plotGraphWithCount(crosGraph, dTreecount)
-    assert totalSegmentsTree == 4
+    assert totalSegmentsTree == 4 and typeGraphdict[0] == 4
 
 
 def test_disjointDoublecycle():
     multiloopgraph = getDisjointCyclesNoTrees2d()
-    disjointCyclescount, ddisjointCycleslength, segmentTortuositycycles, totalSegmentsDisjointCycles = getSegmentsAndLengths(multiloopgraph, True, False)
+    disjointCyclescount, ddisjointCycleslength, segmentTortuositycycles, totalSegmentsDisjointCycles, typeGraphdict = getSegmentsAndLengths(multiloopgraph, True, False)
     # plotGraphWithCount(multiloopgraph, ddisjointCyclescount)
-    assert totalSegmentsDisjointCycles == 2
+    assert totalSegmentsDisjointCycles == 2 and typeGraphdict[0] == 1
 
 
 def test_treeNocycle3d():
     crosPairgraph = getDisjointTreesNoCycle3d()
-    dTreescount, dTreeslength, segmentTortuositytrees, totalSegmentsTrees = getSegmentsAndLengths(crosPairgraph, True, False)
+    dTreescount, dTreeslength, segmentTortuositytrees, totalSegmentsTrees, typeGraphdict = getSegmentsAndLengths(crosPairgraph, True, False)
     # plotGraphWithCount(crosPairgraph, dTreescount)
-    assert totalSegmentsTrees == 8
+    assert totalSegmentsTrees == 8 and typeGraphdict[0] == 4
 

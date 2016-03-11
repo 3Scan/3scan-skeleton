@@ -82,25 +82,32 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
     segmentLengthdict = {}
     segmentTortuositydict = {}
     totalSegments = 0
+    typeGraphdict = {}
     # list of disjointgraphs
     disjointGraphs = list(nx.connected_component_subgraphs(networkxGraph))
     for ithDisjointgraph, subGraphskeleton in enumerate(disjointGraphs):
         nodes = subGraphskeleton.nodes()
         if len(nodes) == 1:
             " if it is a single node"
+            typeGraphdict[ithDisjointgraph] = 0
         else:
             """ if there are more than one nodes decide what kind of subgraph it is
                 if it has cycles alone, or a straight line or a directed cyclic/acyclic graph"""
             nodes.sort()
             cycleList = nx.cycle_basis(subGraphskeleton)
             cycleCount = len(cycleList)
+            if cycleCount != 0:
+                typeGraphdict[ithDisjointgraph] = 3
+            else:
+                typeGraphdict[ithDisjointgraph] = 4
             nodeDegreedict = nx.degree(subGraphskeleton)
             degreeList = list(nodeDegreedict.values())
             endPointdegree = min(degreeList)
             branchPointdegree = max(degreeList)
-            if endPointdegree == branchPointdegree and nx.is_biconnected(subGraphskeleton) and cycleCount != 0:
+            if endPointdegree == branchPointdegree and nx.is_biconnected(subGraphskeleton) and cycleCount == 1:
                 """ if the maximum degree is equal to minimum degree it is a circle, set
                 tortuosity to infinity (NaN) set to zero here"""
+                typeGraphdict[ithDisjointgraph] = 1
                 cycle = cycleList[0]
                 sourceOnCycle = cycle[0]
                 segmentCountdict[sourceOnCycle] = 1
@@ -109,6 +116,7 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
                 _removeEdgesInVisitedPath(subGraphskeleton, cycle, 1)
             elif set(degreeList) == set((1, 2)) or set(degreeList) == {1}:
                 """ straight line or dichtonomous tree"""
+                typeGraphdict[ithDisjointgraph] = 2
                 subGraphskeleton.remove_edges_from(subGraphskeleton.edges())
             else:
                 """ cyclic or acyclic tree """
@@ -152,7 +160,7 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
         assert subGraphskeleton.number_of_edges() == 0
     totalSegments = len(segmentLengthdict)
     print("time taken to calculate segments and their lengths is %0.3f seconds" % (time.time() - startt))
-    return segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments
+    return segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict
 
 
 if __name__ == '__main__':
