@@ -14,8 +14,12 @@ def xlsxWrite(listOfDicts, path):
     workbook = xlsxwriter.Workbook(path)
     worksheet = workbook.add_worksheet()
     row = 0
+    lenXls = len(dictR)
+    footer = [str(sum(dictR.values())), str(sum(listOfDicts[1].values)), str(sum(listOfDicts[2].values)), str(sum(listOfDicts[3].values))]
     for numColumn in range(0, 5):
         worksheet.write(row, numColumn, header[numColumn])
+        worksheet.write(lenXls + 1, numColumn, footer[numColumn])
+        worksheet.write(lenXls + 2, numColumn, (footer[numColumn] / lenXls))
     for key in list(dictR.keys()):  # for each of the nodes with radius
         row += 1; col = 0
         worksheet.write(row, col, str(key))
@@ -42,8 +46,7 @@ def xlsxWrite(listOfDicts, path):
 def excelWrite(shskel, boundaryIm, path):
     from skeleton.segmentLengths import getSegmentsAndLengths
     from skeleton.radiusOfNodes import getRadiusByPointsOnCenterline
-    # segmentdict, disjointgraphDict = getStatsDisjoint(shskel)
-    d1, d2, d3, t = getSegmentsAndLengths(shskel)
+    d1, d2, d3, t, typeGraph = getSegmentsAndLengths(shskel)
     d, di = getRadiusByPointsOnCenterline(shskel, boundaryIm)
     dictR = {your_key: d[your_key] for your_key in d1.keys()}
     listOfDicts = [dictR, d1, d2, d3]
