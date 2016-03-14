@@ -41,7 +41,7 @@ for i in range(0, 800, 10):
     count = count + 1
 # maskArtVein = np.load('/media/pranathi/DATA/NPYS/maskArtVein.npy')
 iskpy = iskpx = 280; iskpz = int(0.5 + 560 * 0.7 / 5.0)
-ilist = list(range(30, 799 - 10, iskpz))
+ilist = list(range(64, 799 - 10, iskpz))
 klist = [k for k in range(67, 8026 - 68, iskpx) if k < 1600 or (k > 2350 and k < 4800) or (k > 5520 and k < 8020)]
 jlist = range(67, 17480 - 68, iskpy)
 it = list(itertools.product(ilist, jlist, klist))
