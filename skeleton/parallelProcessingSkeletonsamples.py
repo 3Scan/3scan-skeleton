@@ -10,7 +10,6 @@ from skimage.filters import threshold_otsu
 from collections import Counter
 from skeleton.convOptimizeRV import getSkeletonize3D
 from skeleton.unitwidthcurveskeletonRV import getShortestPathskeleton
-import copy
 from skeleton.segmentLengths import getSegmentsAndLengths
 
 
@@ -24,18 +23,16 @@ def convert(tupValList):
         subVolume[count][:][:] = imread(fileName)
         count += 1
     for i, j, k in tupValList:
-        print(i, j, k)
         subSubvolume = subVolume[:, j - 67:j + 68, k - 67: k + 68]
         subSubvolume = 255 - subSubvolume
-        subSubvolumecopy = copy.deepcopy(subSubvolume)
-        histData, bins = np.histogram(subSubvolumecopy.flatten(), 256, [0, 256])
+        histData, bins = np.histogram(subSubvolume.flatten(), 256, [0, 256])
         sumation = np.sum(histData * bins[0:-1])
         weight = np.sum(histData)
         avg = sumation / weight
-        subSubvolumecopy[subSubvolumecopy < int(avg)] = 0
-        l1 = [y for y in subSubvolumecopy.ravel() if y != 0]
+        subSubvolume[subSubvolume < int(avg)] = 0
+        l1 = [y for y in subSubvolume.ravel() if y != 0]
         t = threshold_otsu(np.array(l1))
-        interpolatedIm = ndimage.interpolation.zoom(subSubvolumecopy, [5 / 0.7037037, 1, 1], order=2, prefilter=False)
+        interpolatedIm = ndimage.interpolation.zoom(subSubvolume, [5 / 0.7037037, 1, 1], order=2, prefilter=False)
         interpolatedIm = interpolatedIm > (0.85 * t)
         thinned = getSkeletonize3D(interpolatedIm)
         skeleton = getShortestPathskeleton(thinned)

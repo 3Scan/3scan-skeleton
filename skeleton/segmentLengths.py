@@ -1,5 +1,5 @@
 import itertools
-import time
+# import time
 
 import numpy as np
 import networkx as nx
@@ -75,9 +75,9 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
     else:
         networkxGraph = getNetworkxGraphFromarray(imArray, skelOrNot)
         networkxGraph = removeCliqueEdges(networkxGraph)
-    assert networkxGraph.number_of_selfloops() == 0
+    # assert networkxGraph.number_of_selfloops() == 0
     # intitialize all the common variables
-    startt = time.time()
+    # startt = time.time()
     segmentCountdict = {}
     segmentLengthdict = {}
     segmentTortuositydict = {}
@@ -157,10 +157,9 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
                                 segmentLengthdict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength
                                 segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength / curveDisplacement
                                 _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
-        print(subGraphskeleton.number_of_edges())
         assert subGraphskeleton.number_of_edges() == 0
     totalSegments = len(segmentLengthdict)
-    print("time taken to calculate segments and their lengths is %0.3f seconds" % (time.time() - startt))
+    # print("time taken to calculate segments and their lengths is %0.3f seconds" % (time.time() - startt))
     return segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict
 
 

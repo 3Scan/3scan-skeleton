@@ -1,5 +1,5 @@
 import itertools
-import time
+# import time
 
 import numpy as np
 import networkx as nx
@@ -18,7 +18,7 @@ def removeCliqueEdges(networkxGraph):
     """
     disjointGraphsBefore = len(list(nx.connected_component_subgraphs(networkxGraph)))
     networkxGraphAfter = networkxGraph.copy()
-    startt = time.time()
+    # startt = time.time()
     cliques = nx.find_cliques_recursive(networkxGraph)
     # all the nodes/vertices of 3 cliques
     cliques2 = [clq for clq in cliques if len(clq) == 3]
@@ -51,9 +51,9 @@ def removeCliqueEdges(networkxGraph):
                 cliquEdges.append(combEdge[mainDim][subDim])
         networkxGraphAfter.remove_edges_from(cliquEdges)
         disjointGraphsAfter = len(list(nx.connected_component_subgraphs(networkxGraphAfter)))
-        assert networkxGraph.number_of_edges() >= networkxGraphAfter.number_of_edges()
-        print("time taken to remove cliques is %0.2f seconds" % (time.time() - startt))
-        assert disjointGraphsAfter == disjointGraphsBefore
+        # assert networkxGraph.number_of_edges() >= networkxGraphAfter.number_of_edges()
+        # print("time taken to remove cliques is %0.2f seconds" % (time.time() - startt))
+        # assert disjointGraphsAfter == disjointGraphsBefore
         if disjointGraphsBefore == disjointGraphsAfter:
             return networkxGraphAfter.copy()
         else:
