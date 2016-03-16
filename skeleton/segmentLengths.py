@@ -182,4 +182,4 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
 
 if __name__ == '__main__':
     shskel = np.load(input("enter a path to shortest path skeleton volume------"))
-    segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments = getSegmentsAndLengths(shskel)
+    segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict = getSegmentsAndLengths(shskel)
