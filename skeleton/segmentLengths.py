@@ -162,6 +162,18 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
                                 segmentLengthdict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength
                                 segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength / curveDisplacement
                                 _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
+                cycleList = nx.cycle_basis(subGraphskeleton)
+                if subGraphskeleton.number_of_edges() != 0 and len(cycleList) != 0:
+                    for cycle in cycleList:
+                        sourceOnCycle = cycle[0]
+                        if sourceOnCycle not in visitedSources:
+                            segmentCountdict[sourceOnCycle] = 1
+                            visitedSources.append(sourceOnCycle)
+                        else:
+                            segmentCountdict[sourceOnCycle] += 1
+                        segmentLengthdict[segmentCountdict[sourceOnCycle], sourceOnCycle, sourceOnCycle] = _getDistanceBetweenPointsInpath(cycle, 1)
+                        segmentTortuositydict[segmentCountdict[sourceOnCycle], sourceOnCycle, sourceOnCycle] = 0
+                        _removeEdgesInVisitedPath(subGraphskeleton, cycle, 1)
         assert subGraphskeleton.number_of_edges() == 0
     totalSegments = len(segmentLengthdict)
     print("time taken to calculate segments and their lengths is %0.3f seconds" % (time.time() - startt))
