@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import ndimage
 
-from skeleton.convOptimize import getSkeletonize3D
+from skeleton.thin3DVolume import getSkeletonize3D
 from skeleton.unitwidthcurveskeleton import getShortestPathskeleton
 
 """ test 1 and 3 lines passed , test for rings and random images not defined

@@ -4,7 +4,7 @@ import os
 
 from skimage.morphology import skeletonize as getSkeletonize2D
 
-from skeleton.convOptimize import getSkeletonize3D
+from skeleton.thin3DVolume import getSkeletonize3D
 from skeleton.objWrite import getObjWrite
 
 from tests.tests3DSkeletonize import getDonut

@@ -1,8 +1,9 @@
+import os
 import numpy as np
 
 from skimage.morphology import skeletonize as getSkeletonize2D
 
-from skeleton.convOptimize import getSkeletonize3D
+from skeleton.thin3DVolume import getSkeletonize3D
 from skeleton.xlsxwrite import excelWrite
 
 from tests.tests3DSkeletonize import getDonut
@@ -59,27 +60,32 @@ def test_singlesegment():
     lineGraph = getSingleVoxelLineNobranches()
     d = excelWrite(lineGraph, lineGraph, "Line.xlsx")
     assert len(d) == 0
+    os.remove("Line.xlsx")
 
 
 def test_singlecycle():
     donutGraph = getCycleNotree()
     d = excelWrite(donutGraph, donutGraph, "OneCycle.xlsx")
     assert len(d) == 1
+    os.remove("OneCycle.xlsx")
 
 
 def test_cycleAndTree():
     sampleGraph = getCyclesWithBranchesProtrude()
     d = excelWrite(sampleGraph, sampleGraph, "CycleAndGraph.xlsx")
     assert len(d) == 1
+    os.remove("CycleAndGraph.xlsx")
 
 
 def test_treeNocycle2d():
     crosGraph = getTreeNoCycle2d()
     d = excelWrite(crosGraph, crosGraph, "Cross.xlsx")
     assert len(d) == 2
+    os.remove("Cross.xlsx")
 
 
 def test_treeNocycle3d():
     crosPairgraph = getDisjointTreesNoCycle3d()
     d = excelWrite(crosPairgraph, crosPairgraph, "twoCrosses.xlsx")
     assert len(d) == 4
+    os.remove("twoCrosses.xlsx")

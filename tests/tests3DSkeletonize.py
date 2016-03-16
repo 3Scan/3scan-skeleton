@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import ndimage
 
-from skeleton.convOptimize import getSkeletonize3D
+from skeleton.thin3DVolume import getSkeletonize3D
 
 """
    test if 3D skeletonize implemented as in

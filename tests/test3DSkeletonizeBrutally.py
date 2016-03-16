@@ -5,7 +5,7 @@ from numpy import random
 
 from scipy import ndimage
 
-from skeleton.convOptimize import getSkeletonize3D
+from skeleton.thin3DVolume import getSkeletonize3D
 from skimage.morphology import skeletonize as getskeletonize2d
 
 """
