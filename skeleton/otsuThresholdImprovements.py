@@ -60,6 +60,10 @@ def localMaximaImprovisedOtsu(subSubvolume):
 
 
 def otsuImprovements(i, j, k):
+    root = input("please enter a path to your grey scale image files you want to threshold with otsu and compare with the improvised versions of otsu")
+    formatOfFiles = input("please enter the format (extension png or jpg) for your image files")
+    listOfJpgs = [os.path.join(root, files) for files in os.listdir(root) if formatOfFiles in files]
+    listOfJpgs.sort()
     subList = listOfJpgs[i - 9: i + 10]
     subVolume = np.zeros((19, 17480, 8026), dtype=np.uint8)
     count = 0
@@ -95,10 +99,6 @@ def otsuImprovements(i, j, k):
 
 
 if __name__ == '__main__':
-    root = input("please enter a path to your grey scale image files you want to threshold with otsu and compare with the improvised versions of otsu")
-    formatOfFiles = input("please enter the format (extension png or jpg) for your image files")
-    listOfJpgs = [os.path.join(root, files) for files in os.listdir(root) if formatOfFiles in files]
-    listOfJpgs.sort()
     coordinates = input("please enter a subvolume region you want to threshold and improvise using otsu's, integral coordinates in z followed by y and x")
     i, j, k = [int(item) for item in coordinates.split(' ')]
     otsuImprovements(i, j, k)
