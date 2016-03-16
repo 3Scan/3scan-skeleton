@@ -54,10 +54,7 @@ def removeCliqueEdges(networkxGraph):
         assert networkxGraph.number_of_edges() >= networkxGraphAfter.number_of_edges()
         print("time taken to remove cliques is %0.2f seconds" % (time.time() - startt))
         assert disjointGraphsAfter == disjointGraphsBefore
-        if disjointGraphsBefore == disjointGraphsAfter:
-            return networkxGraphAfter.copy()
-        else:
-            return networkxGraph
+        return networkxGraphAfter
 
 
 if __name__ == '__main__':

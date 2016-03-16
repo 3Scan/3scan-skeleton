@@ -162,7 +162,6 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
                                 segmentLengthdict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength
                                 segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength / curveDisplacement
                                 _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
-        print(subGraphskeleton.number_of_edges())
         assert subGraphskeleton.number_of_edges() == 0
     totalSegments = len(segmentLengthdict)
     print("time taken to calculate segments and their lengths is %0.3f seconds" % (time.time() - startt))

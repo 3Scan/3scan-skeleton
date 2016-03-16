@@ -14,7 +14,6 @@ def removeCliqueEdges(networkxGraph):
        remvoe edges of 3 vertex cliques of
        squared length 2
     """
-    disjointGraphsBefore = len(list(nx.connected_component_subgraphs(networkxGraph)))
     networkxGraphAfter = networkxGraph.copy()
     cliques = nx.find_cliques_recursive(networkxGraph)
     # all the nodes/vertices of 3 cliques
@@ -47,8 +46,4 @@ def removeCliqueEdges(networkxGraph):
                         break
                 cliquEdges.append(combEdge[mainDim][subDim])
         networkxGraphAfter.remove_edges_from(cliquEdges)
-        disjointGraphsAfter = len(list(nx.connected_component_subgraphs(networkxGraphAfter)))
-        if disjointGraphsBefore == disjointGraphsAfter:
-            return networkxGraphAfter.copy()
-        else:
-            return networkxGraph
+        return networkxGraphAfter
