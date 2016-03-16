@@ -1,4 +1,11 @@
+import numpy as np
 import xlsxwriter
+
+"""
+    writes information about segments in a excel file with branch point as the first column
+    and radius, number of segments, lengths of segments and segment tortuosities as the next
+    columns
+"""
 
 
 def removekey(d, key):
@@ -14,12 +21,6 @@ def xlsxWrite(listOfDicts, path):
     workbook = xlsxwriter.Workbook(path)
     worksheet = workbook.add_worksheet()
     row = 0
-    lenXls = len(dictR)
-    footer = [str(sum(dictR.values())), str(sum(listOfDicts[1].values)), str(sum(listOfDicts[2].values)), str(sum(listOfDicts[3].values))]
-    for numColumn in range(0, 5):
-        worksheet.write(row, numColumn, header[numColumn])
-        worksheet.write(lenXls + 1, numColumn, footer[numColumn])
-        worksheet.write(lenXls + 2, numColumn, (footer[numColumn] / lenXls))
     for key in list(dictR.keys()):  # for each of the nodes with radius
         row += 1; col = 0
         worksheet.write(row, col, str(key))
@@ -101,9 +102,7 @@ def excelRead():
 
 
 if __name__ == '__main__':
-    d = excelWrite()
-    from mayavi import mlab
-    # to plot text on an mlab figure
-    for coord in list(d.keys()):
-        x = coord[0]; y = coord[1]; z = coord[2];
-        mlab.text3d(x, y, z, d[coord], color=(0, 0, 0), scale=4.0)
+    skeletonIm = np.load(input("enter a path to shortest path skeleton volume------"))
+    boundaryIm = np.load(input("enter a path to boundary of thresholded volume------"))
+    path = input("please enter a path to write your statistics to an excel file")
+    d = excelWrite(skeletonIm, boundaryIm, path)

@@ -8,6 +8,23 @@ from skeleton.networkxGraphFromarray import getNetworkxGraphFromarray
 from skeleton.segmentLengths import _removeEdgesInVisitedPath
 
 
+"""
+    primarily written for netmets (comparison of 2 networks)
+    Link to the software - http://stim.ee.uh.edu/resources/software/netmets/
+    Number of edges in the network(n) – unsigned integer
+    Number of points on the first edge e1(N)- unsigned integer
+    Point1 – float 3
+    PointN – float 3
+    …. Number of points on the nth edge en
+    Number of vertices in the network (m) – unsigned integer
+    Position – float 3
+    Number of edges attached to it – unsigned integer
+    Edge id e1– unsigned integer
+    Edge id en – unsigned integer
+
+"""
+
+
 def _getNetworkClass(imArray):
     """
        takes in a numpy array and convert it to a netowrk class
@@ -123,7 +140,7 @@ def getTextWrite(skeletonIm, pathToSave, aspectRatio=None):
             strsEdges.append(" ".join(str(vertex[i - 2]) for i in range(0, len(vertex))) + "\n")  # add strings of vertices to obj file
     f.writelines(strsEdges)  # write strings to obj file
     numVertices = len(vertices)
-    f.write(str(numVertices))
+    f.write(str(numVertices) + "\n")
     strsVertices = []
     for vertexId, edgeIDs in vertices.items():
         if aspectRatio is not None:
@@ -133,14 +150,50 @@ def getTextWrite(skeletonIm, pathToSave, aspectRatio=None):
             newVertex[0] = originalVertex[0] * aspectRatio[0]; newVertex[1] = originalVertex[2] * aspectRatio[1]; newVertex[2] = originalVertex[1] * aspectRatio[2]; vertex = tuple(newVertex)
             strsVertices.append(" ".join(str(vertex[i - 2]) for i in range(0, len(vertex))) + "\n")  # add strings of vertices to obj file
         if type(edgeIDs) is int:
+            strsVertices.append(str(1) + "\n")
             strsVertices.append(str(edgeIDs) + "\n")
         else:
+            strsVertices.append(str(len(edgeIDs)) + "\n")
             for edgeID in edgeIDs:
                 strsVertices.append(str(edgeID) + "\n")
     f.writelines(strsVertices)
     f.close()
 
 
+def getTextRead(f):
+    f = open(f, 'r')
+    file_contents = [_ for _ in f]
+    f.close()
+    numEdges = int(file_contents[0])
+    I = int(file_contents[1])
+    count = 1; k = 2;
+    edges = []; vertices = [];
+    for i in range(0, numEdges):
+        # pre allocate a position vector p with number of points3d on the edge p
+        p = []
+        # for each point on the nth edge
+        for j in range(k, I + k):
+            # split the points3d of floats with separator space and form a float3 position vector out of them
+            temp = file_contents[j].replace('\n', '').split(' ')
+            temp = [float(item) for item in temp]
+            p.append(tuple(temp))
+        count += len(p) + 1;  # increment count to point at the next edge in the network
+        I = int(file_contents[count]);  # read in the points3d at the next edge and convert it to an integer
+        k = count + 1;
+        edges.append(p);  # push the edge into the network
+    numVertices = int(file_contents[count]);  # this line in the text file gives the number of distinct vertices
+    count = count + 1;  # this line of text file gives the first verrtex
+    # push each vertex into Vertices
+    for i in range(0, numVertices):
+        temp = file_contents[count].replace('\n', '').split(' ')
+        temp = [float(item) for item in temp]
+        vertices.append(tuple(temp))
+        count += int(file_contents[count + 1]) + 2;  # Skip number of edge ids + 2 to point to the next vertex
+    return edges, vertices
+
+
 if __name__ == '__main__':
-    skeletonIm = np.load('/media/pranathi/DATA/NPYS/goodRegionSkeleton.npy')
-    getTextWrite(skeletonIm, "/media/pranathi/DATA/network.txt", aspectRatio=[1, 0.6, 0.6])
+    skeletonIm = np.load(input("please enter a path to your unit width voxelised skeleton"))
+    aspectRatio = input("please enter resolution of a voxel in 3D with resolution in z followed by y and x")
+    aspectRatio = [float(item) for item in aspectRatio.split(' ')]
+    getTextWrite(skeletonIm, "netMetsnetwork.txt", aspectRatio)

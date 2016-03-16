@@ -8,6 +8,11 @@ from skeleton.networkxGraphFromarray import getNetworkxGraphFromarray
 from skeleton.cliqueRemoving import removeCliqueEdges
 
 
+"""
+    Find the segments, lengths and tortuosity of a network
+"""
+
+
 def _getDistanceBetweenPointsInpath(cyclePath, cycle=0):
     """
        finds distance between points in a given path

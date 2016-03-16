@@ -213,10 +213,10 @@ def plot3Dfigure(inrerpolatedImage):
 
 
 if __name__ == '__main__':
-    shskel = np.load("/home/pranathi/Downloads/shortestPathSkel.npy")
+    shskel = np.load(input("please enter a path to your unit width voxelized skeleton"))
     # interpolatedImage = np.load('/Users/3scan_editing/records/interpolatedSkeleton.npy')
     # saveVolumeFeatures(shskel, ' Unit Width Voxel image')
-    aspectRatio = [10, 0.7, 0.7]
+    aspectRatio = input("please enter a sequence resolution of a voxel in 3D with resolution in z followed by y and x")
     x_knots, y_knots, z_knots, tangentVectors, normalVectors, binormalVectors, orientationPhi, orientationTheta, curvature, radiusoFCurvature = splineInterpolateStatistics(shskel, aspectRatio)
     plotKDEAndHistogram(orientationPhi)
     plotKDEAndHistogram(orientationTheta)

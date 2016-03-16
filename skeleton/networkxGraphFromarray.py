@@ -91,7 +91,7 @@ def getNetworkxGraphFromarray(arr, skeletonIm=True):
         networkx graph from the dictionary
 
     """
-    from skeleton.convOptimize import getSkeletonize3D
+    from skeleton.thin3DVolume import getSkeletonize3D
     from skeleton.unitwidthcurveskeleton import getShortestPathskeleton
     from skimage.morphology import skeletonize as getSkeletonize2D
     assert arr.max() == 1
@@ -128,8 +128,6 @@ def getGraphProperties(G, nameOfTheGraph):
 
 if __name__ == '__main__':
     # read points into array
-    shskel = np.load("/home/pranathi/Downloads/shortestPathSkel.npy")
-    squae = np.zeros((20, 20, 20), dtype=bool)
-    squae[2:-2, 2:-2, 2:-2] = 1
+    shskel = np.load(input("please enter a path to your unit width voxelised skeleton"))
     dictAdjacent = _setAdjacencylistarray(shskel)
     networkxGraph = getNetworkxGraphFromarray(shskel, True)

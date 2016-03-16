@@ -123,15 +123,8 @@ def getReconstructedVasculature(distTransformedIm, skeletonIm):
 if __name__ == '__main__':
     # from skeleton.orientationStatisticsSpline import getStatistics, plotKDEAndHistogram
     startt = time.time()
-    # load the skeletonized image
-    skeletonIm = np.load('/home/pranathi/Downloads/mouseBrainSkeleton.npy')
-    # finding edges of the microvasculature
-    boundaryIm = np.load('/media/pranathi/DATA/twodimageslices/twodkskeletonslices/boundaries.npy')
-    dictOfNodesAndRadius, distTransformedIm = getRadiusByPointsOnCenterline(skeletonIm, boundaryIm, aspectRatio=[5, 0.7, 0.7])
-    reconstructedImage = getReconstructedVasculature(distTransformedIm, skeletonIm)
-    # dictOfNodesAndRadiusz, distTransformedImz = getRadiusByPointsOnCenterlineslicewise(skeletonIm, boundaryIm, inputIm, aspectRatio=[0.7, 0.7], plane=0)
-    # dictOfNodesAndRadiusy, distTransformedImz = getRadiusByPointsOnCenterlineslicewise(skeletonIm, boundaryIm, inputIm, aspectRatio=[0.7, 0.7], plane=1)
-    # dictOfNodesAndRadiusx, distTransformedImz = getRadiusByPointsOnCenterlineslicewise(skeletonIm, boundaryIm, inputIm, aspectRatio=[0.7, 0.7], plane=2)
-    # averageShortestdistance = averageShortestdistance(dictOfNodesAndRadiusy, dictOfNodesAndRadiusx, dictOfNodesAndRadiusz)
-    # getStatistics(dictOfNodesAndRadius, 'Radius')
-    # plotKDEAndHistogram(list(dictOfNodesAndRadius.values()))
+    skeletonIm = np.load(input("enter a path to shortest path skeleton volume------"))
+    boundaryIm = np.load(input("enter a path to boundary of thresholded volume------"))
+    aspectRatio = input("please enter resolution of a voxel in 3D with resolution in z followed by y and x")
+    aspectRatio = [float(item) for item in aspectRatio.split(' ')]
+    dictOfNodesAndRadius, distTransformedIm = getRadiusByPointsOnCenterline(skeletonIm, boundaryIm, aspectRatio)

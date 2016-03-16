@@ -6,14 +6,15 @@ import time
 
 from skeleton.cliqueRemoving import removeCliqueEdges
 from skeleton.networkxGraphFromarray import getNetworkxGraphFromarray
-# from skeleton.radiusOfNodes import getRadiusByPointsOnCenterline
+from skeleton.radiusOfNodes import getRadiusByPointsOnCenterline
 from skeleton.segmentLengths import _removeEdgesInVisitedPath
 
 
 """
     write an array to a wavefront obj file - time takes upto 3 minutes for a 512 * 512 * 512 array,
     input array can be either 3D or 2D. Function needs to be called with an array you want to save
-    as a .obj file and the location on obj file
+    as a .obj file and the location on obj file - primarily written for netmets (comparison of 2 networks)
+    Link to the software - http://stim.ee.uh.edu/resources/software/netmets/
 """
 
 
@@ -178,9 +179,11 @@ def getObjWriteWithradius(imArray, pathTosave, dictOfNodesAndRadius, aspectRatio
 if __name__ == '__main__':
     # read points into array
     skeletonIm = np.load(input("enter a path to shortest path skeleton volume------"))
-    # boundaryIm = np.load(input("enter a path to boundary of thresholded volume------"))
-    # dictOfNodesAndRadius, distTransformedIm = getRadiusByPointsOnCenterline(skeletonIm, boundaryIm)
-    getObjWrite(skeletonIm, "PV_rT.obj")
-    # truthCase = np.load("/home/pranathi/Downloads/twodimageslices/output/Skeleton.npy")
-    # groundTruth = np.load("/home/pranathi/Downloads/twodimageslices/output/Skeleton-gt.npy")
-    # getObjWrite(truthCase, "PV_T.obj")
+    boundaryIm = np.load(input("enter a path to boundary of thresholded volume------"))
+    aspectRatio = input("please enter resolution of a voxel in 3D with resolution in z followed by y and x")
+    aspectRatio = [float(item) for item in aspectRatio.split(' ')]
+    path = input("please enter a path to save resultant obj file with no texture coordinates")
+    path2 = input("please enter a path to save resultant obj file with texture coordinates")
+    dictOfNodesAndRadius, distTransformedIm = getRadiusByPointsOnCenterline(skeletonIm, boundaryIm)
+    getObjWrite(skeletonIm, path, aspectRatio)
+    getObjWriteWithradius(skeletonIm, path2, aspectRatio)

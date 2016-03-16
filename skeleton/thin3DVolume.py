@@ -27,21 +27,17 @@ def getSkeletonize3D(image):
     In other words, 1 = object, 0 = background
     """
     assert np.max(image) in [0, 1]
+    start_skeleton = time.time()
     zOrig, yOrig, xOrig = np.shape(image)
     padImage = np.lib.pad(image, 1, 'constant', constant_values=0)
-    start_skeleton = time.time()
-    pass_no = 0
-    numPixelsremoved = 0
-    while pass_no == 0 or numPixelsremoved > 0:
+    numPixelsremoved = 1
+    while numPixelsremoved > 0:
+        pixBefore = padImage.sum()
         for i in range(0, 12):
             convImage = convolve(np.uint64(padImage), directionList[i], mode='constant', cval=0)
             convImage[padImage == 0] = 0
-            pixBefore = padImage.sum()
             padImage[lookUparray[convImage[:]] == 1] = 0
-            numPixelsremoved = pixBefore - padImage.sum()
-            numPixelsremoved += numPixelsremoved
-            # print("number of pixels removed in pass {} is {}".format(pass_no, numpixel_removed))
-        pass_no += 1
+        numPixelsremoved = pixBefore - padImage.sum()
     print("done %i number of pixels in %0.2f seconds" % (np.sum(image), time.time() - start_skeleton))
     label_img1, countObjects = ndimage.measurements.label(image, structure=np.ones((3, 3, 3), dtype=np.uint8))
     result = padImage[1:zOrig + 1, 1:yOrig + 1, 1:xOrig + 1]

@@ -61,6 +61,6 @@ def removeCliqueEdges(networkxGraph):
 
 
 if __name__ == '__main__':
-    shskel = np.load("/Users/3scan_editing/records/shortestPathSkel1.npy")
+    shskel = np.load(input("please enter a path to your unit width voxelized skeleton"))
     networkxGraph = getNetworkxGraphFromarray(shskel)
     removeCliqueEdges(networkxGraph)
