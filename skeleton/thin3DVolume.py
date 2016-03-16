@@ -1,5 +1,5 @@
 import numpy as np
-# import time
+import time
 from scipy import ndimage
 from scipy.ndimage.filters import convolve
 from skeleton.rotationalOperators import directionList
@@ -29,7 +29,7 @@ def getSkeletonize3D(image):
     assert np.max(image) in [0, 1]
     zOrig, yOrig, xOrig = np.shape(image)
     padImage = np.lib.pad(image, 1, 'constant', constant_values=0)
-    # start_skeleton = time.time()
+    start_skeleton = time.time()
     pass_no = 0
     numPixelsremoved = 0
     while pass_no == 0 or numPixelsremoved > 0:
@@ -42,7 +42,7 @@ def getSkeletonize3D(image):
             numPixelsremoved += numPixelsremoved
             # print("number of pixels removed in pass {} is {}".format(pass_no, numpixel_removed))
         pass_no += 1
-    # print("done %i number of pixels in %0.2f seconds" % (np.sum(image), time.time() - start_skeleton))
+    print("done %i number of pixels in %0.2f seconds" % (np.sum(image), time.time() - start_skeleton))
     label_img1, countObjects = ndimage.measurements.label(image, structure=np.ones((3, 3, 3), dtype=np.uint8))
     result = padImage[1:zOrig + 1, 1:yOrig + 1, 1:xOrig + 1]
     label_img2, countObjectsSkel = ndimage.measurements.label(result, structure=np.ones((3, 3, 3), dtype=np.uint8))
@@ -54,7 +54,7 @@ def getSkeletonize3D(image):
 def main():
     sample = np.ones((5, 5, 5), dtype=np.uint8)
     resultSkel = getSkeletonize3D(sample)
-    print("resultSkel", resultSkel)
+    print("resultSkeleton", resultSkel)
 
 
 if __name__ == '__main__':
