@@ -1,7 +1,6 @@
 import itertools
 import numpy as np
-# import time
-# import copy
+import time
 
 from scipy import ndimage
 from scipy.ndimage.filters import convolve
@@ -9,7 +8,7 @@ from skimage.graph import route_through_array
 
 """
    The goal of this algorithm is to generate a topologically and geometrically preserved
-   unit voxel width skeleton. The skeleton/ centerline
+   unit voxel width skeleton for both 3D and 2D thinned arrays with crowded regions. The skeleton/ centerline
    of an image obtained by using various structuring elements does not
    necessarily be a 1 voxel wide although it ensures topological connectedness.
    end point = 1 middle point = 2 joint point = 3 crowded point = 4 crowded region = 5
@@ -193,6 +192,7 @@ def _findShortestPathFromCRcenterToexit(valencearray, source, dest):
 
 def getShortestPathskeleton(skeletonIm):
     se = np.ones([3] * skeletonIm.ndim, dtype=np.uint8)
+    startt = time.time()
     aShape = skeletonIm.shape
     labelInput, noOfObjects = ndimage.measurements.label(skeletonIm, structure=se)
     skeletonImNew = np.zeros_like(skeletonIm)
@@ -204,7 +204,6 @@ def getShortestPathskeleton(skeletonIm):
         crowdedRegion = np.zeros_like(skeletonLabelled)
         crowdedRegion[skeletonLabelled == 4] = 1
         label, noOfCrowdedregions = ndimage.measurements.label(crowdedRegion, structure=se)
-        # print(noOfCrowdedregions)
         if np.max(skeletonLabelled) < 4:
             return skeletonIm
         elif np.array_equal(crowdedRegion, skeletonIm):
@@ -216,7 +215,6 @@ def getShortestPathskeleton(skeletonIm):
             objectify = ndimage.find_objects(label)
             exits = np.logical_or(skeletonLabelled == 1, skeletonLabelled == 2)
             for i in range(0, noOfCrowdedregions):
-                # print("ith crowded Region", i)
                 loc = objectify[i]
                 if skeletonIm.ndim == 3:
                     zcoords = loc[0]; ycoords = loc[1]; xcoords = loc[2]
@@ -261,16 +259,10 @@ def getShortestPathskeleton(skeletonIm):
             label_img1, countObjects = ndimage.measurements.label(skeletonIm, structure=se)
             label_img2, countObjectsShorty = ndimage.measurements.label(skeletonImNew, structure=se)
             assert countObjects == countObjectsShorty
+            print("time taken is %0.3f seconds" % (time.time() - startt))
             return skeletonImNew
 
 
-def list_to_dict(skeletonLabelled):
-    listNZI = map(tuple, np.transpose(np.nonzero(skeletonLabelled)))
-    dictOfIndicesAndlabels = {item: skeletonLabelled[item] for item in listNZI}
-    return dictOfIndicesAndlabels
-
-
 if __name__ == '__main__':
-    skeletonIm = np.load('/home/pranathi/Downloads/twodimageslices/Skeleton.npy')
+    skeletonIm = np.load(input("enter a path to your skeleton volume with crowded regions------"))
     shortestPathSkel = getShortestPathskeleton(skeletonIm)
-    np.save("/home/pranathi/Downloads/twodimageslices/shortestPathSkel.npy", shortestPathSkel)
