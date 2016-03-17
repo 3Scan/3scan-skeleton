@@ -6,7 +6,7 @@ from scipy import ndimage
 import os
 
 from skeleton.radiusOfNodes import _getBouondariesOfimage
-from skeleton.thin3DVolumeRV import getSkeletonize3D
+from skeleton.thin3DVolumeRV import getThinned3D
 from skeleton.unitwidthcurveskeleton import getShortestPathskeleton
 
 """
@@ -69,17 +69,14 @@ def skeletonizeAndSave(contrast=False, aspectRatio=[1, 1, 1], zoom=True, findMip
         if file.endswith(formatOfFiles):
             listOfJpgs.append(file)
             count = count + 1
-    # i = imread((os.path.join(root, listOffiles[0])))
-    # m, n = np.shape(i)
-    inputIm = np.zeros((298, 512, 512), dtype=np.uint8)
+    i = imread((os.path.join(root, listOffiles[0])))
+    m, n = np.shape(i)
+    inputIm = np.zeros((count, m, n), dtype=np.uint8)
     count1 = 0
     if findMip:
-        mip = np.ones((512, 512), dtype=int) * 255
-    # print("x, y, z dimensions are %i %i %i  " % (m, n, 514))
-    for fileName in listOfJpgs[:298]:
-        # imageExtract = np.zeros((512, 512), dtype=np.uint8)
+        mip = np.ones((m, n), dtype=int) * 255
+    for fileName in listOfJpgs:
         image = imread((os.path.join(root, fileName)))
-        # imageExtract = image[0:512, 0:512]
         imageExtract = ndimage.filters.gaussian_filter(image, sigma=1.4)
         inputIm[count1][:][:] = imageExtract
         count1 += 1
@@ -109,7 +106,7 @@ def skeletonizeAndSave(contrast=False, aspectRatio=[1, 1, 1], zoom=True, findMip
             np.save(root + 'twodkskeletonslices/' + 'mip.npy', mip)
         np.save(root + 'twodkskeletonslices/' + 'Greyscale.npy', inputIm)
         np.save(root + 'twodkskeletonslices/' + 'Binary.npy', thresholdedIm)
-        skeletonIm = getSkeletonize3D(thresholdedIm)
+        skeletonIm = getThinned3D(thresholdedIm)
         np.save(root + 'twodkskeletonslices/' + 'Skeleton.npy', skeletonIm)
         shortestPathSkel = getShortestPathskeleton(skeletonIm)
         for i in range(skeletonIm.shape[0]):
