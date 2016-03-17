@@ -24,7 +24,7 @@ def convert(tupValList):
         skeleton = getSkeleton3D(interpolatedIm)
         path = (npy.replace('greyscale', 'stat')).replace('npy', 'txt')
         d1, d2, d3, cycles = getSegmentsAndLengths(skeleton)
-        d = [str(d1) + "\n", str(d2) + "\n", str(d3) + "\n", str(cycles), str(np.sum(interpolatedIm) / totalSize) + "\n"]
+        d = [str(d1) + "\n", str(d2) + "\n", str(d3) + "\n", str(cycles) + "\n", str(np.sum(interpolatedIm) / totalSize) + "\n"]
         f = open(path, 'w')
         f.writelines(d)
         f.close()

@@ -176,7 +176,7 @@ def getSegmentsAndLengths(imArray):
                 tortuosity to infinity (NaN) set to zero here"""
                 cycle = cycleList[0]
                 segmentCount += 1
-                segmentLength += _getDistanceBetweenPointsInpath(cycle, 1)
+                segmentLength = segmentLength + _getDistanceBetweenPointsInpath(cycle, 1)
                 segmentTortuosity += 0
                 _removeEdgesInVisitedPath(subGraphskeleton, cycle, 1)
             elif set(degreeList) == set((1, 2)) or set(degreeList) == {1}:
@@ -195,8 +195,8 @@ def getSegmentsAndLengths(imArray):
                             curveLength = _getDistanceBetweenPointsInpath(simplePath)
                             curveDisplacement = np.sqrt(np.sum((np.array(sourceOnTree) - np.array(item)) ** 2))
                             segmentCount += 1
-                            segmentLength += curveLength
-                            segmentTortuosity += curveLength / curveDisplacement
+                            segmentLength = segmentLength + curveLength
+                            segmentTortuosity = segmentTortuosity + (curveLength / curveDisplacement)
                             _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
                 if subGraphskeleton.number_of_edges() != 0:
                     listOfPerms = list(itertools.permutations(branchpoints, 2))
@@ -207,15 +207,15 @@ def getSegmentsAndLengths(imArray):
                                 curveLength = _getDistanceBetweenPointsInpath(simplePath)
                                 curveDisplacement = np.sqrt(np.sum((np.array(sourceOnTree) - np.array(item)) ** 2))
                                 segmentCount += 1
-                                segmentLength += curveLength
-                                segmentTortuosity += curveLength / curveDisplacement
+                                segmentLength = segmentLength + curveLength
+                                segmentTortuosity = segmentTortuosity + (curveLength / curveDisplacement)
                                 _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
                 cycleList = nx.cycle_basis(subGraphskeleton)
                 if subGraphskeleton.number_of_edges() != 0 and len(cycleList) != 0:
                     for cycle in cycleList:
                         curveLength = _getDistanceBetweenPointsInpath(cycle, 1)
                         segmentCount += 1
-                        segmentLength += curveLength
+                        segmentLength = segmentLength + curveLength
                         segmentTortuosity += 0
                         _removeEdgesInVisitedPath(subGraphskeleton, cycle, 1)
     return segmentCount, segmentLength, segmentTortuosity, cycles
