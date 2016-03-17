@@ -8,7 +8,7 @@ from scipy import ndimage
 from scipy.misc import imread
 from skimage.filters import threshold_otsu
 from collections import Counter
-from skeleton.runscipts.thin3DVolumeRV import getSkeletonize3D
+from skeleton.runscipts.thin3DVolumeRV import getThinned3D
 from skeleton.runscripts.unitwidthcurveskeletonRV import getShortestPathskeleton
 from skeleton.segmentLengths import getSegmentsAndLengths
 
@@ -34,7 +34,7 @@ def convert(tupValList):
         t = threshold_otsu(np.array(l1))
         interpolatedIm = ndimage.interpolation.zoom(subSubvolume, [5 / 0.7037037, 1, 1], order=2, prefilter=False)
         interpolatedIm = interpolatedIm > (0.85 * t)
-        thinned = getSkeletonize3D(interpolatedIm)
+        thinned = getThinned3D(interpolatedIm)
         skeleton = getShortestPathskeleton(thinned)
         d1, d2, d3, cycles = getSegmentsAndLengths(skeleton)
         d = [str(sum(d1.values())) + "\n", str(sum(d2.values())) + "\n", str(sum(d3.values())) + "\n", str(cycles) + "\n", str(np.sum(interpolatedIm) / totalSize) + "\n"]

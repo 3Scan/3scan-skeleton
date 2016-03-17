@@ -5,7 +5,7 @@ from numpy import random
 
 from scipy import ndimage
 
-from skeleton.thin3DVolume import getSkeletonize3D
+from skeleton.thin3DVolume import getThinned3D
 from skimage.morphology import skeletonize as getskeletonize2d
 
 """
@@ -71,7 +71,7 @@ def checkCycles(image):
         skel = getskeletonize2d(image)
         label_skel, countObjects = ndimage.measurements.label(skel, structure=np.ones((3, 3), dtype=bool))
     else:
-        skel = getSkeletonize3D(image)
+        skel = getThinned3D(image)
         label_skel, countObjects = ndimage.measurements.label(skel, structure=np.ones((3, 3, 3), dtype=bool))
     return countObjects
 

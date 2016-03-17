@@ -2,11 +2,11 @@ import numpy as np
 from mayavi.api import Engine
 from mayavi import mlab
 # Create a new mayavi scene.
+threshold = np.load(input("enter a path to thresholded volume"))
+skeleton = np.load(input("enter a path to skeleton you want to superimpose over"))
 e = Engine()
 e.start()
 s = e.new_scene()
-threshold = np.load(input("enter a path to thresholded volume"))
-skeleton = np.load(input("enter a path to skeleton you want to superimpose over"))
 mlab.contour3d(np.uint8(threshold), contours=[108.50]).actor.property.representation = 'points'
 mlab.contour3d(np.uint8(skeleton), colormap='gray')
 mlab.options.offscreen = True
@@ -21,4 +21,4 @@ for i in range(36):
     mlab.savefig("anim%d.png" % i, magnification=2)
 
 # use imagemagick to create video from this frames
-#  convert -set delay 20 -loop 0 -quality 1000 -scale 100% *.png /home/pranathi/animExp.mpg
+# convert -set delay 20 -loop 0 -quality 1000 -scale 100% *.png /home/pranathi/animExp.mpg

@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import ndimage
 
-from skeleton.thin3DVolume import getSkeletonize3D
+from skeleton.thin3DVolume import getThinned3D
 
 """
    test if 3D skeletonize implemented as in
@@ -107,7 +107,7 @@ def getCylinder(height=10, size=(25, 25, 25)):
 
 
 # def checkAlgorithmPreservesImage(image):
-#     newImage = getSkeletonize3D(image)
+#     newImage = getThinned3D(image)
 #     assert np.array_equal(image, newImage)
 
 
@@ -119,14 +119,14 @@ def test_Rectangles():
 
 
 def checkAlgorithmSinglePixeled(image):
-    newImage = getSkeletonize3D(image)
+    newImage = getThinned3D(image)
     label_img, countObjectsn = ndimage.measurements.label(newImage, structure=np.ones((3, 3, 3), dtype=bool))
     label_img, countObjects = ndimage.measurements.label(image, structure=np.ones((3, 3, 3), dtype=bool))
     assert (countObjectsn == countObjects)
 
 
 def checkCycles(image):
-    image = getSkeletonize3D(image)
+    image = getThinned3D(image)
     label_img, countObjects = ndimage.measurements.label(image, structure=np.ones((3, 3, 3), dtype=bool))
     assert(countObjects == 1)
 

@@ -5,9 +5,8 @@ from skimage.morphology import skeletonize as getSkeletonize2D
 from skeleton.segmentLengths import getSegmentsAndLengths
 from skeleton.networkxGraphFromarray import getNetworkxGraphFromarray
 from skeleton.cliqueRemoving import removeCliqueEdges
-# from skeleton.segmentStatsDisjointGraph import plotGraphWithCount
 
-from tests.tests3DSkeletonize import getDonut
+from tests.test3DThinning import getDonut
 
 """
    program to test if graphs created using getNetworkxGraphFromarray

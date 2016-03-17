@@ -20,7 +20,7 @@ https://pyeda.readthedocs.org/en/latest/expr.html
 """
 
 
-def getSkeletonize3D(image):
+def getThinned3D(image):
     """
     function to skeletonize a 3D binary image with object in brighter contrast than background.
     In other words, 1 = object, 0 = background

@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import ndimage
 
-from skeleton.thin3DVolume import getSkeletonize3D
+from skeleton.thin3DVolume import getThinned3D
 from skeleton.unitwidthcurveskeleton import getShortestPathskeleton
 
 """ test 1 and 3 lines passed , test for rings and random images not defined
@@ -90,7 +90,7 @@ def getDonut(width=2, size=(25, 25, 25)):
 
 
 def checkAlgorithmPreservesImage(image):
-    newImage = getShortestPathskeleton(getSkeletonize3D(image))
+    newImage = getShortestPathskeleton(getThinned3D(image))
     assert np.array_equal(image, newImage)
 
 
@@ -108,14 +108,14 @@ def test_RandomImage():
 
 
 def checkAlgorithmSinglePixeled(image):
-    newImage = getShortestPathskeleton(getSkeletonize3D(image))
+    newImage = getShortestPathskeleton(getThinned3D(image))
     label_img, countObjectsn = ndimage.measurements.label(newImage, structure=np.ones((3, 3, 3), dtype=np.uint8))
     label_img, countObjects = ndimage.measurements.label(image, structure=np.ones((3, 3, 3), dtype=np.uint8))
     assert (countObjectsn == countObjects)
 
 
 def checkCycles(image):
-    image = getShortestPathskeleton(getSkeletonize3D(image))
+    image = getShortestPathskeleton(getThinned3D(image))
     label_img, countObjects = ndimage.measurements.label(image, structure=np.ones((3, 3, 3), dtype=np.uint8))
     assert(countObjects == 1)
 

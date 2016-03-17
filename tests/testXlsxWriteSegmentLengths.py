@@ -3,10 +3,10 @@ import numpy as np
 
 from skimage.morphology import skeletonize as getSkeletonize2D
 
-from skeleton.thin3DVolume import getSkeletonize3D
+from skeleton.thin3DVolume import getThinned3D
 from skeleton.xlsxwrite import excelWrite
 
-from tests.tests3DSkeletonize import getDonut
+from tests.test3DThinning import getDonut
 
 """
    program to test if obj files written using (i=xlsxwrite.py) getNetworkxGraphFromarray and
@@ -33,7 +33,7 @@ def getSingleVoxelLineNobranches(size=(5, 5, 5)):
 
 
 def getCycleNotree():
-    donut = getSkeletonize3D(getDonut())
+    donut = getThinned3D(getDonut())
     return donut
 
 
