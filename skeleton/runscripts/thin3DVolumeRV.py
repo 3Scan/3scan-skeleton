@@ -1,6 +1,8 @@
 import numpy as np
 from scipy.ndimage.filters import convolve
 from skeleton.rotationalOperators import directionList
+from skeleton.runscripts.unitwidthcurveskeletonRV import getShortestPathskeleton
+
 
 """
    reference paper
@@ -20,7 +22,7 @@ https://pyeda.readthedocs.org/en/latest/expr.html
 """
 
 
-def getThinned3D(image):
+def getSkeleton3D(image):
     """
     function to skeletonize a 3D binary image with object in brighter contrast than background.
     In other words, 1 = object, 0 = background
@@ -35,5 +37,4 @@ def getThinned3D(image):
             convImage[padImage == 0] = 0
             padImage[lookUparray[convImage[:]] == 1] = 0
         numPixelsremoved = pixBefore - padImage.sum()
-    return padImage[1:zOrig + 1, 1:yOrig + 1, 1:xOrig + 1]
-
+    return getShortestPathskeleton(padImage[1:zOrig + 1, 1:yOrig + 1, 1:xOrig + 1])

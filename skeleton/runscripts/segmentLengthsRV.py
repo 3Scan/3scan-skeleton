@@ -2,8 +2,7 @@ import itertools
 
 import numpy as np
 import networkx as nx
-from skeleton.networkxGraphFromarrayRV import getNetworkxGraphFromarray
-from skeleton.cliqueRemovingRV import removeCliqueEdges
+from scipy.ndimage.filters import convolve
 
 """
     this version assumes its calculating 3D Volume's length and tortuosity
@@ -59,6 +58,52 @@ def _removeEdgesInVisitedPath(subGraphskeleton, path, cycle):
                 shortestPathedges.append(tuple((item, path[-1])))
         subGraphskeleton.remove_edges_from(shortestPathedges)
 
+# permutations of (-1, 0, 1) in three/two dimensional tuple format
+# representing 8 and 26 increments around a pixel at origin (0, 0, 0)
+stepDirect = itertools.product((-1, 0, 1), repeat=3)
+listStepDirect = list(stepDirect)
+listStepDirect.remove((0, 0, 0))
+adjtemplate = np.array([[[33554432, 16777216, 8388608], [4194304, 2097152, 1048576], [524288, 262144, 131072]],
+                       [[65536, 32768, 16384], [8192, 0, 4096], [2048, 1024, 512]],
+                       [[256, 128, 64], [32, 16, 8], [4, 2, 1]]], dtype=np.uint64)
+
+
+def _getIncrements(configNumber):
+    """
+       takes in a configNumber and converts into
+       binary sequence of 1s and 0s, returns the tuple
+       increments corresponding to them
+    """
+    configNumber = np.int64(configNumber)
+    neighborValues = [(configNumber >> digit) & 0x01 for digit in range(26)]
+    return [neighborValue * increment for neighborValue, increment in zip(neighborValues, listStepDirect)]
+
+
+def _setAdjacencylistarray(arr):
+    """
+        takes in an array and returns a dictionary with nonzero voxels/ pixels
+        and their adjcent nonzero coordinates
+    """
+    result = convolve(np.uint64(arr), adjtemplate, mode='constant', cval=0)
+    result[arr == 0] = 0
+    dictOfIndicesAndAdjacentcoordinates = {}
+    # list of nonzero tuples
+    nonZeros = list(set(map(tuple, np.transpose(np.nonzero(arr)))))
+    if np.sum(arr) == 1:
+        # if there is just one nonzero elemenet there are no adjacent coordinates
+        dictOfIndicesAndAdjacentcoordinates[nonZeros[0]] = []
+        return dictOfIndicesAndAdjacentcoordinates
+    else:
+        for item in nonZeros:
+            adjacentCoordinatelist = []
+            for increments in _getIncrements(result[item]):
+                if increments == (()):
+                    continue
+                adjCoord = np.array(item) + np.array(increments)
+                adjacentCoordinatelist.append(tuple(adjCoord))
+            dictOfIndicesAndAdjacentcoordinates[item] = adjacentCoordinatelist
+    return dictOfIndicesAndAdjacentcoordinates
+
 
 def getSegmentsAndLengths(imArray):
     """
@@ -72,15 +117,47 @@ def getSegmentsAndLengths(imArray):
                     curve displacement to find tortuosity
                     5) Remove all the edges in this path once they are traced
     """
-    networkxGraph = removeCliqueEdges(getNetworkxGraphFromarray(imArray))
-    # assert networkxGraph.number_of_selfloops() == 0
+    dictOfIndicesAndAdjacentcoordinates = _setAdjacencylistarray(imArray)
+    networkxGraph = nx.from_dict_of_lists(dictOfIndicesAndAdjacentcoordinates)
+    cliques = nx.find_cliques_recursive(networkxGraph)
+    # all the nodes/vertices of 3 cliques
+    cliques2 = [clq for clq in cliques if len(clq) == 3]
+    if len(list(cliques2)) == 0:
+        return networkxGraph
+    else:
+        combEdge = [list(itertools.combinations(clique, 2)) for clique in cliques2]
+        subGraphEdgelengths = []
+        # different combination of edges in the cliques and their lengths
+        for combedges in combEdge:
+            subGraphEdgelengths.append([np.sum((np.array(item[0]) - np.array(item[1])) ** 2) for item in combedges])
+        cliquEdges = []
+        # clique edges to be removed are collected here
+        # the edges with maximum edge length
+        for mainDim, item in enumerate(subGraphEdgelengths):
+            if len(set(item)) != 1:
+                for subDim, length in enumerate(item):
+                    if length == max(item):
+                        cliquEdges.append(combEdge[mainDim][subDim])
+            else:
+                specialCase = combEdge[mainDim]
+                diffOfEdges = []
+                for numSpcledges in range(0, 3):
+                    l1 = list(specialCase[numSpcledges][0]); l2 = list(specialCase[numSpcledges][1])
+                    diffOfEdges.append([i - j for i, j in zip(l1, l2)])
+                for index, val in enumerate(diffOfEdges):
+                    if val[1] == 0:
+                        subDim = index
+                        break
+                cliquEdges.append(combEdge[mainDim][subDim])
+        networkxGraph.remove_edges_from(cliquEdges)
     # intitialize all the common variables
     segmentCount = 0
     segmentLength = 0
     segmentTortuosity = 0
     # list of disjointgraphs
     disjointGraphs = list(nx.connected_component_subgraphs(networkxGraph))
-    for ithDisjointgraph, subGraphskeleton in enumerate(disjointGraphs):
+    cycles = len(nx.cycle_basis(networkxGraph))
+    for subGraphskeleton in disjointGraphs:
         nodes = subGraphskeleton.nodes()
         if len(nodes) == 1:
             " if it is a single node"
@@ -141,5 +218,4 @@ def getSegmentsAndLengths(imArray):
                         segmentLength += curveLength
                         segmentTortuosity += 0
                         _removeEdgesInVisitedPath(subGraphskeleton, cycle, 1)
-    cycles = len(nx.cycle_basis(networkxGraph))
     return segmentCount, segmentLength, segmentTortuosity, cycles

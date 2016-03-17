@@ -5,13 +5,12 @@ from multiprocessing import Pool
 import numpy as np
 from scipy import ndimage
 from skimage.filters import threshold_otsu
-from skeleton.runscripts.thin3DVolumeRV import getThinned3D
-from skeleton.runscripts.unitwidthcurveskeletonRV import getShortestPathskeleton
+from skeleton.runscripts.thin3DVolumeRV import getSkeleton3D
 from skeleton.runscripts.segmentLengthsRV import getSegmentsAndLengths
 
 
 def convert(tupValList):
-    for npy in listOfNpys:
+    for npy in tupValList:
         subSubvolume = np.load(npy)
         histData, bins = np.histogram(subSubvolume.flatten(), 256, [0, 256])
         sumation = np.sum(histData * bins[0:-1])
@@ -22,8 +21,8 @@ def convert(tupValList):
         t = threshold_otsu(np.array(l1))
         interpolatedIm = ndimage.interpolation.zoom(subSubvolume, [5 / 0.7037037, 1, 1], order=2, prefilter=False)
         interpolatedIm = interpolatedIm > (0.85 * t)
-        skeleton = getShortestPathskeleton(getThinned3D(interpolatedIm))
-        path = (npy.replace('threshold', 'stat')).replace('npy', 'txt')
+        skeleton = getSkeleton3D(interpolatedIm)
+        path = (npy.replace('greyscale', 'stat')).replace('npy', 'txt')
         d1, d2, d3, cycles = getSegmentsAndLengths(skeleton)
         d = [str(d1) + "\n", str(d2) + "\n", str(d3) + "\n", str(cycles), str(np.sum(interpolatedIm) / totalSize) + "\n"]
         f = open(path, 'w')
