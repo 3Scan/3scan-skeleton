@@ -3,6 +3,7 @@ import time
 
 import numpy as np
 import networkx as nx
+from scipy import ndimage
 
 from skeleton.networkxGraphFromarray import getNetworkxGraphFromarray
 from skeleton.cliqueRemoving import removeCliqueEdges
@@ -63,7 +64,7 @@ def _removeEdgesInVisitedPath(subGraphskeleton, path, cycle):
         subGraphskeleton.remove_edges_from(shortestPathedges)
 
 
-def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
+def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=[1, 1, 1]):
     """
         algorithm - 1) go through each of the disjoint graphs
                     2) decide if it is one of the following a) line
@@ -74,10 +75,15 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True):
                     4) calculate distance between edges in each path and displacement to find curve length and
                     curve displacement to find tortuosity
                     5) Remove all the edges in this path once they are traced
+        INPUT: can be either a networkx graph or a  numpy array
+        if it is a numpy array set arrayOrNot == True
+        if the array is already skeletonized, set skelOrNot == True
+        aspectRatio = scale the voxels in 3D volume with aspectRatio
     """
     if arrayOrNot is False:
         networkxGraph = imArray
     else:
+        imArray = ndimage.interpolation.zoom(imArray, zoom=aspectRatio, order=0)
         networkxGraph = getNetworkxGraphFromarray(imArray, skelOrNot)
         networkxGraph = removeCliqueEdges(networkxGraph)
     assert networkxGraph.number_of_selfloops() == 0
