@@ -21,6 +21,13 @@ def xlsxWrite(listOfDicts, path):
     workbook = xlsxwriter.Workbook(path)
     worksheet = workbook.add_worksheet()
     row = 0
+    lenXls = len(dictR)
+    if lenXls != 0:
+        footer = [sum(dictR.values()), sum(listOfDicts[1].values()), sum(listOfDicts[2].values()), sum(listOfDicts[3].values())]
+        for numColumn in range(1, 5):
+            worksheet.write(row, numColumn, header[numColumn])
+            worksheet.write(lenXls + 1, numColumn, str(footer[numColumn - 1]))
+            worksheet.write(lenXls + 2, numColumn, str(footer[numColumn - 1] / lenXls))
     for key in list(dictR.keys()):  # for each of the nodes with radius
         row += 1; col = 0
         worksheet.write(row, col, str(key))
