@@ -26,10 +26,10 @@ def convert(tupValList):
 if __name__ == '__main__':
     totalSize = 2460375.0
     centers = []
-    maskBrain = np.load('/media/pranathi/User Data/maskDownsampled10.npy')
-    maskArtVein = np.load('/media/pranathi/User Data/maskArtVein.npy')
+    maskBrain = np.load('/home/pranathi/maskDownsampled10.npy')
+    maskArtVein = np.load('/home/pranathi/maskArtVein.npy')
     iskpy = iskpx = 280; iskpz = int(0.5 + 560 * 0.7 / 5.0)
-    root = '/media/pranathi/User Data/ii-5016-15-ms-brain_1920/filt/'
+    root = '/home/pranathi/ii-5016-15-ms-brain_1920/filt/'
     formatOfFiles = 'png'
     listOfJpgs = [os.path.join(root, files) for files in os.listdir(root) if formatOfFiles in files]
     listOfJpgs.sort()

@@ -2,8 +2,8 @@ import itertools
 
 import numpy as np
 import networkx as nx
-from skeleton.networkxGraphFromarray import getNetworkxGraphFromarray
-from skeleton.cliqueRemoving import removeCliqueEdges
+from skeleton.networkxGraphFromarrayRV import getNetworkxGraphFromarray
+from skeleton.cliqueRemovingRV import removeCliqueEdges
 
 """
     this version assumes its calculating 3D Volume's length and tortuosity

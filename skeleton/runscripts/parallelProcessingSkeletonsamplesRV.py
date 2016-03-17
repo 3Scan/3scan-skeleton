@@ -5,7 +5,7 @@ from multiprocessing import Pool
 import numpy as np
 from scipy import ndimage
 from skimage.filters import threshold_otsu
-from skeleton.runscipts.thin3DVolumeRV import getThinned3D
+from skeleton.runscripts.thin3DVolumeRV import getThinned3D
 from skeleton.runscripts.unitwidthcurveskeletonRV import getShortestPathskeleton
 from skeleton.runscripts.segmentLengthsRV import getSegmentsAndLengths
 
@@ -22,7 +22,7 @@ def convert(tupValList):
         t = threshold_otsu(np.array(l1))
         interpolatedIm = ndimage.interpolation.zoom(subSubvolume, [5 / 0.7037037, 1, 1], order=2, prefilter=False)
         interpolatedIm = interpolatedIm > (0.85 * t)
-        skeleton = getShortestPathskeleton(getThinned3D(np.load(npy)))
+        skeleton = getShortestPathskeleton(getThinned3D(interpolatedIm))
         path = (npy.replace('threshold', 'stat')).replace('npy', 'txt')
         d1, d2, d3, cycles = getSegmentsAndLengths(skeleton)
         d = [str(d1) + "\n", str(d2) + "\n", str(d3) + "\n", str(cycles), str(np.sum(interpolatedIm) / totalSize) + "\n"]
@@ -43,7 +43,6 @@ if __name__ == '__main__':
     chunkSize = int(len(listOfNpys) / numProcessors)
     poolLists = []
     for i in range(0, len(listOfNpys), chunkSize + 1):
-        print(i)
         poolLists.append(listOfNpys[i: i + chunkSize + 1])
     startt = time.time()
     pool = Pool(processes=numProcessors)
