@@ -122,9 +122,7 @@ def getSegmentsAndLengths(imArray):
     cliques = nx.find_cliques_recursive(networkxGraph)
     # all the nodes/vertices of 3 cliques
     cliques2 = [clq for clq in cliques if len(clq) == 3]
-    if len(list(cliques2)) == 0:
-        networkxGraph = networkxGraph
-    else:
+    if len(list(cliques2)) != 0:
         combEdge = [list(itertools.combinations(clique, 2)) for clique in cliques2]
         subGraphEdgelengths = []
         # different combination of edges in the cliques and their lengths
