@@ -123,7 +123,7 @@ def getSegmentsAndLengths(imArray):
     # all the nodes/vertices of 3 cliques
     cliques2 = [clq for clq in cliques if len(clq) == 3]
     if len(list(cliques2)) == 0:
-        return networkxGraph
+        networkxGraph = networkxGraph
     else:
         combEdge = [list(itertools.combinations(clique, 2)) for clique in cliques2]
         subGraphEdgelengths = []
