@@ -112,7 +112,6 @@ def getCylinder(height=10, size=(25, 25, 25)):
 
 
 def test_Rectangles():
-    print("Rectangles")
     testImages = getStationary3dRectangles(width=0)
     for image in testImages:
         yield checkAlgorithmSinglePixeled, image
@@ -132,20 +131,17 @@ def checkCycles(image):
 
 
 def test_bumpiness():
-    print("bumpy lines")
     testImages = getStationaryBumpyLines()
     for image in testImages:
         yield checkAlgorithmSinglePixeled, image
 
 
 def test_rings():
-    print("checking donut")
     image = getDonut()
     yield checkCycles, image
 
 
 def test_WideLines():
     testImages = get3DRolledThickLines()
-    print("checking widelines")
     for image in testImages:
         yield checkAlgorithmSinglePixeled, image
