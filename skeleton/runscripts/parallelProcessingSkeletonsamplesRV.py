@@ -21,18 +21,22 @@ def convert(tupValList):
         t = threshold_otsu(np.array(l1))
         interpolatedIm = ndimage.interpolation.zoom(subSubvolume, [5 / 0.7037037, 1, 1], order=2, prefilter=False)
         interpolatedIm = interpolatedIm > (0.85 * t)
-        skeleton = getSkeleton3D(interpolatedIm)
-        path = (npy.replace('greyscale', 'stat')).replace('npy', 'txt')
-        d1, d2, d3, cycles = getSegmentsAndLengths(skeleton)
-        d = [str(d1) + "\n", str(d2) + "\n", str(d3) + "\n", str(cycles) + "\n", str(np.sum(interpolatedIm) / totalSize) + "\n"]
-        f = open(path, 'w')
-        f.writelines(d)
-        f.close()
-        np.save(npy.replace('greyscale', 'skeleton'), skeleton)
-        np.save(npy.replace('greyscale', 'threshold'), interpolatedIm)
+        percentVasc = np.sum(interpolatedIm) / totalSize
+        label_img1, countObjects = ndimage.measurements.label(interpolatedIm, structure=se)
+        if percentVasc < 0.1 and countObjects > 5:
+            np.save(npy.replace('greyscale', 'threshold'), interpolatedIm)
+            skeleton = getSkeleton3D(interpolatedIm)
+            np.save(npy.replace('greyscale', 'skeleton'), skeleton)
+            path = (npy.replace('greyscale', 'stat')).replace('npy', 'txt')
+            d1, d2, d3, cycles = getSegmentsAndLengths(skeleton)
+            d = [str(d1) + "\n", str(d2) + "\n", str(d3) + "\n", str(cycles) + "\n", str(percentVasc) + "\n" + str(countObjects) + "\n"]
+            f = open(path, 'w')
+            f.writelines(d)
+            f.close()
 
 
 if __name__ == '__main__':
+    se = np.ones((3, 3, 3), dtype=np.uint8)
     totalSize = 2460375.0
     root = '/home/pranathi/subsubVolumegreyscale/'
     formatOfFiles = 'npy'
