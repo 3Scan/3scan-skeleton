@@ -146,7 +146,8 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=
                         one branch point with two end points in a single dichotomous tree"""
                     for sourceOnTree, item in listOfPerms:
                         if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
-                            for simplePath in nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item):
+                            simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
+                            for simplePath in simplePaths:
                                 if len(list(set(branchpoints) & set(simplePath))) == 2:
                                     if sourceOnTree not in visitedSources:
                                         "check if the same source has multiple segments"
@@ -182,7 +183,8 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=
                 listOfPerms = list(itertools.product(branchpoints, endpoints))
                 for sourceOnTree, item in listOfPerms:
                     if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
-                        for simplePath in nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item):
+                        simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
+                        for simplePath in simplePaths:
                             if len(list(set(branchendpoints) & set(simplePath))) == 2:
                                 if sourceOnTree not in visitedSources:
                                     "check if the same source has multiple segments, if it doesn't number of segments is 1"""
@@ -199,7 +201,8 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=
                     listOfPerms = list(itertools.permutations(branchpoints, 2))
                     for sourceOnTree, item in listOfPerms:
                         if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
-                            for simplePath in nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item):
+                            simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
+                            for simplePath in simplePaths:
                                 if len(list(set(branchpoints) & set(simplePath))) == 2:
                                     if sourceOnTree not in visitedSources:
                                         "check if the same source has multiple segments, if it doesn't number of segments is 1"""
@@ -233,3 +236,4 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=
 if __name__ == '__main__':
     shskel = np.load(input("enter a path to shortest path skeleton volume------"))
     segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict = getSegmentsAndLengths(shskel)
+
