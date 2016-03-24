@@ -22,3 +22,6 @@ for i in range(36):
 
 # use imagemagick to create video from this frames
 # convert -set delay 20 -loop 0 -quality 1000 -scale 100% *.png /home/pranathi/animExp.mpg
+    # for coord in list(d.keys()):
+    #     x = coord[0]; y = coord[1]; z = coord[2];
+    #     mlab.text3d(x, y, z, d[coord], color=(0, 0, 0), scale=4.0)

@@ -59,7 +59,7 @@ def getDisjointTreesNoCycle3d(size=(14, 14, 14)):
 def test_singlesegment():
     lineGraph = getSingleVoxelLineNobranches()
     d = excelWrite(lineGraph, lineGraph, "Line.xlsx")
-    assert len(d) == 0
+    assert len(d) == 1
     os.remove("Line.xlsx")
 
 
@@ -73,7 +73,7 @@ def test_singlecycle():
 def test_cycleAndTree():
     sampleGraph = getCyclesWithBranchesProtrude()
     d = excelWrite(sampleGraph, sampleGraph, "CycleAndGraph.xlsx")
-    assert len(d) == 1
+    assert len(d) == 2
     os.remove("CycleAndGraph.xlsx")
 
 

@@ -81,7 +81,7 @@ def test_singlesegment():
     lineGraph = getSingleVoxelLineNobranches()
     dlinecount, dlinelength, segmentTortuosityline, totalSegmentsLine, typeGraphdict = getSegmentsAndLengths(lineGraph, True, False)
     # plotGraphWithCount(lineGraph, dlinecount)
-    assert totalSegmentsLine == 0 and typeGraphdict[0] == 2
+    assert totalSegmentsLine == 1 and typeGraphdict[0] == 2
 
 
 def test_singlecycle():
@@ -95,7 +95,7 @@ def test_cycleAndTree():
     sampleGraph = getCyclesWithBranchesProtrude()
     dcycleTreecount, dcycleTreelength, segmentTortuositycycletree, totalSegmentsSampleGraph, typeGraphdict = getSegmentsAndLengths(sampleGraph, True, False)
     # plotGraphWithCount(sampleGraph, dcycleTreecount)
-    assert totalSegmentsSampleGraph == 3 and typeGraphdict[0] == 3
+    assert totalSegmentsSampleGraph == 4 and typeGraphdict[0] == 3
 
 
 def test_treeNocycle2d():
@@ -117,4 +117,3 @@ def test_treeNocycle3d():
     dTreescount, dTreeslength, segmentTortuositytrees, totalSegmentsTrees, typeGraphdict = getSegmentsAndLengths(crosPairgraph, True, False)
     # plotGraphWithCount(crosPairgraph, dTreescount)
     assert totalSegmentsTrees == 8 and typeGraphdict[0] == 4
-

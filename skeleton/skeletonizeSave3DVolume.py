@@ -42,9 +42,9 @@ def getDiceSimilarityCOefficient(inputIm, thresholdedIm):
         zero voxels in A and B
     """
     numerator = np.sum(np.logical_and(thresholdedIm, inputIm))
-    denominator = len(np.transpose(np.nonzero(inputIm))) + len(np.transpose(np.nonzero(thresholdedIm)))
+    denominator = np.sum(inputIm) + np.sum(thresholdedIm)
     dsc = numerator / denominator
-    return dsc
+    return 2 * dsc
 
 
 def skeletonizeAndSave(contrast=False, aspectRatio=[1, 1, 1], zoom=True, findMip=False):
