@@ -53,4 +53,3 @@ if __name__ == '__main__':
         lookuparray = generateLookuparray(2 ** 26, item)
         np.save("lookuparray%i.npy" % (i + 1), lookuparray)
 
-
