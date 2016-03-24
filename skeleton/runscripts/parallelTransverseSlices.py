@@ -40,13 +40,13 @@ if __name__ == '__main__':
     centers = []
     maskBrain = np.load('/home/pranathi/maskDownsampled10.npy')
     maskArtVein = np.load('/home/pranathi/maskArtVein.npy')
-    iskpy = iskpx = 280; iskpz = 78
+    iskpy = iskpx = 280; iskpz = 10
     root = '/home/pranathi/ii-5016-15-ms-brain_1920/filt/'
     formatOfFiles = 'png'
     listOfJpgs = [os.path.join(root, files) for files in os.listdir(root) if formatOfFiles in files]
     listOfJpgs.sort()
     ilist = list(range(60, 799 - 10, iskpz))
-    klist = [k for k in range(67, 8026 - 68, iskpx) if k < 1350 or (k > 2420 and k < 4000) or (k > 5500 and k < 8000)]
+    klist = [3147]
     it = list(itertools.product(ilist, range(67, 17480 - 68, iskpy), klist))
     listElements = list(map(list, it))
     subsubVolShape = (135, 135, 135)
@@ -66,7 +66,7 @@ if __name__ == '__main__':
             centers.append(tuple((i, j, k)))
     del listElements; del klist; del it; del validit; del validSamp; del maskBrain; del maskArtVein;
     startt = time.time()
-    pool = Pool(6)
+    pool = Pool(12)
     poolLists = []
     for i in ilist:
         poolLists.append([element for element in centers if element[0] == i])
