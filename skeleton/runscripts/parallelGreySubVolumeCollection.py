@@ -1,6 +1,7 @@
 import os
 import time
 import itertools
+import multiprocessing
 from multiprocessing import Pool
 import numpy as np
 from scipy.misc import imread
@@ -40,13 +41,14 @@ if __name__ == '__main__':
     centers = []
     maskBrain = np.load('/home/pranathi/maskDownsampled10.npy')
     maskArtVein = np.load('/home/pranathi/maskArtVein.npy')
-    iskpy = iskpx = 280; iskpz = 78
+    iskpx = 900; iskpz = 10; iskpy = 71
     root = '/home/pranathi/ii-5016-15-ms-brain_1920/filt/'
     formatOfFiles = 'png'
     listOfJpgs = [os.path.join(root, files) for files in os.listdir(root) if formatOfFiles in files]
     listOfJpgs.sort()
     ilist = list(range(60, 799 - 10, iskpz))
-    klist = [k for k in range(67, 8026 - 68, iskpx) if k < 1350 or (k > 2420 and k < 4000) or (k > 5500 and k < 8000)]
+    klist = [3667, 6367, 7267]
+    # klist = [k for k in range(67, 8026 - 68, iskpx) if (k > 2420 and k < 4000) or (k > 5500 and k < 8000)]
     it = list(itertools.product(ilist, range(67, 17480 - 68, iskpy), klist))
     listElements = list(map(list, it))
     subsubVolShape = (135, 135, 135)
@@ -54,7 +56,6 @@ if __name__ == '__main__':
     aShape = (2497, 1147)
     cornersOfCube = [list((element[0] * 9, element[1] * 130, element[2] * 130)) for element in cornersOfCube]
     validit = [element for element, elementList in zip(it, listElements) for i in cornersOfCube if outOfPixBounds((int((elementList[1] + i[1]) / 7), int((elementList[2] + i[2]) / 7)), aShape) and maskBrain[(int((elementList[0] + i[0]) / 10), int((elementList[1] + i[1]) / 7), int((elementList[2] + i[2]) / 7))] and maskArtVein[(int((elementList[0] + i[0]) / 10), int((elementList[1] + i[1]) / 7), int((elementList[2] + i[2]) / 7))] != 1]
-    validSamp = list(set(validit))
     c = Counter(validit)
     validCenters = [element for element in c if c[element] == 8]
     for i, j, k in validCenters:
@@ -64,13 +65,27 @@ if __name__ == '__main__':
         maskSub = maskArtVein[imf: iml + 1, jm - 9:jm + 10, km - 9: km + 10]
         if np.sum(maskSub) != 1:
             centers.append(tuple((i, j, k)))
-    del listElements; del klist; del it; del validit; del validSamp; del maskBrain; del maskArtVein;
+    del listElements; del klist; del it; del validit; del maskBrain; del maskArtVein;
     startt = time.time()
-    pool = Pool(6)
-    poolLists = []
-    for i in ilist:
-        poolLists.append([element for element in centers if element[0] == i])
-    pool.map(convert, poolLists)
-    pool.close()
-    pool.join()
+    numProcessors = multiprocessing.cpu_count()
+    Nilist = len(ilist)
+    iilist = []
+    valid = 0
+    for k in range(0, Nilist, 10):
+        iilist.append(ilist[k: k + 10])
+    for index, i in enumerate(iilist):
+        if index > 7:
+            break
+        poolLists = []
+        for zplane in i:
+            poolLists.append([element for element in centers if element[0] == zplane])
+        for elem in poolLists:
+            valid += len(elem)
+        print(index, len(poolLists))
+        pool = Pool(numProcessors)
+        if poolLists == [[], [], []] or poolLists == []:
+            break
+        pool.map(convert, poolLists)
+        pool.close()
+        pool.join()
     print("time taken is %0.2f seconds" % (time.time() - startt))
