@@ -8,13 +8,13 @@ root = '/media/pranathi/DATA/ii-5016-15-ms-brain_1920/downsampledslices/'
 formatOfFiles = 'png'
 listOfJpgs = [os.path.join(root, files) for files in os.listdir(root) if formatOfFiles in files]
 listOfJpgs.sort()
-transverseSlice = np.zeros((799, 17480 / 7), dtype=np.uint8)
-count = 0
 klist = [2767, 3667, 6367, 7267]
 for k in klist:
+    count = 0
+    transverseSlice = np.zeros((799, 17480 / 7), dtype=np.uint8)
     for i in range(0, len(listOfJpgs)):
         image = imread(root + 'downsampledslice%i.png' % i)
-        transverseSlice[count, :] = image[:, 395]
+        transverseSlice[count, :] = image[:, int(k / 7)]
         print(count)
         count += 1
     imsave("transverseSlice%i.png" % k, transverseSlice)
