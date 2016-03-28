@@ -23,19 +23,20 @@ for f in listOfNpys:
 dictList = [dictPercetages, dictLength, dictTortuosity]
 imNames = ['percentVasc', 'length', 'tortuosity']
 badKeys = [(260, 564, 2767), (260, 2055, 2767), (270, 16042, 2767)]
-for index, dictStat in enumerate(dictList):
-    maxVal = max(list(dictStat.values()))
-    if index < 1:
-        dictPercetagesFiltz = {((key[0] - 160), key[1] / 7): (255 * dictStat[key] / maxVal) for key, value in dictStat.items() if key not in badKeys}
-        samplePoints = np.zeros((799, 17480 / 7), dtype=np.uint8)
-        for coords, values in dictPercetagesFiltz.items():
-            samplePoints[int(coords[0]) - 1: int(coords[0]) + 2, int(coords[1]) - 1: int(coords[1]) + 2] = values
-    else:
-        minVal = min(list(dictStat.values()))
-        dictPercetagesFiltz = {((key[0] - 160), key[1] / 7): ((dictStat[key] - minVal) / (maxVal - minVal)) for key, value in dictStat.items() if key not in badKeys}
-        samplePoints = np.zeros((799, 17480 / 7), dtype=np.uint8)
-        maxVal = max(list(dictPercetagesFiltz.values()))
-        for coords, values in dictPercetagesFiltz.items():
-            samplePoints[int(coords[0]) - 1: int(coords[0]) + 2, int(coords[1]) - 1: int(coords[1]) + 2] = (255 * values / maxVal)
-    imsave("transverseSlice" + imNames[index] + "%i.png" % 2767, samplePoints)
-
+klist = [2767, 3667, 6367, 7267]
+for k in klist:
+    for index, dictStat in enumerate(dictList):
+        maxVal = max(list(dictStat.values()))
+        if index < 1:
+            dictPercetagesFiltz = {((key[0] - 160), key[1] / 7): (255 * dictStat[key] / maxVal) for key, value in dictStat.items() if key not in badKeys and key[3] == k}
+            samplePoints = np.zeros((799, 17480 / 7), dtype=np.uint8)
+            for coords, values in dictPercetagesFiltz.items():
+                samplePoints[int(coords[0]) - 1: int(coords[0]) + 2, int(coords[1]) - 1: int(coords[1]) + 2] = values
+        else:
+            minVal = min(list(dictStat.values()))
+            dictPercetagesFiltz = {((key[0] - 160), key[1] / 7): ((dictStat[key] - minVal) / (maxVal - minVal)) for key, value in dictStat.items() if key not in badKeys and key[3] == k}
+            samplePoints = np.zeros((799, 17480 / 7), dtype=np.uint8)
+            maxVal = max(list(dictPercetagesFiltz.values()))
+            for coords, values in dictPercetagesFiltz.items():
+                samplePoints[int(coords[0]) - 1: int(coords[0]) + 2, int(coords[1]) - 1: int(coords[1]) + 2] = (255 * values / maxVal)
+        imsave("transverseSlice" + imNames[index] + "%i.png" % k, samplePoints)
