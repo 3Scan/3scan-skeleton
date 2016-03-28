@@ -127,8 +127,8 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=
                     visitedSources.append(sourceOnCycle)
                 else:
                     segmentCountdict[sourceOnCycle] += 1
-                segmentLengthdict[segmentCountdict[sourceOnCycle], sourceOnCycle] = _getDistanceBetweenPointsInpath(cycle, 1)
-                segmentTortuositydict[segmentCountdict[sourceOnCycle], sourceOnCycle] = 0
+                segmentLengthdict[segmentCountdict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = _getDistanceBetweenPointsInpath(cycle, 1)
+                segmentTortuositydict[segmentCountdict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = 0
                 _removeEdgesInVisitedPath(subGraphskeleton, cycle, 1)
             elif set(degreeList) == set((1, 2)) or set(degreeList) == {1}:
                 """ straight line or dichtonomous tree"""
@@ -156,8 +156,8 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=
                                     segmentCountdict[sourceOnTree] = segmentCountdict[sourceOnTree] + 1
                                 curveLength = _getDistanceBetweenPointsInpath(simplePath)
                                 curveDisplacement = np.sqrt(np.sum((np.array(sourceOnTree) - np.array(item)) ** 2))
-                                segmentLengthdict[segmentCountdict[sourceOnTree], sourceOnTree] = curveLength
-                                segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree] = curveLength / curveDisplacement
+                                segmentLengthdict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength
+                                segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength / curveDisplacement
                                 _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
                 else:
                     """ each node is connected to one or two other nodes implies it is a line,
@@ -168,8 +168,8 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=
                         visitedSources.append(sourceOnLine)
                     else:
                         segmentCountdict[sourceOnLine] += 1
-                    segmentLengthdict[segmentCountdict[sourceOnLine], sourceOnLine] = _getDistanceBetweenPointsInpath(nodes, 0)
-                    segmentTortuositydict[segmentCountdict[sourceOnLine], sourceOnLine] = 1
+                    segmentLengthdict[segmentCountdict[sourceOnLine], sourceOnLine, nodes[len(nodes) - 1]] = _getDistanceBetweenPointsInpath(nodes, 0)
+                    segmentTortuositydict[segmentCountdict[sourceOnLine], sourceOnLine, nodes[len(nodes) - 1]] = 1
                     edges = subGraphskeleton.edges()
                     subGraphskeleton.remove_edges_from(edges)
                     typeGraphdict[ithDisjointgraph] = 2
@@ -178,7 +178,7 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=
             if len(cycleList) != 0:
                 for nthcycle, cycle in enumerate(cycleList):
                     nodeDegreedictFilt = {key: value for key, value in nodeDegreedict.items() if key in cycle}
-                    branchpoints = [k for (k, v) in nodeDegreedictFilt.items() if v != 2]
+                    branchpoints = [k for (k, v) in nodeDegreedictFilt.items() if v != 2 and v != 1]
                     branchpoints.sort()
                     listOfPerms = list(itertools.combinations(branchpoints, 2))
                     for sourceOnTree, item in listOfPerms:
@@ -194,10 +194,10 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=
                                         segmentCountdict[sourceOnTree] = segmentCountdict[sourceOnTree] + 1
                                     curveLength = _getDistanceBetweenPointsInpath(simplePath)
                                     curveDisplacement = np.sqrt(np.sum((np.array(sourceOnTree) - np.array(item)) ** 2))
-                                    segmentLengthdict[segmentCountdict[sourceOnTree], sourceOnTree] = curveLength
-                                    segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree] = curveLength / curveDisplacement
+                                    segmentLengthdict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength
+                                    segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength / curveDisplacement
                                     _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
-            branchpoints = [k for (k, v) in nodeDegreedict.items() if v != 2]
+            branchpoints = [k for (k, v) in nodeDegreedict.items() if v != 2 and v != 1]
             endpoints = [k for (k, v) in nodeDegreedict.items() if v == 1]
             branchendpoints = branchpoints + endpoints
             branchpoints.sort(); endpoints.sort()
@@ -215,8 +215,8 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=
                             segmentCountdict[sourceOnTree] = segmentCountdict[sourceOnTree] + 1
                         curveLength = _getDistanceBetweenPointsInpath(simplePath)
                         curveDisplacement = np.sqrt(np.sum((np.array(sourceOnTree) - np.array(item)) ** 2))
-                        segmentLengthdict[segmentCountdict[sourceOnTree], sourceOnTree] = curveLength
-                        segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree] = curveLength / curveDisplacement
+                        segmentLengthdict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength
+                        segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength / curveDisplacement
                         _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
             if subGraphskeleton.number_of_edges() != 0:
                 listOfPerms = list(itertools.combinations(branchpoints, 2))
@@ -233,8 +233,8 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=
                                 segmentCountdict[sourceOnTree] = segmentCountdict[sourceOnTree] + 1
                             curveLength = _getDistanceBetweenPointsInpath(simplePath)
                             curveDisplacement = np.sqrt(np.sum((np.array(sourceOnTree) - np.array(item)) ** 2))
-                            segmentLengthdict[segmentCountdict[sourceOnTree], sourceOnTree] = curveLength
-                            segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree] = curveLength / curveDisplacement
+                            segmentLengthdict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength
+                            segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength / curveDisplacement
                             _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
             cycleList = nx.cycle_basis(subGraphskeleton)
             if subGraphskeleton.number_of_edges() != 0 and len(cycleList) != 0:
@@ -245,8 +245,8 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=
                         visitedSources.append(sourceOnCycle)
                     else:
                         segmentCountdict[sourceOnCycle] += 1
-                    segmentLengthdict[segmentCountdict[sourceOnCycle], sourceOnCycle] = _getDistanceBetweenPointsInpath(cycle, 1)
-                    segmentTortuositydict[segmentCountdict[sourceOnCycle], sourceOnCycle] = 0
+                    segmentLengthdict[segmentCountdict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = _getDistanceBetweenPointsInpath(cycle, 1)
+                    segmentTortuositydict[segmentCountdict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = 0
                     _removeEdgesInVisitedPath(subGraphskeleton, cycle, 1)
         assert subGraphskeleton.number_of_edges() == 0
     totalSegments = len(segmentLengthdict)

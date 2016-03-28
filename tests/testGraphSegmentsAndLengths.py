@@ -101,6 +101,7 @@ def test_cycleAndTree():
 def test_treeNocycle2d():
     crosGraph = getTreeNoCycle2d()
     dTreecount, dTreelength, segmentTortuositytree, totalSegmentsTree, typeGraphdict = getSegmentsAndLengths(crosGraph, True, False)
+    print(dTreelength)
     # plotGraphWithCount(crosGraph, dTreecount)
     assert totalSegmentsTree == 4 and typeGraphdict[0] == 4
 
