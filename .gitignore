@@ -55,3 +55,12 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# 3scan config file
+.3scan-kesm-config.json
+
+# fuhgettaboutit
+.DS_Store
+
+# transient version file
+_version.py
