@@ -25,3 +25,17 @@ for i in range(36):
     # for coord in list(d.keys()):
     #     x = coord[0]; y = coord[1]; z = coord[2];
     #     mlab.text3d(x, y, z, d[coord], color=(0, 0, 0), scale=4.0)
+# def _getSort(cycles):
+#     """
+#        sort one or two or three dimensional coordinates from least
+#        first coordinate, second coordinate, third coordinate
+#        to highest only if it is not sorted
+#     """
+#     nodeDim = len(cycles[0])
+#     if nodeDim == 3:
+#         ilist = [0, 2, 1]
+#     else:
+#         ilist = [1, 0]
+#     cycles.sort(key=lambda x: [x[i] for i in ilist], reverse=True)
+#     return cycles
+

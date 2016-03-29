@@ -4,6 +4,7 @@ import multiprocessing
 from multiprocessing import Pool
 import numpy as np
 from scipy import ndimage
+from scipy.signal import fftconvolve
 from skimage.filters import threshold_otsu
 from skeleton.runscripts.thin3DVolumeRV import getSkeleton3D
 from skeleton.runscripts.segmentLengthsRV import getSegmentsAndLengths
@@ -19,27 +20,30 @@ def convert(tupValList):
             if vsum < tsum:
                 t = i
         subSubvolume[subSubvolume < t] = 0
-        subSubvolume = np.array([y for y in subSubvolume.ravel() if y != 0])
-        t = threshold_otsu(subSubvolume)
+        l1 = np.array([y for y in subSubvolume.ravel() if y != 0])
+        t = threshold_otsu(l1)
         interpolatedIm = ndimage.interpolation.zoom(subSubvolume, [5 / 0.7037037, 1, 1], order=2, prefilter=False)
         interpolatedIm = interpolatedIm > (0.85 * t)
-        erode_im = ndimage.morphology.binary_erosion(interpolatedIm, selem)
+        i = np.ascontiguousarray(interpolatedIm, dtype=np.uint16)
+        erode_im = fftconvolve(i, selem, mode='same')
+        erode_im[interpolatedIm == 0] = 0
         percentVasc = np.sum(interpolatedIm) / totalSize
-        if np.sum(erode_im) != 0:
-            np.save(npy.replace('greyscale', 'threshold'), interpolatedIm)
+        threshPath = npy.replace('greyscale', 'threshold')
+        if np.sum(erode_im >= 8000) == 0 and percentVasc < 0.1 and os.path.exists(threshPath) == 0:
+            np.save(threshPath, interpolatedIm)
             skeleton = getSkeleton3D(interpolatedIm)
             np.save(npy.replace('greyscale', 'skeleton'), skeleton)
             path = (npy.replace('greyscale', 'stat')).replace('npy', 'txt')
             f = open(path, 'w')
             d1, d2, d3, cycles = getSegmentsAndLengths(skeleton)
-            d = [str(d1) + "\n", str(d2) + "\n", str(d3) + "\n", str(cycles) + "\n", str(percentVasc) + "\n"]
+            d = [str(percentVasc) + "\n", str(d1) + "\n", str(d2) + "\n", str(d3) + "\n", str(cycles) + "\n"]
             f.writelines(d)
             f.close()
 
 
 if __name__ == '__main__':
     totalSize = 2460375.0
-    selem = np.zeros((31, 31, 31), dtype=bool)
+    selem = np.zeros((31, 31, 31), dtype=np.uint16)
     xs, ys, zs = np.mgrid[-1:1:31j, -1:1:31j, -1:1:31j]
     r = np.sqrt(xs ** 2 + ys ** 2 + zs ** 2)
     selem[(r < 1)] = 1

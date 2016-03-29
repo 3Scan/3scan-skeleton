@@ -210,7 +210,7 @@ def getSegmentsAndLengths(imArray):
             if len(cycleList) != 0:
                 for nthcycle, cycle in enumerate(cycleList):
                     nodeDegreedictFilt = {key: value for key, value in nodeDegreedict.items() if key in cycle}
-                    branchpoints = [k for (k, v) in nodeDegreedictFilt.items() if v != 2]
+                    branchpoints = [k for (k, v) in nodeDegreedictFilt.items() if v != 2 and v != 1]
                     branchpoints.sort()
                     listOfPerms = list(itertools.combinations(branchpoints, 2))
                     for sourceOnTree, item in listOfPerms:
@@ -224,7 +224,7 @@ def getSegmentsAndLengths(imArray):
                                     segmentLength += curveLength
                                     segmentTortuosity += curveLength / curveDisplacement
                                     _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
-            branchpoints = [k for (k, v) in nodeDegreedict.items() if v != 2]
+            branchpoints = [k for (k, v) in nodeDegreedict.items() if v != 2 and v != 1]
             endpoints = [k for (k, v) in nodeDegreedict.items() if v == 1]
             branchendpoints = branchpoints + endpoints
             branchpoints.sort(); endpoints.sort()
