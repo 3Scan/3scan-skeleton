@@ -29,7 +29,7 @@ def convert(tupValList):
         erode_im[interpolatedIm == 0] = 0
         percentVasc = np.sum(interpolatedIm) / totalSize
         threshPath = npy.replace('greyscale', 'threshold')
-        if np.sum(erode_im >= 8000) == 0 and percentVasc < 0.1 and os.path.exists(threshPath) == 0:
+        if np.sum(erode_im >= 8000) == 0 and percentVasc < 0.1:
             np.save(threshPath, interpolatedIm)
             skeleton = getSkeleton3D(interpolatedIm)
             np.save(npy.replace('greyscale', 'skeleton'), skeleton)
@@ -48,11 +48,11 @@ if __name__ == '__main__':
     r = np.sqrt(xs ** 2 + ys ** 2 + zs ** 2)
     selem[(r < 1)] = 1
     tsum = 0.8 * 19 * 135 * 135
-    root = '/home/pranathi/subsubVolumegreyscale/'
+    root = '/media/pranathi/KINGSTON/RESULTS_1sttransverseslice/subsubVolumegreyscale/'
     formatOfFiles = 'npy'
     listOfNpys = [os.path.join(root, files) for files in os.listdir(root) if formatOfFiles in files]
     listOfNpys.sort()
-    numProcessors = multiprocessing.cpu_count()
+    numProcessors = multiprocessing.cpu_count() - 3
     chunkSize = int(len(listOfNpys) / numProcessors)
     poolLists = []
     for i in range(0, len(listOfNpys), chunkSize + 1):

@@ -66,8 +66,6 @@ for k in klist:
     for i in range(mask.shape[0]):
         mask[i, :] = maskBrain[i, :, int(k / 7)]
         maskArt[i, :] = maskArtVein[i, :, int(k / 7)]
-    maskArt[maskArt != 255] = 1
-    maskArt[maskArt == 255] = 0
     maskArt = ndimage.interpolation.zoom(maskArt, zoom=[9.9875, 1], order=0)
     mask = ndimage.interpolation.zoom(mask, zoom=[9.9875, 1], order=0)
     transverseSlice = transverseSlice * mask * maskArt
@@ -81,3 +79,4 @@ for k in klist:
             for j in remChannels:
                 color_img[nz[0], nz[1], j] = 0
         imsave("transverseSliceColorOverlap" + imNames[index] + "%i.png" % k, color_img)
+

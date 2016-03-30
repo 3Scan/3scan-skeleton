@@ -41,6 +41,7 @@ if __name__ == '__main__':
     centers = []
     maskBrain = np.load('/home/pranathi/maskDownsampled10.npy')
     maskArtVein = np.load('/home/pranathi/maskArtVein.npy')
+    assert np.unique(maskArtVein).tolist() in [0, 1]
     iskpx = 900; iskpz = 10; iskpy = 71
     root = '/home/pranathi/ii-5016-15-ms-brain_1920/filt/'
     formatOfFiles = 'png'
@@ -48,6 +49,7 @@ if __name__ == '__main__':
     listOfJpgs.sort()
     ilist = list(range(60, 799 - 10, iskpz))
     klist = [3667, 6367, 7267]
+    klist = [2767]
     # klist = [k for k in range(67, 8026 - 68, iskpx) if (k > 2420 and k < 4000) or (k > 5500 and k < 8000)]
     it = list(itertools.product(ilist, range(67, 17480 - 68, iskpy), klist))
     listElements = list(map(list, it))
@@ -55,15 +57,15 @@ if __name__ == '__main__':
     cornersOfCube = list(map(list, itertools.product((-1, 1), repeat=3)))
     aShape = (2497, 1147)
     cornersOfCube = [list((element[0] * 9, element[1] * 130, element[2] * 130)) for element in cornersOfCube]
-    validit = [element for element, elementList in zip(it, listElements) for i in cornersOfCube if outOfPixBounds((int((elementList[1] + i[1]) / 7), int((elementList[2] + i[2]) / 7)), aShape) and maskBrain[(int((elementList[0] + i[0]) / 10), int((elementList[1] + i[1]) / 7), int((elementList[2] + i[2]) / 7))] and maskArtVein[(int((elementList[0] + i[0]) / 10), int((elementList[1] + i[1]) / 7), int((elementList[2] + i[2]) / 7))] != 1]
+    validit = [element for element, elementList in zip(it, listElements) for i in cornersOfCube if outOfPixBounds((int((elementList[1] + i[1] + 6) / 7.0), int((elementList[2] + i[2] + 6) / 7.0)), aShape) and maskBrain[(int((elementList[0] + i[0] + 9) / 10.0), int((elementList[1] + i[1] + 9) / 7.0), int((elementList[2] + i[2] + 6) / 7.0))] and maskArtVein[(int((elementList[0] + i[0] + 9) / 10.0), int((elementList[1] + i[1] + 6) / 7.0), int((elementList[2] + i[2] + 6) / 7.0))] != 1]
     c = Counter(validit)
     validCenters = [element for element in c if c[element] == 8]
     for i, j, k in validCenters:
-        jm = int(j / 7); km = int(k / 7)
-        imf = int((i - 9) / 10)
-        iml = int((i + 9) / 10)
+        jm = int((j + 6) / 7.0); km = int((k + 6) / 7.0)
+        imf = int((i - 9 - 9) / 10.0)
+        iml = int((i + 9 - 9) / 10.0)
         maskSub = maskArtVein[imf: iml + 1, jm - 9:jm + 10, km - 9: km + 10]
-        if np.sum(maskSub) != 1:
+        if np.sum(maskSub) == 0:
             centers.append(tuple((i, j, k)))
     del listElements; del klist; del it; del validit; del maskBrain; del maskArtVein;
     startt = time.time()
@@ -89,3 +91,13 @@ if __name__ == '__main__':
         pool.close()
         pool.join()
     print("time taken is %0.2f seconds" % (time.time() - startt))
+
+k = 2767
+count = 0
+transverseSlice = np.zeros((799, 17480 / 7), dtype=np.uint8)
+for i in range(0, len(listOfJpgs)):
+    image = imread(root + 'downsampledslice%i.png' % i)
+    transverseSlice[count, :] = image[:, int(k / 7)]
+    count += 1
+for coords in centers:
+    transverseSlice[coords[0] - 1: coords[0] + 2, int((coords[1] + 6) / 7) - 1: int((coords[1] + 6) / 7) + 2] = 1
