@@ -2,21 +2,22 @@ import numpy as np
 from scipy import ndimage
 import os
 from scipy.misc import imsave, imread
+# import cv2
 
 root = '/home/pranathi/mouseBrain-CS/'
 formatOfFiles = 'jpg'
 listOfJpgs = [os.path.join(root, files) for files in os.listdir(root) if formatOfFiles in files]
 listOfJpgs.sort()
 arr = np.zeros((856, 605, 779))
-mip = np.ones((6050, 7790), dtype=np.uint8) * 255
+mip = np.ones((6050, 7790)) * 128
 for index, fileName in enumerate(listOfJpgs):
     image = imread(fileName)
     inds = image < mip  # find where image intensity < min intensity
     mip[inds] = image[inds]  # update the minimum value at each pixel
-    if index % 10 == 0:
-        interpolatedIm = ndimage.interpolation.zoom(image, [1 / 10, 1 / 10], order=0)
-        arr[int(index / 10)] = interpolatedIm
-        imsave("downSampledSlice%i.png" % int(index / 10), interpolatedIm)
+    if index % 5 == 0:
+        interpolatedIm = ndimage.interpolation.zoom(image, [1 / 7, 1 / 7], order=0)
+        arr[int(index / 5)] = interpolatedIm
+        imsave("downSampledSlice%i.png" % int(index / 5), interpolatedIm)
 
 np.save("mipCoronal.npy", mip)
 np.save("downSampledArrayC.npy", arr)
@@ -63,3 +64,34 @@ def normalizeStripes(img):
 
 image = imread("/media/pranathi/DATA/mouseBrain-CS/00251.jpg")
 result = normalizeStripes(image)
+# edges = cv2.Canny(image, 50, 150, apertureSize=3)
+
+# lines = cv2.HoughLines(edges, 1, (30 * np.pi) / 180, 200)
+# for rho,theta in lines[0]:
+#     a = np.cos(theta)
+#     b = np.sin(theta)
+#     x0 = a*rho
+#     y0 = b*rho
+#     x1 = int(x0 + 1000*(-b))
+#     y1 = int(y0 + 1000*(a))
+#     x2 = int(x0 - 1000*(-b))
+#     y2 = int(y0 - 1000*(a))
+
+#     cv2.line(image,(x1,y1),(x2,y2),(0,0,255),2)
+
+# cv2.imwrite('houghlines3.jpg',image)
+
+root = '/home/pranathi/mouseBrain-CS/'
+formatOfFiles = 'jpg'
+listOfJpgs = [os.path.join(root, files) for files in os.listdir(root) if formatOfFiles in files]
+listOfJpgs.sort()
+count = 0
+countSlice = 0
+saggitalSlicearr = np.zeros((110, 6050 / 7, 8621 / 5), dtype=np.uint8)
+for index in range(0, len(listOfJpgs), 5):
+    for countSlice, value in enumerate(list(range(0, 7790, 71))):
+        image = imread(listOfJpgs[index])
+        saggitalSlicearr[countSlice, :, count] = ndimage.interpolation.zoom(image[:, value], zoom=[1 / 7], order=0)
+    count += 1
+for i in range(0, saggitalSlicearr.shape[0]):
+    imsave(root + "saggitalSlices/" + "saggitalSlice%i.jpg" % i, saggitalSlicearr[i])
