@@ -167,8 +167,10 @@ def getSegmentStats(imArray):
     # list of disjointgraphs
     disjointGraphs = list(nx.connected_component_subgraphs(networkxGraph))
     startt = time.time()
-    while time.time() < startt + 300:
-        for subGraphskeleton in disjointGraphs:
+    for subGraphskeleton in disjointGraphs:
+        if time.time() > startt + 300:
+            return 0, 0, 0, 0
+        else:
             nodes = subGraphskeleton.nodes()
             if len(nodes) == 1:
                 " if it is a single node"
@@ -316,4 +318,4 @@ def getSegmentStats(imArray):
         numSegments = len(segmentLengthdict)
         totalLength = sum(segmentLengthdict.values())
         totalTortuosity = sum(segmentTortuositydict.values())
-    return numSegments, numBranchPoints, totalLength, totalTortuosity
+    return numBranchPoints, numSegments, totalLength, totalTortuosity
