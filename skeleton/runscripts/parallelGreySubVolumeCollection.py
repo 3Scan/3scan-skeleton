@@ -16,7 +16,6 @@ def collectGrey(tupValList):
     subList = listOfJpgs[i - 9: i + 10]
     count = 0
     for fileName in subList:
-        print(fileName)
         subVolume[count][:][:] = imread(fileName)
         count += 1
     for i, j, k in tupValList:
@@ -48,9 +47,7 @@ if __name__ == '__main__':
     listOfJpgs = [os.path.join(root, files) for files in os.listdir(root) if formatOfFiles in files]
     listOfJpgs.sort()
     ilist = list(range(60, 799 - 10, iskpz))
-    # klist = [3667, 6367, 7267]
     klist = [k for k in range(67, 8026 - 68, iskpx) if (k > 2420 and k < 4000) or (k > 5500 and k < 8000)]
-    klist = [k for k in klist if k != 2767]
     it = list(itertools.product(ilist, range(67, 17480 - 68, iskpy), klist))
     listElements = list(map(list, it))
     subsubVolShape = (135, 135, 135)
