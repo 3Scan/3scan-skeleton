@@ -80,18 +80,34 @@ result = normalizeStripes(image)
 #     cv2.line(image,(x1,y1),(x2,y2),(0,0,255),2)
 
 # cv2.imwrite('houghlines3.jpg',image)
+# transverseSlice = imread("transverseSlice2767.png")
+# for coords in validCenters:
+#     transverseSlice[coords[1] - 1: coords[1] + 2, int((coords[2] + 6) / 7) - 1: int((coords[2] + 6) / 7) + 2] = 1
 
-root = '/home/pranathi/mouseBrain-CS/'
-formatOfFiles = 'jpg'
+root = '/home/pranathi/dsby7-CS/'
+formatOfFiles = 'png'
 listOfJpgs = [os.path.join(root, files) for files in os.listdir(root) if formatOfFiles in files]
 listOfJpgs.sort()
 count = 0
-countSlice = 0
-saggitalSlicearr = np.zeros((110, 6050 / 7, 8621 / 5), dtype=np.uint8)
-for index in range(0, len(listOfJpgs), 5):
-    for countSlice, value in enumerate(list(range(0, 7790, 71))):
-        image = imread(listOfJpgs[index])
-        saggitalSlicearr[countSlice, :, count] = ndimage.interpolation.zoom(image[:, value], zoom=[1 / 7], order=0)
-    count += 1
+saggitalSlicearr = np.zeros((112, 864, 1725), dtype=np.uint8)
+for index in range(0, len(listOfJpgs)):
+    for countSlice, value in enumerate(list(range(0, 1113, 10))):
+        image = imread(root + 'downSampledSlice%i.png' % index)
+        saggitalSlicearr[countSlice, :, index] = image[:, value]
 for i in range(0, saggitalSlicearr.shape[0]):
     imsave(root + "saggitalSlices/" + "saggitalSlice%i.jpg" % i, saggitalSlicearr[i])
+
+maskArtVein = np.load('/home/pranathi/maskArtVein.npy')
+root = '/home/pranathi/subsubVolumethresholdNew_28/'
+formatOfFiles = 'npy'
+listOfNpys = [os.path.join(root, files) for files in os.listdir(root) if formatOfFiles in files]
+listOfNpys.sort()
+transverseSlice = imread("transverseSlice2767.png")
+for npyIndex in listOfNpys:
+    npyIndex = npyIndex.replace('.npy', '')
+    strs = npyIndex.split('/')[-1].split('_')
+    i, j, k = [int(s) for s in strs if s.isdigit()]
+    i = i - 160
+    if maskArtVein[(int((i + 9) / 10.0), int((j + 6) / 7.0), int((k + 6) / 7.0))] != 255:
+        transverseSlice[i - 1: i + 2, int((j + 6) / 7) - 1: int((j + 6) / 7) + 2] = 1
+imsave("transverseSliceSamplePoints2767.png", transverseSlice)
