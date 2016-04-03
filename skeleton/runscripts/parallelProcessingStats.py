@@ -10,15 +10,19 @@ from skeleton.runscripts.segmentLengthsRV import getSegmentStats
 def convert(tupValList):
     for npy in tupValList:
         interpolatedIm = np.load(npy)
-        skeleton = getSkeleton3D(interpolatedIm)
         npy = npy.replace('media', 'home')
         npy = npy.replace('User Data/', '')
-        np.save(npy.replace('threshold', 'skeleton'), skeleton)
+        pathSkel = npy.replace('threshold', 'skeleton')
+        if os.path.exists(pathSkel) == 0:
+            skeleton = getSkeleton3D(interpolatedIm)
+            np.save(pathSkel, skeleton)
+        else:
+            skeleton = np.load(pathSkel)
         path = (npy.replace('threshold', 'stat')).replace('npy', 'txt')
         f = open(path, 'w')
-        d1, d2, d3, cycles = getSegmentStats(skeleton)
+        avgBranchingIndex, numSegments, totalLength, totalTortuosity, cyclesTot = getSegmentStats(skeleton)
         percentVasc = np.sum(interpolatedIm) / totalSize
-        d = [str(percentVasc) + "\n", str(d1) + "\n", str(d2) + "\n", str(d3) + "\n", str(cycles) + "\n"]
+        d = [str(percentVasc) + "\n", str(avgBranchingIndex) + "\n", str(numSegments) + "\n", str(totalLength) + "\n", str(totalTortuosity) + "\n" + str(cyclesTot) + "\n"]
         f.writelines(d)
         f.close()
 
