@@ -22,6 +22,7 @@ def collectGrey(tupValList):
         subSubvolume = subVolume[:, j - 67:j + 68, k - 67: k + 68]
         subSubvolume = 255 - subSubvolume
         np.save("/home/pranathi/subsubVolumegreyscaleNew_28/greyscale_{}_{}_{}.npy".format(i + 160, j, k), subSubvolume)
+    del subVolume
 
 
 def outOfPixBounds(nearByCoordinate, aShape):
@@ -39,7 +40,7 @@ def outOfPixBounds(nearByCoordinate, aShape):
 if __name__ == '__main__':
     totalSize = 2460375.0
     centers = []
-    maskBrain = np.load('/home/pranathi/maskDownsampled10.npy')
+    maskBrain = np.load('/home/pranathi//maskDownsampled10.npy')
     maskArtVein = np.load('/home/pranathi/maskArtVein.npy')
     iskpx = 135; iskpz = 10; iskpy = 71
     root = '/home/pranathi/ii-5016-15-ms-brain_1920/filt/'
@@ -47,7 +48,7 @@ if __name__ == '__main__':
     listOfJpgs = [os.path.join(root, files) for files in os.listdir(root) if formatOfFiles in files]
     listOfJpgs.sort()
     ilist = list(range(60, 799 - 10, iskpz))
-    klist = [k for k in range(67, 8026 - 68, iskpx) if (k > 2420 and k < 4000) or (k > 5500 and k < 8000)]
+    klist = [k for k in range(2632, 8026 - 68, iskpx) if (k > 2420 and k < 4000) or (k > 5500 and k < (7267 + 135))]
     it = list(itertools.product(ilist, range(67, 17480 - 68, iskpy), klist))
     listElements = list(map(list, it))
     subsubVolShape = (135, 135, 135)
@@ -62,7 +63,7 @@ if __name__ == '__main__':
             centers.append((i, j, k))
     del listElements; del klist; del it; del validit; del maskBrain;
     startt = time.time()
-    numProcessors = multiprocessing.cpu_count()
+    numProcessors = multiprocessing.cpu_count() - 2
     Nilist = len(ilist)
     iilist = []
     for k in range(0, Nilist, 10):

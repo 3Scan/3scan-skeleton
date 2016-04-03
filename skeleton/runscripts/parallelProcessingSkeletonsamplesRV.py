@@ -6,8 +6,6 @@ import numpy as np
 from scipy import ndimage
 from scipy.signal import fftconvolve
 from skimage.filters import threshold_otsu
-from skeleton.runscripts.thin3DVolumeRV import getSkeleton3D
-from skeleton.runscripts.segmentLengthsRV import getSegmentsAndLengths
 
 
 def convert(tupValList):

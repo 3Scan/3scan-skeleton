@@ -11,6 +11,8 @@ def convert(tupValList):
     for npy in tupValList:
         interpolatedIm = np.load(npy)
         skeleton = getSkeleton3D(interpolatedIm)
+        npy = npy.replace('media', 'home')
+        npy = npy.replace('User Data/', '')
         np.save(npy.replace('threshold', 'skeleton'), skeleton)
         path = (npy.replace('threshold', 'stat')).replace('npy', 'txt')
         f = open(path, 'w')
@@ -23,7 +25,7 @@ def convert(tupValList):
 
 if __name__ == '__main__':
     totalSize = 2460375.0
-    root = '/home/pranathi/subsubVolumethresholdNew_28/'
+    root = '/media/pranathi/User Data/subsubVolumethresholdNew_28/'
     formatOfFiles = 'npy'
     listOfNpys = [os.path.join(root, files) for files in os.listdir(root) if formatOfFiles in files]
     listOfNpys.sort()
