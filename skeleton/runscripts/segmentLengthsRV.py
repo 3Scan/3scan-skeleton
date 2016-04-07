@@ -155,7 +155,7 @@ def getSegmentStats(imArray):
     disjointGraphs = list(nx.connected_component_subgraphs(networkxGraph))
     for subGraphskeleton in disjointGraphs:
         nodes = subGraphskeleton.nodes()
-        if time.time() > startt + 300:
+        if time.time() > startt + 60:
             return 0, 0, 0, 0, 0
         else:
             nodes.sort()
