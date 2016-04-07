@@ -63,7 +63,7 @@ def _removeEdgesInVisitedPath(subGraphskeleton, path, cycle):
         subGraphskeleton.remove_edges_from(shortestPathedges)
 
 
-def getBranchAngles(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=[1, 1, 1]):
+def getBranchAngles(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=None):
     """
         algorithm - 1) go through each of the disjoint graphs
                     2) decide if it is one of the following a) line
@@ -82,7 +82,8 @@ def getBranchAngles(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=[1, 1,
     if arrayOrNot is False:
         networkxGraph = imArray
     else:
-        imArray = ndimage.interpolation.zoom(imArray, zoom=aspectRatio, order=0)
+        if aspectRatio is not None:
+            imArray = ndimage.interpolation.zoom(imArray, zoom=aspectRatio, order=0)
         networkxGraph = getNetworkxGraphFromarray(imArray, skelOrNot)
         networkxGraph = removeCliqueEdges(networkxGraph)
     assert networkxGraph.number_of_selfloops() == 0
@@ -223,6 +224,7 @@ def getBranchAngles(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=[1, 1,
                 a = branchAngledict[i, key]
                 b = branchAngledict[1, key]
             dlist.append(round(180 * acos(np.dot(a, b) / (np.sqrt(np.sum(a * a)) * np.sqrt(np.sum(b * b)))) / pi, 2))
+        dlist = [90.0 if item == 180 else item for item in dlist]
         ba[key] = dlist
     print("time taken to calculate segments and their branch angles is %0.3f seconds" % (time.time() - startt))
     return ba
