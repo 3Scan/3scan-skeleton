@@ -1,82 +1,323 @@
 import os
-from scipy.misc import imread, imsave
 import numpy as np
-import cv2
-from scipy import ndimage
+# import matplotlib.pyplot as plt
+from scipy.misc import imsave
 
-root = '/media/pranathi/KINGSTON/RESULTS_1sttransverseslice/subsubVolumestat/'
+root = '/home/pranathi/subsubVolumestatNew_28/'
 formatOfFiles = 'txt'
-listOfNpys = [os.path.join(root, files) for files in os.listdir(root) if formatOfFiles in files]
+vol = 95 * 95 * 95
+listOfNpys = [os.path.join(root, files) for files in os.listdir(root) if os.path.getsize(os.path.join(root, files)) != 82]
+listOfNpys = [os.path.join(root, files) for files in os.listdir(root) if os.path.getsize(os.path.join(root, files)) != 0]
 listOfNpys.sort()
-dictPercetages = {}
-dictLength = {}; dictTortuosity = {}
-for f in listOfNpys:
+root = '/home/pranathi/subsubVolumestatNew_28_friday/'
+listOfNpys1 = [os.path.join(root, files) for files in os.listdir(root) if formatOfFiles in files]
+dictTortuosity2 = {}; dictTortuosity1 = {}
+dictPercetages = {}; dictLength = {}
+for f, f1 in zip(listOfNpys, listOfNpys1):
     file_contents = open(f, 'r')
-    npyIndex = f.replace(".txt", "")
     fileC = [_ for _ in file_contents]
+    npyIndex = f.replace(".txt", "")
     file_contents.close()
-    strs = npyIndex.split('/')[-1].split('_')
-    strs[2] = strs[2].replace('~', '')
+    strs = npyIndex.split('/')
+    strs[4] = strs[4].replace('stat', '')
+    strs = strs[4].split('_')
+    strs = strs[1:]
     i, j, k = [int(s) for s in strs if s.isdigit()]
     dictPercetages[(i, j, k)] = float(fileC[0].replace('\n', ''))
-    dictLength[(i, j, k)] = float(fileC[2].replace('\n', ''))
-    dictTortuosity[(i, j, k)] = float(fileC[3].replace('\n', ''))
+    dictLength[(i, j, k)] = (float(fileC[0].replace('\n', '')) * 0.7) / vol
+    # dictTortuosity1[(i, j, k)] = float(fileC[1].replace('\n', ''))
+    # dictTortuosity2[(i, j, k)] = float(fileC[2].replace('\n', ''))
 
-dictList = [dictPercetages, dictLength, dictTortuosity]
-imNames = ['percentVasc', 'length', 'tortuosity']
-badKeys = [(260, 564, 2767), (260, 2055, 2767), (270, 16042, 2767), (480, 5818, 3667), (380, 2623, 6367), (320, 8303, 7267), (410, 7877, 7267), (350, 9013, 7267)]
-klist = [2767, 3667, 6367, 7267]
-for k in klist:
+dictList = [dictPercetages, dictLength]
+imNames = ['percentVasc', 'length']
+# root = '/media/pranathi/KINGSTON/Pictures/Pictures_ts/'
+# formatOfFiles = 'png'
+# listOfNpys = [os.path.join(root, files) for files in os.listdir(root) if formatOfFiles in files]
+
+# for fileName in listOfNpys:
+#     image = imread(fileName)
+#     image = np.rot90(image, k=3)
+#     imsave(fileName, image)
+badKeys = [(240, 2694, 3037),
+(250, 635, 3307),
+(350, 9510, 7357),
+(340, 8587, 7357),
+(870, 9155, 3577),
+(240, 4753, 5737),
+(400, 10859, 7087),
+(250, 635, 2632),
+(230, 7309, 7357),
+(550, 7806, 7087),
+(260, 1913, 2902),
+(360, 3120, 5737),
+(580, 4185, 2632),
+(260, 16184, 2767),
+(260, 10930, 6007),
+(450, 8587, 3172),
+(270, 10362, 6007),
+(320, 10859, 2632),
+(470, 8587, 7087),
+(470, 8800, 7087),
+(380, 7593, 7087),
+(420, 8161, 7222),
+(350, 9013, 7222),
+(250, 564, 2767),
+(700, 8232, 2767),
+(300, 11498, 7222),
+(430, 7735, 6007),
+(340, 15332, 3982),
+(500, 4327, 2767),
+(350, 12208, 6682),
+(550, 8374, 3577),
+(260, 16042, 2767),
+(390, 9226, 7087),
+(280, 15261, 3307),
+(220, 8658, 7357),
+(310, 8658, 7357),
+(490, 8303, 3577),
+(300, 10362, 7357),
+(270, 12918, 3307),
+(880, 8232, 3712),
+(250, 15971, 2767),
+(560, 6457, 5872),
+(520, 10007, 3982),
+(240, 4682, 3982),
+(360, 8161, 7357),
+(600, 12563, 2902),
+(320, 12847, 3037),
+(250, 15119, 2632),
+(820, 6315, 3037),
+(880, 8161, 3712),
+(530, 7593, 5872),
+(620, 11214, 6277),
+(280, 1984, 3307),
+(310, 8303, 7357),
+(360, 9013, 7357),
+(240, 848, 3712),
+(350, 8374, 7357),
+(700, 9865, 2632),
+(400, 8871, 7087),
+(250, 15758, 2767),
+(340, 8871, 7357),
+(800, 8445, 5872),
+(350, 9013, 7357),
+(340, 9297, 7357),
+(250, 15190, 2632),
+(250, 15261, 2632),
+(250, 15332, 2632),
+(250, 15403, 2632),
+(250, 15474, 2632),
+(250, 15545, 2632),
+(250, 15687, 2632),
+(250, 15758, 2632),
+(250, 15829, 2632),
+(250, 15971, 2632),
+(250, 16042, 2632),
+(270, 14551, 2632),
+(550, 6528, 2632),
+(770, 3546, 2632),
+(770, 3617, 2632),
+(770, 3688, 2632),
+(770, 3759, 2632),
+(770, 3830, 2632),
+(770, 3901, 2632),
+(770, 3972, 2632),
+(550, 1771, 2632),
+(550, 1842, 2632),
+(550, 1913, 2632),
+(550, 1984, 2632),
+(550, 2055, 2632),
+(550, 2126, 2632),
+(550, 2197, 2632),
+(550, 2268, 2632),
+(550, 2339, 2632),
+(550, 2410, 2632),
+(470, 1203, 2632),
+(470, 1274, 2632),
+(470, 1345, 2632),
+(250, 564, 2632),
+(250, 777, 2632),
+(240, 848, 2632),
+(250, 14835, 2767),
+(250, 14906, 2767),
+(250, 14977, 2767),
+(250, 15048, 2767),
+(250, 15119, 2767),
+(250, 15616, 2767),
+(250, 15900, 2767),
+(250, 16113, 2767),
+(250, 16184, 2767),
+(260, 15687, 2767),
+(260, 16113, 2767),
+(270, 14338, 2767),
+(270, 14409, 2767),
+(270, 14480, 2767),
+(270, 14551, 2767),
+(270, 14622, 2767),
+(270, 14693, 2767),
+(270, 14764, 2767),
+(890, 6883, 2767),
+(800, 4398, 2767),
+(520, 8374, 2767),
+(800, 4398, 2767),
+(550, 1700, 2767),
+(550, 1771, 2767),
+(550, 1842, 2767),
+(550, 1913, 2767),
+(550, 1984, 2767),
+(550, 2055, 2767),
+(550, 2126, 2767),
+(470, 1061, 2767),
+(470, 1132, 2767),
+(470, 1203, 2767),
+(400, 1416, 2767),
+(250, 564, 2767),
+(260, 564, 2767),
+(250, 635, 2767),
+(250, 706, 2767),
+(370, 1061, 2767),
+(370, 1345, 2767),
+(380, 1132, 2767),
+(370, 1132, 2767),
+(370, 1203, 2767),
+(370, 1274, 2767),
+(360, 919, 2767),
+(240, 990, 2767),
+(240, 1061, 2767),
+(330, 11569, 2902),
+(470, 6528, 6952),
+(270, 4966, 6952),
+(490, 9723, 6952),
+(630, 9794, 6952),
+(330, 3120, 6952),
+(380, 2623, 6817),
+(380, 2694, 6817),
+(380, 2765, 6817),
+(630, 10646, 6817),
+(640, 10646, 6817),
+(260, 4895, 6817),
+(580, 10859, 6817),
+(580, 11143, 6682),
+(730, 7593, 6682),
+(730, 7735, 6682),
+(730, 7806, 6682),
+(730, 7877, 6682),
+(730, 7948, 6682),
+(260, 1842, 6547),
+(380, 2268, 6547),
+(430, 2481, 6547),
+(430, 2552, 6547),
+(440, 4540, 6547),
+(300, 3262, 6547),
+(300, 3191, 6412),
+(430, 2268, 6412),
+(430, 2339, 6412),
+(380, 2055, 6412),
+(320, 1913, 6412),
+(440, 4682, 6412),
+(440, 5250, 6412),
+(720, 6173, 6412),
+(280, 4611, 6277),
+(490, 5605, 6277),
+(500, 5605, 6277),
+(320, 1700, 6277),
+(380, 1913, 6277),
+(430, 2197, 6277),
+(480, 3191, 6277),
+(500, 4043, 6277),
+(770, 6386, 6277),
+(640, 12563, 6277),
+(640, 12776, 6142),
+(640, 12705, 6142),
+(630, 12705, 6142),
+(290, 4611, 6007),
+(560, 3333, 6007),
+(740, 5321, 6007),
+(810, 6599, 6007),
+(810, 6031, 5872),
+(320, 1345, 5872),
+(310, 15261, 5872),
+(310, 15190, 5872),
+(380, 1061, 5737),
+(630, 12989, 5737),
+(640, 12918, 5737),
+(310, 15474, 5737),
+(250, 10859, 5602),
+(380, 1061, 5602),
+(710, 12563, 3982),
+(850, 12492, 3982),
+(680, 2836, 3982),
+(440, 8942, 3982),
+(700, 7238, 3982),
+(590, 13202, 3847),
+(590, 13273, 3847),
+(630, 13131, 3847),
+(680, 12847, 3847),
+(920, 6457, 3847),
+(680, 2765, 3847),
+(440, 5818, 3847),
+(220, 3759, 3712),
+(240, 635, 3712),
+(680, 2907, 3712),
+(580, 5037, 3712),
+(600, 4327, 3712),
+(940, 7238, 3712),
+(940, 7309, 3712),
+(940, 7380, 3712),
+(940, 7451, 3712),
+(940, 7522, 3712),
+(940, 7593, 3712),
+(680, 12847, 3712),
+(680, 12776, 3712),
+(260, 1842, 3037),
+(260, 1913, 3037),
+(240, 635, 3037),
+(250, 635, 3037),
+(250, 706, 3037),
+(250, 777, 3037),
+(250, 848, 3037),
+(250, 919, 3037),
+(360, 919, 3037),
+(470, 1132, 3037),
+(550, 1629, 3037),
+(600, 2197, 3037),
+(430, 8303, 3037),
+(620, 8800, 3037),
+(610, 7096, 3037),
+(330, 11569, 2902),
+(250, 635, 2902),
+(250, 706, 2902),
+(240, 706, 2902),
+(220, 1274, 2902),
+(470, 1132, 2902),
+(470, 1203, 2902),
+(550, 1629, 2902),
+(550, 1700, 2902),
+(530, 2126, 2902),
+(490, 2055, 2902),
+(490, 2197, 2902),
+(710, 4469, 2902),
+(540, 4895, 2902),
+(430, 6031, 2902),
+(630, 12492, 2902),
+(630, 12563, 2902),
+(590, 12847, 2902),
+(590, 12918, 2902)]
+
+
+iskpx = 135; iskpz = 10; iskpy = 71
+klist = [x for x in range(2632, 8026 - 68, iskpx) if (x > 2420 and x < 4000) or (x > 5500 and x < (7267 + 135))]
+# dictSlice = {'saggital': 0, 'transverse': 2, 'coronal': 1}
+for i in klist[:-3]:
     for index, dictStat in enumerate(dictList):
-        dictStat = {key: value for key, value in dictStat.items() if key[2] == k}
         maxVal = max(list(dictStat.values()))
-        if index < 1:
-            dictPercetagesFiltz = {((key[0] - 160), key[1] / 7): (255 * dictStat[key] / maxVal) for key, value in dictStat.items() if key not in badKeys}
-            samplePoints = np.zeros((799, 17480 / 7), dtype=np.uint8)
-            for coords, values in dictPercetagesFiltz.items():
-                samplePoints[int(coords[0]) - 1: int(coords[0]) + 2, int(coords[1]) - 1: int(coords[1]) + 2] = values
-        else:
-            minVal = min(list(dictStat.values()))
-            dictPercetagesFiltz = {((key[0] - 160), key[1] / 7): ((dictStat[key] - minVal) / (maxVal - minVal)) for key, value in dictStat.items() if key not in badKeys}
-            samplePoints = np.zeros((799, 17480 / 7), dtype=np.uint8)
-            maxVal = max(list(dictPercetagesFiltz.values()))
-            for coords, values in dictPercetagesFiltz.items():
-                samplePoints[int(coords[0]) - 1: int(coords[0]) + 2, int(coords[1]) - 1: int(coords[1]) + 2] = (255 * values / maxVal)
-        imsave("transverseSlice" + imNames[index] + "%i.png" % k, samplePoints)
-
-
-root = '/media/pranathi/DATA/ii-5016-15-ms-brain_1920/downsampledslices/'
-formatOfFiles = 'png'
-listOfJpgs = [os.path.join(root, files) for files in os.listdir(root) if formatOfFiles in files]
-listOfJpgs.sort()
-maskBrain = np.load('/media/pranathi/DATA/NPYS/maskDownsampled10.npy')
-maskArtVein = np.load('/media/pranathi/DATA/NPYS/maskArtVein.npy')
-imNames = ['percentVasc', 'length', 'tortuosity']
-channels = [0, 1, 2]
-for k in klist:
-    count = 0
-    transverseSlice = np.zeros((799, 17480 / 7), dtype=np.uint8)
-    for i in range(0, len(listOfJpgs)):
-        image = imread(root + 'downsampledslice%i.png' % i)
-        transverseSlice[count, :] = image[:, int(k / 7)]
-        count += 1
-    imsave("transverseSlice%i.png" % k, transverseSlice)
-    mask = np.zeros((80, 2497), dtype=np.uint8)
-    maskArt = np.zeros((80, 2497), dtype=np.uint8)
-    for i in range(mask.shape[0]):
-        mask[i, :] = maskBrain[i, :, int(k / 7)]
-        maskArt[i, :] = maskArtVein[i, :, int(k / 7)]
-    maskArt = ndimage.interpolation.zoom(maskArt, zoom=[9.9875, 1], order=0)
-    mask = ndimage.interpolation.zoom(mask, zoom=[9.9875, 1], order=0)
-    transverseSlice = transverseSlice * mask * maskArt
-    for index, values in enumerate(imNames):
-        paramImage = imread("/home/pranathi/transverseSlice" + values + "%i.png" % k)
-        color_img = cv2.cvtColor(transverseSlice, cv2.COLOR_GRAY2RGB)
-        nonZeros = list(set(map(tuple, np.transpose(np.nonzero(paramImage)))))
-        for nz in nonZeros:
-            color_img[nz[0], nz[1], index] = paramImage[nz]
-            remChannels = [channel for channel in channels if channel != index]
-            for j in remChannels:
-                color_img[nz[0], nz[1], j] = 0
-        imsave("transverseSliceColorOverlap" + imNames[index] + "%i.png" % k, color_img)
+        dictStat = {key: value for key, value in dictStat.items() if key[2] == i and key not in badKeys}
+        print(maxVal, [key for key, value in dictStat.items() if value == maxVal])
+        dictPercetagesFiltz = {((key[0] - 160) / iskpz, key[1] / iskpy): dictStat[key] / maxVal for key, value in dictStat.items() if key not in badKeys}
+        samplePoints = np.zeros((799 / iskpz, 17480 / iskpy), dtype=np.uint8)
+        for coords, values in dictPercetagesFiltz.items():
+            samplePoints[int(coords[0]), int(coords[1])] = 255 * values
+        imsave("transverseSlice" + imNames[index] + "%i.png" % i, samplePoints)
+        # plt.imshow(samplePoints, cmap='winter')
+        # plt.savefig("transverseSlicecmap" + imNames[index] + "%i.png" % i)
 
