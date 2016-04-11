@@ -74,15 +74,13 @@ def getObjWrite(imArray, pathTosave, aspectRatio=None):
             if len(list(nx.articulation_points(subGraphskeleton))) == 1 and set(dists) != 1:
                 """ each node is connected to one or two other nodes which are not a distance of 1 implies there is a
                     one branch point with two end points in a single dichotomous tree"""
-                for sourceOnTree, item in listOfPerms:
-                    if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
-                        simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
-                        simplePath = simplePaths[0]
-                        if sum([1 for point in simplePath if point in nodes]) == 2:
-                            strsSeq.append("l " + " ".join(str(x) for x in simplePath) + "\n")
-                            _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
+                continue
             else:
-                strsSeq.append("l " + " ".join(str(x) for x in nodes) + "\n")
+                endpoints = [k for (k, v) in nodeDegreedict.items() if v == 1]
+                sourceOnLine = endpoints[0]; targetOnLine = endpoints[1]
+                simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnLine, target=targetOnLine))
+                simplePath = simplePaths[0]
+                strsSeq.append("l " + " ".join(str(x) for x in simplePath) + "\n")
                 edges = subGraphskeleton.edges()
                 subGraphskeleton.remove_edges_from(edges)
         else:
@@ -192,15 +190,13 @@ def getObjWriteWithradius(imArray, pathTosave, dictOfNodesAndRadius, aspectRatio
             if len(list(nx.articulation_points(subGraphskeleton))) == 1 and set(dists) != 1:
                 """ each node is connected to one or two other nodes which are not a distance of 1 implies there is a
                     one branch point with two end points in a single dichotomous tree"""
-                for sourceOnTree, item in listOfPerms:
-                    if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
-                        simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
-                        simplePath = simplePaths[0]
-                        if sum([1 for point in simplePath if point in nodes]) == 2:
-                            strsSeq.append("l " + " ".join(str(x) for x in simplePath) + "\n")
-                            _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
+                continue
             else:
-                strsSeq.append("l " + " ".join(str(x) for x in nodes) + "\n")
+                endpoints = [k for (k, v) in nodeDegreedict.items() if v == 1]
+                sourceOnLine = endpoints[0]; targetOnLine = endpoints[1]
+                simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnLine, target=targetOnLine))
+                simplePath = simplePaths[0]
+                strsSeq.append("l " + " ".join(str(x) for x in simplePath) + "\n")
                 edges = subGraphskeleton.edges()
                 subGraphskeleton.remove_edges_from(edges)
         else:
