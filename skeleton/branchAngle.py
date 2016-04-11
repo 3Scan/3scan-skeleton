@@ -126,19 +126,7 @@ def getBranchAngles(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=None):
                 if len(list(nx.articulation_points(subGraphskeleton))) == 1 and set(dists) != 1:
                     """ each node is connected to one or two other nodes which are not a distance of 1 implies there is a
                         one branch point with two end points in a single dichotomous tree"""
-                    for sourceOnTree, item in listOfPerms:
-                        if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
-                            simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
-                            simplePath = simplePaths[0]
-                            if sum([1 for point in simplePath if point in nodes]) == 2:
-                                if sourceOnTree not in visitedSources:
-                                    "check if the same source has multiple segments, if it doesn't number of segments is 1"""
-                                    segmentCountdict[sourceOnTree] = 1
-                                else:
-                                    segmentCountdict[sourceOnTree] = segmentCountdict[sourceOnTree] + 1
-                                visitedSources.append(sourceOnTree)
-                                branchAngledict[segmentCountdict[sourceOnTree], sourceOnTree] = _getAverageDirectionvec(simplePath)
-                                _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
+                    continue
                 else:
                     """ each node is connected to one or two other nodes implies it is a line,
                     set tortuosity to 1"""
