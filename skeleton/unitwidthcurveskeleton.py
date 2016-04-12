@@ -263,6 +263,7 @@ def getShortestPathskeleton(skeletonIm):
             skeletonImNew[np.logical_and(valencearray == 0, skeletonIm == 1)] = 1  # see if isolated voxels can be removed (answer: yes)
             label_img1, countObjects = ndimage.measurements.label(skeletonIm, structure=se)
             label_img2, countObjectsShorty = ndimage.measurements.label(skeletonImNew, structure=se)
+            print(countObjects, countObjectsShorty)
             assert countObjects == countObjectsShorty
             print("time taken is %0.3f seconds" % (time.time() - startt))
             return skeletonImNew

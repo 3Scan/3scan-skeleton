@@ -142,7 +142,7 @@ def getSegmentStats(imArray):
                     l1 = list(specialCase[numSpcledges][0]); l2 = list(specialCase[numSpcledges][1])
                     diffOfEdges.append([i - j for i, j in zip(l1, l2)])
                 for index, val in enumerate(diffOfEdges):
-                    if val[1] == 0:
+                    if val[0] == 0:
                         subDim = index
                         break
                 cliquEdges.append(combEdge[mainDim][subDim])

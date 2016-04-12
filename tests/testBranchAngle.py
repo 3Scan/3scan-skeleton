@@ -33,7 +33,7 @@ def test_treeNocycle2d():
     angles = []
     for value in ba.values():
         angles.append(set(value))
-    assert angles == [{90.0, 180.0}]
+    assert angles == [{90.0}]
 
 
 def test_treeNocycle3d():
@@ -43,4 +43,4 @@ def test_treeNocycle3d():
     angles = []
     for value in ba.values():
         angles.append(set(value))
-    assert angles[0] == {90.0, 180.0}
+    assert angles[0] == {90.0}

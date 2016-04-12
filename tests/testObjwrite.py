@@ -75,7 +75,7 @@ def test_singlesegment():
             if items == 'l':
                 totalSegments = totalSegments + 1
     os.remove("Line.obj")
-    assert totalSegments == 0
+    assert totalSegments == 1
 
 
 def test_singlecycle():
@@ -101,7 +101,7 @@ def test_cycleAndTree():
             if items == 'l':
                 totalSegmentsCyclesTree = totalSegmentsCyclesTree + 1
     os.remove("CycleAndGraph.obj")
-    assert totalSegmentsCyclesTree == 3
+    assert totalSegmentsCyclesTree == 4
 
 
 def test_treeNocycle2d():

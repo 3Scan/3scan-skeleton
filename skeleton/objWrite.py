@@ -176,7 +176,6 @@ def getObjWriteWithradius(imArray, pathTosave, dictOfNodesAndRadius, aspectRatio
         degreeSet = set(list(nodeDegreedict.values()))
         if degreeSet == {2} and nx.is_biconnected(subGraphskeleton) and cycleCount == 1:
             cycle = cycleList[0]
-            # branchAngledict[1, sourceOnCycle] = dirVec
             _removeEdgesInVisitedPath(subGraphskeleton, cycle, 1)
         elif degreeSet == set((1, 2)) or degreeSet == {1}:
             """ straight line or dichtonomous tree"""
