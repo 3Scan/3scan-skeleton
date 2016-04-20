@@ -1,35 +1,33 @@
 import os
 import numpy as np
 # import matplotlib.pyplot as plt
-from scipy.misc import imsave
+from scipy.misc import imsave, imread
+import pandas
 
-root = '/home/pranathi/subsubVolumestatNew_28/'
+root = '/media/pranathi/DATA/subsubVolumestatNew_28/'
 formatOfFiles = 'txt'
 vol = 95 * 95 * 95
 listOfNpys = [os.path.join(root, files) for files in os.listdir(root) if os.path.getsize(os.path.join(root, files)) != 82]
 listOfNpys = [os.path.join(root, files) for files in os.listdir(root) if os.path.getsize(os.path.join(root, files)) != 0]
 listOfNpys.sort()
-root = '/home/pranathi/subsubVolumestatNew_28_friday/'
-listOfNpys1 = [os.path.join(root, files) for files in os.listdir(root) if formatOfFiles in files]
 dictTortuosity2 = {}; dictTortuosity1 = {}
 dictPercetages = {}; dictLength = {}
-for f, f1 in zip(listOfNpys, listOfNpys1):
+for f in listOfNpys:
     file_contents = open(f, 'r')
     fileC = [_ for _ in file_contents]
     npyIndex = f.replace(".txt", "")
     file_contents.close()
     strs = npyIndex.split('/')
-    strs[4] = strs[4].replace('stat', '')
-    strs = strs[4].split('_')
-    strs = strs[1:]
+    strs[5] = strs[5].replace('stat', '')
+    strs = strs[5].split('_')
     i, j, k = [int(s) for s in strs if s.isdigit()]
     dictPercetages[(i, j, k)] = float(fileC[0].replace('\n', ''))
-    dictLength[(i, j, k)] = (float(fileC[0].replace('\n', '')) * 0.7) / vol
+    # dictLength[(i, j, k)] = (float(fileC[0].replace('\n', '')) * 0.7) / vol
     # dictTortuosity1[(i, j, k)] = float(fileC[1].replace('\n', ''))
     # dictTortuosity2[(i, j, k)] = float(fileC[2].replace('\n', ''))
-
-dictList = [dictPercetages, dictLength]
-imNames = ['percentVasc', 'length']
+# intlist = [int(x) for x in l if x.isdigit()]
+dictList = [dictPercetages]
+imNames = ['percentVasc']
 # root = '/media/pranathi/KINGSTON/Pictures/Pictures_ts/'
 # formatOfFiles = 'png'
 # listOfNpys = [os.path.join(root, files) for files in os.listdir(root) if formatOfFiles in files]
@@ -304,20 +302,72 @@ badKeys = [(240, 2694, 3037),
 (590, 12847, 2902),
 (590, 12918, 2902)]
 
+lut = {}
+lut[(255, 0, 0)] = ["red", "hypothalamus"]
+lut[(255, 0, 128)] = ["pink", "medulla"]
+lut[(128, 0, 0)] = ["brown", "olfactory"]
+lut[(0, 255, 0)] = ["green", "cortex"]
+lut[(128, 128, 0)] = ["moss", "thalamus"]
+lut[(0, 0, 255)] = ["blue", "cerebralNuclei"]
+lut[(0, 255, 255)] = ["sky", "midbrain"]
+lut[(128, 0, 128)] = ["purple", "hippocampus"]
+lut[(255, 255, 0)] = ["yellow", "cerebellum"]
+lut[(255, 128, 0)] = ["orange", "pons"]
 
+# rgb = [(94, 79, 162), (50, 136, 189), (102, 194, 165), (230, 245, 152), (255, 255, 191), (254, 224, 139), (253, 174, 97), (244, 109, 67),  (213, 62, 79), (158, 1, 66)]] / 255
+table = np.zeros((22, 10, 4))
 iskpx = 135; iskpz = 10; iskpy = 71
 klist = [x for x in range(2632, 8026 - 68, iskpx) if (x > 2420 and x < 4000) or (x > 5500 and x < (7267 + 135))]
 # dictSlice = {'saggital': 0, 'transverse': 2, 'coronal': 1}
-for i in klist[:-3]:
+for kIndex, i in enumerate(klist[:-3]):
     for index, dictStat in enumerate(dictList):
         maxVal = max(list(dictStat.values()))
         dictStat = {key: value for key, value in dictStat.items() if key[2] == i and key not in badKeys}
-        print(maxVal, [key for key, value in dictStat.items() if value == maxVal])
+        # print(maxVal, [key for key, value in dictStat.items() if value == maxVal])
         dictPercetagesFiltz = {((key[0] - 160) / iskpz, key[1] / iskpy): dictStat[key] / maxVal for key, value in dictStat.items() if key not in badKeys}
-        samplePoints = np.zeros((799 / iskpz, 17480 / iskpy), dtype=np.uint8)
+        samplePoints = np.zeros((799 / iskpz, 17480 / iskpy))
         for coords, values in dictPercetagesFiltz.items():
-            samplePoints[int(coords[0]), int(coords[1])] = 255 * values
+            samplePoints[int(coords[0]), int(coords[1])] = values
+        colorAnnotate = imread("/media/pranathi/DATA/Pictures_ts_depFriday/annotate/transverseSliceAnnotate%i.png" % i)
+        t = colorAnnotate.any(axis=-1)
+        t = samplePoints * t
+        listNZI = list(set(map(tuple, list(np.transpose(np.array(np.where(t != 0)))))))
+        count = 0
+        for key, value in lut.items():
+            region = [samplePoints[tuple((listNZI[index][0], listNZI[index][1]))] for index in range(0, len(listNZI)) if tuple(colorAnnotate[(listNZI[index][0], listNZI[index][1])]) == key]
+            if len(region) != 0:
+                avg = sum(region) / len(region)
+                table[kIndex, count, 0] = avg
+            count += 1
+            # f = open(value[1] + '.txt', 'a')
+            # f.writelines(str(avg) + "\n")
+            # f.close()
+        # rgb = np.zeros(79, 246, 3)
+        # rgb[:, :, 0] = samplePoints
+        # rgb[:, :, 1] = samplePoints
+        # rgb[:, :, 2] = samplePoints
         imsave("transverseSlice" + imNames[index] + "%i.png" % i, samplePoints)
-        # plt.imshow(samplePoints, cmap='winter')
-        # plt.savefig("transverseSlicecmap" + imNames[index] + "%i.png" % i)
 
+# order of array
+# (0, 255, 255) ['sky', 'midbrain']
+# (128, 0, 0) ['brown', 'olfactory']
+# (128, 128, 0) ['moss', 'thalamus']
+# (255, 0, 0) ['red', 'hypothalamus']
+# (128, 0, 128) ['purple', 'hippocampus']
+# (255, 255, 0) ['yellow', 'cerebellum']
+# (0, 0, 255) ['blue', 'cerebralNuclei']
+# (0, 255, 0) ['green', 'cortex']
+# (255, 0, 128) ['pink', 'medulla']
+# (255, 128, 0) ['orange', 'pons']
+regionName = ['midbrain', 'olfactory', 'thalamus', 'hypothalamus', 'hippocampus', 'cerebellum', 'cerebralNuclei', 'cortex', 'medulla', 'pons']
+slices = [str(i) for i in klist[:-3]]
+writer = pandas.ExcelWriter('output.xlsx', engine='xlsxwriter')
+df1 = pandas.DataFrame(table[:, :, 0], slices, regionName)
+df1.to_excel(writer, 'Sheet1')
+df2 = pandas.DataFrame(table[:, :, 1], slices, regionName)
+df2.to_excel(writer, 'Sheet2')
+df3 = pandas.DataFrame(table[:, :, 2], slices, regionName)
+df3.to_excel(writer, 'Sheet3')
+df4 = pandas.DataFrame(table[:, :, 3], slices, regionName)
+df4.to_excel(writer, 'Sheet4')
+writer.save()

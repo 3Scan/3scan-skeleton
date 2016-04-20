@@ -3,14 +3,14 @@ import time
 import multiprocessing
 from multiprocessing import Pool
 import numpy as np
-from skeleton.runscripts.segmentLengthsRV import getSegmentStats
+from skeleton.runscripts.branchAnglesRV import getBranchAngles
 
 
 def convert(tupValList):
     for npy in tupValList:
         path = (npy.replace('skeleton', 'stat')).replace('npy', 'txt')
-        f = open(path, 'a')
-        dist, T1, T2 = getSegmentStats(np.load(npy))
+        f = open(path, 'w')
+        dist, T1, T2 = getBranchAngles(np.load(npy))
         d = [str(dist) + "\n", str(T1) + "\n", str(T2) + "\n"]
         f.writelines(d)
         f.close()
