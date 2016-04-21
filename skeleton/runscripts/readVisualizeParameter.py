@@ -3,6 +3,10 @@ import numpy as np
 # import matplotlib.pyplot as plt
 from scipy.misc import imsave, imread
 import pandas
+import matplotlib.patches as mpatches
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
 
 root = '/media/pranathi/DATA/subsubVolumestatNew_28/'
 formatOfFiles = 'txt'
@@ -359,7 +363,7 @@ for kIndex, i in enumerate(klist[:-3]):
 # (0, 255, 0) ['green', 'cortex']
 # (255, 0, 128) ['pink', 'medulla']
 # (255, 128, 0) ['orange', 'pons']
-regionName = ['midbrain', 'olfactory', 'thalamus', 'hypothalamus', 'hippocampus', 'cerebellum', 'cerebralNuclei', 'cortex', 'medulla', 'pons']
+regionName = ['Midbrain', 'Olfactory Bulb', 'Thalamus', 'Hypothalamus', 'Hippocampus', 'Cerebellum', 'Cerebral Nuclei', 'Cortex', 'Medulla', 'Pons']
 slices = [str(i) for i in klist[:-3]]
 writer = pandas.ExcelWriter('output.xlsx', engine='xlsxwriter')
 df1 = pandas.DataFrame(table[:, :, 0], slices, regionName)
@@ -371,3 +375,64 @@ df3.to_excel(writer, 'Sheet3')
 df4 = pandas.DataFrame(table[:, :, 3], slices, regionName)
 df4.to_excel(writer, 'Sheet4')
 writer.save()
+colors = [(0, 255, 255), (128, 0, 0), (128, 128, 0), (255, 0, 0), (128, 0, 128), (255, 255, 0), (0, 0, 255), (0, 255, 0), (255, 0, 128), (255, 128, 0)]
+colors = [(0, 1, 1), (0.5, 0, 0), (0.5, 0.5, 0), (1, 0, 0), (0.5, 0, 0.5), (1, 1, 0), (0, 0, 1), (0, 1, 0), (1, 0, 0.5), (1, 0.5, 0)]
+colorsarr = np.zeros((10, 3))
+for xdim in range(0, colorsarr.shape[0]):
+    colorsarr[xdim, :] = colors[xdim]
+regionName = ['Midbrain', 'Olfactory Bulb', 'Thalamus', 'Hypothalamus', 'Hippocampus', 'Cerebellum', 'Cerebral Nuclei', 'Cortex', 'Medulla', 'Pons']
+x = []; y = []; z = []
+rnames = []; correctColors = []
+for index in range(0, 22):
+    xlist = [i for i in table[index, :, 0].tolist() if i != 0.0]
+    ylist = [i for i in table[index, :, 1].tolist() if i != 0.0]
+    zlist = [i for i in table[index, :, 3].tolist() if i != 0.0]
+    rlist = [name for name, i in zip(regionName, table[index, :, 3].tolist()) if i != 0.0]
+    clist = [color for color, i in zip(colors, table[index, :, 3].tolist()) if i != 0.0]
+    for xitem, yitem, zitem, citem, ritem in zip(xlist, ylist, zlist, clist, rlist):
+        x.append(xitem)
+        y.append(yitem)
+        z.append(zitem)
+        correctColors.append(citem)
+        rnames.append(ritem)
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.scatter(x, y, z, c=colorsarr, depthshade=False)
+ax.xaxis.set_label_text("Percentage microasculature")
+ax.yaxis.set_label_text("Total length per volume")
+ax.zaxis.set_label_text("Average voxelized tortuosity")
+recs = []
+for i in range(0, len(colors)):
+    recs.append(mpatches.Rectangle((0, 0), 1, 1, fc=colors[i]))
+ax.legend(recs, regionName, loc='upper left', fontsize='small')
+fig.tight_layout()
+fig.savefig("statV.png")
+
+colors = [(0, 1, 1), (0.5, 0, 0), (0.5, 0.5, 0), (1, 0, 0), (0.5, 0, 0.5), (1, 1, 0), (0, 0, 1), (0, 1, 0), (1, 0, 0.5), (1, 0.5, 0)]
+colorsarr = np.zeros((10, 3))
+for xdim in range(0, colorsarr.shape[0]):
+    colorsarr[xdim, :] = colors[xdim]
+regionName = ['Midbrain', 'Olfactory Bulb', 'Thalamus', 'Hypothalamus', 'Hippocampus', 'Cerebellum', 'Cerebral Nuclei', 'Cortex', 'Medulla', 'Pons']
+x = []; y = [];
+rnames = []; correctColors = []
+for index in range(0, 22):
+    xlist = [i for i in table[index, :, 0].tolist() if i != 0.0]
+    ylist = [i for i in table[index, :, 3].tolist() if i != 0.0]
+    rlist = [name for name, i in zip(regionName, table[index, :, 3].tolist()) if i != 0.0]
+    clist = [color for color, i in zip(colors, table[index, :, 3].tolist()) if i != 0.0]
+    for xitem, yitem, citem, ritem in zip(xlist, ylist, clist, rlist):
+        x.append(xitem)
+        y.append(yitem)
+        correctColors.append(citem)
+        rnames.append(ritem)
+fig = plt.figure()
+ax = fig.add_subplot(111)
+ax.scatter(x, y, s=30, c=colors)
+ax.xaxis.set_label_text("Percentage microvasculature")
+ax.yaxis.set_label_text("Average voxelized Tortuosity")
+recs = []
+for i in range(0, len(colors)):
+    recs.append(mpatches.Rectangle((0, 0), 1, 1, fc=colors[i]))
+ax.legend(recs, regionName, loc='upper left', fontsize='small')
+fig.tight_layout()
+fig.savefig("statPV3.png")
