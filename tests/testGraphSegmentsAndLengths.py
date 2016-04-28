@@ -79,42 +79,47 @@ def getDisjointCyclesNoTrees2d(size=(10, 10)):
 
 def test_singlesegment():
     lineGraph = getSingleVoxelLineNobranches()
-    dlinecount, dlinelength, segmentTortuosityline, totalSegmentsLine, typeGraphdict = getSegmentsAndLengths(lineGraph, True, False)
+    dlinecount, dlinelength, segmentTortuosityline, totalSegmentsLine, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentFractalDimensiondict = getSegmentsAndLengths(lineGraph, True, False)
     # plotGraphWithCount(lineGraph, dlinecount)
-    assert totalSegmentsLine == 1 and typeGraphdict[0] == 2
+    print(endP, branchP)
+    assert totalSegmentsLine == 1 and typeGraphdict[0] == 2 and endP == 2 and branchP == 0 and segmentFractalDimensiondict == {}
 
 
 def test_singlecycle():
     donutGraph = getCycleNotree()
-    dcyclecount, dcyclelength, segmentTortuositycycle, totalSegmentsDonut, typeGraphdict = getSegmentsAndLengths(donutGraph, True, False)
+    dcyclecount, dcyclelength, segmentTortuositycycle, totalSegmentsDonut, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentFractalDimensiondict = getSegmentsAndLengths(donutGraph, True, False)
     # plotGraphWithCount(donutGraph, dcyclecount)
-    assert totalSegmentsDonut == 1 and typeGraphdict[0] == 1
+    print(endP, branchP)
+    assert totalSegmentsDonut == 1 and typeGraphdict[0] == 1 and endP == 0 and branchP == 0 and segmentFractalDimensiondict == {}
 
 
 def test_cycleAndTree():
     sampleGraph = getCyclesWithBranchesProtrude()
-    dcycleTreecount, dcycleTreelength, segmentTortuositycycletree, totalSegmentsSampleGraph, typeGraphdict = getSegmentsAndLengths(sampleGraph, True, False)
+    dcycleTreecount, dcycleTreelength, segmentTortuositycycletree, totalSegmentsSampleGraph, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentFractalDimensiondict = getSegmentsAndLengths(sampleGraph, True, False)
     # plotGraphWithCount(sampleGraph, dcycleTreecount)
-    assert totalSegmentsSampleGraph == 4 and typeGraphdict[0] == 3
+    print(endP, branchP)
+    assert totalSegmentsSampleGraph == 4 and typeGraphdict[0] == 3 and endP == 2 and branchP == 2
 
 
 def test_treeNocycle2d():
     crosGraph = getTreeNoCycle2d()
-    dTreecount, dTreelength, segmentTortuositytree, totalSegmentsTree, typeGraphdict = getSegmentsAndLengths(crosGraph, True, False)
-    print(dTreelength)
+    dTreecount, dTreelength, segmentTortuositytree, totalSegmentsTree, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentFractalDimensiondict = getSegmentsAndLengths(crosGraph, True, False)
     # plotGraphWithCount(crosGraph, dTreecount)
-    assert totalSegmentsTree == 4 and typeGraphdict[0] == 4
+    print(endP, branchP)
+    assert totalSegmentsTree == 4 and typeGraphdict[0] == 4 and endP == 4 and branchP == 1
 
 
 def test_disjointDoublecycle():
     multiloopgraph = getDisjointCyclesNoTrees2d()
-    disjointCyclescount, ddisjointCycleslength, segmentTortuositycycles, totalSegmentsDisjointCycles, typeGraphdict = getSegmentsAndLengths(multiloopgraph, True, False)
+    disjointCyclescount, ddisjointCycleslength, segmentTortuositycycles, totalSegmentsDisjointCycles, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentFractalDimensiondict = getSegmentsAndLengths(multiloopgraph, True, False)
     # plotGraphWithCount(multiloopgraph, ddisjointCyclescount)
-    assert totalSegmentsDisjointCycles == 2 and typeGraphdict[0] == 1
+    print(endP, branchP)
+    assert totalSegmentsDisjointCycles == 2 and typeGraphdict[0] == 1 and endP == 0 and branchP == 0
 
 
 def test_treeNocycle3d():
     crosPairgraph = getDisjointTreesNoCycle3d()
-    dTreescount, dTreeslength, segmentTortuositytrees, totalSegmentsTrees, typeGraphdict = getSegmentsAndLengths(crosPairgraph, True, False)
+    dTreescount, dTreeslength, segmentTortuositytrees, totalSegmentsTrees, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentFractalDimensiondict = getSegmentsAndLengths(crosPairgraph, True, False)
     # plotGraphWithCount(crosPairgraph, dTreescount)
-    assert totalSegmentsTrees == 8 and typeGraphdict[0] == 4
+    print(endP, branchP)
+    assert totalSegmentsTrees == 8 and typeGraphdict[0] == 4 and endP == 8 and branchP == 2

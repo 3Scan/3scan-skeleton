@@ -4,6 +4,7 @@ import time
 import numpy as np
 import networkx as nx
 from scipy import ndimage
+from math import log
 
 from skeleton.networkxGraphFromarray import getNetworkxGraphFromarray
 from skeleton.cliqueRemoving import removeCliqueEdges
@@ -91,11 +92,14 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=
     segmentCountdict = {}
     segmentLengthdict = {}
     segmentTortuositydict = {}
+    segmentContractiondict = {}
+    segmentFractalDimensiondict = {}
     totalSegments = 0
     typeGraphdict = {}
     # list of disjointgraphs
     visitedSources = []
     disjointGraphs = list(nx.connected_component_subgraphs(networkxGraph))
+    ndd = nx.degree(networkxGraph)
     for ithDisjointgraph, subGraphskeleton in enumerate(disjointGraphs):
         nodes = subGraphskeleton.nodes()
         if len(nodes) == 1:
@@ -128,6 +132,7 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=
                     segmentCountdict[sourceOnCycle] += 1
                 segmentLengthdict[segmentCountdict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = _getDistanceBetweenPointsInpath(cycle, 1)
                 segmentTortuositydict[segmentCountdict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = 0
+                segmentContractiondict[segmentCountdict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = 0
                 _removeEdgesInVisitedPath(subGraphskeleton, cycle, 1)
             elif set(degreeList) == set((1, 2)) or set(degreeList) == {1}:
                 """ straight line or dichtonomous tree"""
@@ -160,6 +165,7 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=
                     curveDisplacement = np.sqrt(np.sum((np.array(sourceOnLine) - np.array(targetOnLine)) ** 2))
                     segmentLengthdict[segmentCountdict[sourceOnLine], sourceOnLine, targetOnLine] = curveLength
                     segmentTortuositydict[segmentCountdict[sourceOnLine], sourceOnLine, targetOnLine] = curveLength / curveDisplacement
+                    segmentContractiondict[segmentCountdict[sourceOnLine], sourceOnLine, targetOnLine] = curveDisplacement / curveLength
                     edges = subGraphskeleton.edges()
                     subGraphskeleton.remove_edges_from(edges)
                     typeGraphdict[ithDisjointgraph] = 2
@@ -186,6 +192,7 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=
                                     curveDisplacement = np.sqrt(np.sum((np.array(sourceOnTree) - np.array(item)) ** 2))
                                     segmentLengthdict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength
                                     segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength / curveDisplacement
+                                    segmentContractiondict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveDisplacement / curveLength
                                     _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
             branchpoints = [k for (k, v) in nodeDegreedict.items() if v != 2 and v != 1]
             endpoints = [k for (k, v) in nodeDegreedict.items() if v == 1]
@@ -207,6 +214,9 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=
                         curveDisplacement = np.sqrt(np.sum((np.array(sourceOnTree) - np.array(item)) ** 2))
                         segmentLengthdict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength
                         segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength / curveDisplacement
+                        segmentContractiondict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveDisplacement / curveLength
+                        if log(curveLength) != 0.0:
+                            segmentFractalDimensiondict[segmentCountdict[sourceOnTree], sourceOnTree, item] = log(curveDisplacement) / log(curveLength)
                         _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
             if subGraphskeleton.number_of_edges() != 0:
                 listOfPerms = list(itertools.combinations(branchpoints, 2))
@@ -225,6 +235,8 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=
                             curveDisplacement = np.sqrt(np.sum((np.array(sourceOnTree) - np.array(item)) ** 2))
                             segmentLengthdict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength
                             segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength / curveDisplacement
+                            segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveDisplacement / curveLength
+                            segmentFractalDimensiondict[segmentCountdict[sourceOnTree], sourceOnTree, item] = log(curveDisplacement) / log(curveLength)
                             _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
             cycleList = nx.cycle_basis(subGraphskeleton)
             if subGraphskeleton.number_of_edges() != 0 and len(cycleList) != 0:
@@ -237,13 +249,17 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=
                         segmentCountdict[sourceOnCycle] += 1
                     segmentLengthdict[segmentCountdict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = _getDistanceBetweenPointsInpath(cycle, 1)
                     segmentTortuositydict[segmentCountdict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = 0
+                    segmentContractiondict[segmentCountdict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = 0
                     _removeEdgesInVisitedPath(subGraphskeleton, cycle, 1)
         assert subGraphskeleton.number_of_edges() == 0
     totalSegments = len(segmentLengthdict)
+    listCounts = list(segmentCountdict.values())
+    avgBranching = sum(listCounts) / len(segmentCountdict)
+    endP = [1 for key, value in ndd.items() if value == 1]
+    branchP = [1 for key, value in ndd.items() if value > 2]
     print("time taken to calculate segments and their lengths is %0.3f seconds" % (time.time() - startt))
-    return segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict
-
+    return segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching, sum(endP), sum(branchP), segmentContractiondict, segmentFractalDimensiondict
 
 if __name__ == '__main__':
     shskel = np.load(input("enter a path to shortest path skeleton volume------"))
-    segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict = getSegmentsAndLengths(shskel)
+    segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentFractalDimensiondict = getSegmentsAndLengths(shskel)
