@@ -406,7 +406,7 @@ for i in range(0, len(colors)):
     recs.append(mpatches.Rectangle((0, 0), 1, 1, fc=colors[i]))
 ax.legend(recs, regionName, loc='upper left', fontsize='small')
 fig.tight_layout()
-fig.savefig("statV.png")
+fig.savefig("statVtotal.png")
 
 colors = [(0, 1, 1), (0.5, 0, 0), (0.5, 0.5, 0), (1, 0, 0), (0.5, 0, 0.5), (1, 1, 0), (0, 0, 1), (0, 1, 0), (1, 0, 0.5), (1, 0.5, 0)]
 colorsarr = np.zeros((10, 3))
@@ -436,3 +436,12 @@ for i in range(0, len(colors)):
 ax.legend(recs, regionName, loc='upper left', fontsize='small')
 fig.tight_layout()
 fig.savefig("statPV3.png")
+
+iskpx = 135; iskpz = 10; iskpy = 71
+klist = [kv for kv in range(2632, 8026 - 68, iskpx) if (kv > 2420 and kv < 4000) or (kv > 5500 and kv < (7267 + 135))]
+# # dictSlice = {'saggital': 0, 'transverse': 2, 'coronal': 1}
+image = imread("sagittalUpsampledAllen.png")
+for i in klist[:-3]:
+    if i >= 5602:
+        image[(i / 7), :, :] = 0
+imsave("sagittalAllenULL.png", image)
