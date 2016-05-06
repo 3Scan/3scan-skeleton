@@ -9,8 +9,8 @@ from skeleton.rotationalOperators import directionList
    http://web.inf.u-szeged.hu/ipcg/publications/papers/PalagyiKuba_GMIP1999.pdf
 """
 
-# import os
-# lookUparray = np.load(os.path.join(os.path.dirname(__file__), 'lookuparray.npy'))
+import os
+lookUparray = np.load(os.path.join(os.path.dirname(__file__), 'lookuparray.npy'))
 
 """
 each of the 12 iterations corresponds to each of the following
@@ -33,10 +33,9 @@ def getThinned3D(image):
     numPixelsremoved = 1
     while numPixelsremoved > 0:
         pixBefore = padImage.sum()
-        convImage = convolve(np.uint64(padImage), directionList[0], mode='constant', cval=0)
-        convImage[padImage == 0] = 0
         for i in range(0, 12):
-            lookUparray = np.load("lookuparray%i.png" % i)
+            convImage = convolve(np.uint64(padImage), directionList[i], mode='constant', cval=0)
+            convImage[padImage == 0] = 0
             padImage[lookUparray[convImage[:]] == 1] = 0
         numPixelsremoved = pixBefore - padImage.sum()
     print("done %i number of pixels in %0.2f seconds" % (np.sum(image), time.time() - start_skeleton))
