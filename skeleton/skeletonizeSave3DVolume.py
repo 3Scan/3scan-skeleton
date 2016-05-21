@@ -7,7 +7,7 @@ import os
 
 from skeleton.radiusOfNodes import _getBouondariesOfimage
 from skeleton.thin3DVolumeRV import getThinned3D
-from skeleton.unitwidthcurveskeleton import getShortestPathskeleton
+from skeleton.unitwidthcurveskeleton import getShortestPathSkeleton
 
 """
     takes in 2D image slices from the root directory
@@ -108,7 +108,7 @@ def skeletonizeAndSave(contrast=False, aspectRatio=[1, 1, 1], zoom=True, findMip
         np.save(root + 'twodkskeletonslices/' + 'Binary.npy', thresholdedIm)
         skeletonIm = getThinned3D(thresholdedIm)
         np.save(root + 'twodkskeletonslices/' + 'Skeleton.npy', skeletonIm)
-        shortestPathSkel = getShortestPathskeleton(skeletonIm)
+        shortestPathSkel = getShortestPathSkeleton(skeletonIm)
         for i in range(skeletonIm.shape[0]):
             imsave(root + 'twodkskeletonslices/' + 'skeletonIm%i.png' % i, skeletonIm[i] * 255)
         np.save(root + 'twodkskeletonslices/' + 'ShortestPathskeleton.npy', shortestPathSkel)

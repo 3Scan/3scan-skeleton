@@ -75,7 +75,7 @@ def _getAllLabelledarray(skeletonIm, valencearray):
     return skeletonImLabel
 
 
-def getShortestPathskeleton(skeletonIm):
+def getShortestPathSkeleton(skeletonIm):
     se = np.ones([3] * 3, dtype=np.uint8)
     skeletonImNew = np.zeros_like(skeletonIm, dtype=bool)
     valencearray = convolve(np.uint8(skeletonIm), template, mode='constant', cval=0)

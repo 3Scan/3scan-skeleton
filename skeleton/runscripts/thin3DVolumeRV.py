@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.ndimage.filters import convolve
 from skeleton.rotationalOperators import directionList
-from skeleton.runscripts.unitwidthcurveskeletonRV import getShortestPathskeleton
+from skeleton.runscripts.unitwidthcurveskeletonRV import getShortestPathSkeleton
 
 
 """
@@ -37,4 +37,4 @@ def getSkeleton3D(image):
             convImage[padImage == 0] = 0
             padImage[lookUparray[convImage[:]] == 1] = 0
         numPixelsremoved = pixBefore - padImage.sum()
-    return getShortestPathskeleton(padImage[1:zOrig + 1, 1:yOrig + 1, 1:xOrig + 1])
+    return getShortestPathSkeleton(padImage[1:zOrig + 1, 1:yOrig + 1, 1:xOrig + 1])
