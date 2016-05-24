@@ -90,10 +90,17 @@ def getShortestPathSkeleton(skeletonIm):
         objectify = ndimage.find_objects(label)
         exits = np.logical_or(skeletonLabelled == 1, skeletonLabelled == 2)
         for i in range(0, noOfCrowdedregions):
+            print("cleaning crowded region # {} / {}".format(i, noOfCrowdedregions))
             loc = objectify[i]
-            zcoords = loc[0]; ycoords = loc[1]; xcoords = loc[2]
-            regionLowerBoundZ = zcoords.start - 1; regionLowerBoundY = ycoords.start - 1; regionLowerBoundX = xcoords.start - 1
-            regionUpperBoundZ = zcoords.stop + 1; regionUpperBoundY = ycoords.stop + 1; regionUpperBoundX = xcoords.stop + 1
+            zcoords = loc[0]
+            ycoords = loc[1]
+            xcoords = loc[2]
+            regionLowerBoundZ = zcoords.start - 1
+            regionLowerBoundY = ycoords.start - 1
+            regionLowerBoundX = xcoords.start - 1
+            regionUpperBoundZ = zcoords.stop + 1
+            regionUpperBoundY = ycoords.stop + 1
+            regionUpperBoundX = xcoords.stop + 1
             bounds = [regionLowerBoundZ, regionLowerBoundY, regionLowerBoundX, regionUpperBoundZ, regionUpperBoundY, regionUpperBoundX]
             bounds = [0 if i < 0 else i for i in bounds]
             dilatedValenceObjectLoc = valencearray[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]]
