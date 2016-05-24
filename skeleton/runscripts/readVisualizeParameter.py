@@ -8,14 +8,14 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 
-root = '/media/pranathi/DATA/subsubVolumestatNew_28/'
+root = '/home/pranathi/Desktop/subsubVolumestatNew_28_remain/'
 vol = 95 * 95 * 95
 formatOfFiles = 'txt'
 listOfNpys = [os.path.join(root, files) for files in os.listdir(root) if os.path.getsize(os.path.join(root, files)) != 82]
 listOfNpys = [os.path.join(root, files) for files in os.listdir(root) if os.path.getsize(os.path.join(root, files)) != 0]
 listOfNpys.sort()
 dictTortuosity2 = {}; dictTortuosity1 = {}
-dictPercetages = {}; dictLength = {}
+# dictPercetages = {}; dictLength = {}
 for f in listOfNpys:
     file_contents = open(f, 'r')
     fileC = [_ for _ in file_contents]
@@ -25,13 +25,13 @@ for f in listOfNpys:
     strs[5] = strs[5].replace('stat', '')
     strs = strs[5].split('_')
     i, j, k = [int(s) for s in strs if s.isdigit()]
-    dictPercetages[(i, j, k)] = float(fileC[0].replace('\n', ''))
+    # dictPercetages[(i, j, k)] = float(fileC[0].replace('\n', ''))
     # dictLength[(i, j, k)] = (float(fileC[0].replace('\n', '')) * 0.7) / vol
-    # dictTortuosity1[(i, j, k)] = float(fileC[1].replace('\n', ''))
-    # dictTortuosity2[(i, j, k)] = float(fileC[2].replace('\n', ''))
+    dictTortuosity1[(i, j, k)] = float(fileC[0].replace('\n', ''))
+    dictTortuosity2[(i, j, k)] = float(fileC[1].replace('\n', ''))
 # intlist = [int(x) for x in l if x.isdigit()]
-dictList = [dictPercetages]
-imNames = ['percentVasc']
+dictList = [dictTortuosity1, dictTortuosity2]
+imNames = ['branchPoints', 'endPoints']
 # root = '/media/pranathi/KINGSTON/Pictures/Pictures_ts/'
 # formatOfFiles = 'png'
 # listOfNpys = [os.path.join(root, files) for files in os.listdir(root) if formatOfFiles in files]
@@ -90,12 +90,11 @@ lut[(128, 0, 128)] = ["purple", "hippocampus"]
 lut[(255, 255, 0)] = ["yellow", "cerebellum"]
 lut[(255, 128, 0)] = ["orange", "pons"]
 
-table = np.zeros((22, 10, 4))
-table1 = np.zeros((22, 10, 4))
-table2 = np.zeros((22, 10, 4))
+table = np.zeros((22, 10, 6))
+table1 = np.zeros((22, 10, 6))
+table2 = np.zeros((22, 10, 6))
 iskpx = 135; iskpz = 10; iskpy = 71
 klist = [x for x in range(2632, 8026 - 68, iskpx) if (x > 2420 and x < 4000) or (x > 5500 and x < (7267 + 135))]
-# dictSlice = {'saggital': 0, 'transverse': 2, 'coronal': 1}
 for kIndex, i in enumerate(klist[:-3]):
     for index, dictStat in enumerate(dictList):
         dictStat = {key: value for key, value in dictStat.items() if key not in badKeys}
@@ -115,18 +114,11 @@ for kIndex, i in enumerate(klist[:-3]):
             region = [samplePoints[tuple((listNZI[index][0], listNZI[index][1]))] for index in range(0, len(listNZI)) if tuple(colorAnnotate[(listNZI[index][0], listNZI[index][1])]) == key]
             if len(region) != 0:
                 avg = sum(region) / len(region)
-                table[kIndex, count, 0] = sum(region)
-                table1[kIndex, count, 0] = len(region)
-                table2[kIndex, count, 0] = avg
+                table[kIndex, count, index + 4] = sum(region)
+                table1[kIndex, count, index + 4] = len(region)
+                table2[kIndex, count, index + 4] = avg
             count += 1
-            # f = open(value[1] + '.txt', 'a')
-            # f.writelines(str(avg) + "\n")
-            # f.close()
-        # rgb = np.zeros(79, 246, 3)
-        # rgb[:, :, 0] = samplePoints
-        # rgb[:, :, 1] = samplePoints
-        # rgb[:, :, 2] = samplePoints
-        # imsave("transverseSlice" + imNames[index] + "%i.png" % i, samplePoints)
+        imsave("transverseSlice" + imNames[index] + "%i.png" % i, samplePoints)
 
 # order of array
 # (0, 255, 255) ['sky', 'midbrain']
@@ -139,18 +131,10 @@ for kIndex, i in enumerate(klist[:-3]):
 # (0, 255, 0) ['green', 'cortex']
 # (255, 0, 128) ['pink', 'medulla']
 # (255, 128, 0) ['orange', 'pons']
+# cerebellum highest branch points (250, 706, 3577)
+# medulla endpoints (630, 2197, 3307)
 regionName = ['Midbrain', 'Olfactory Bulb', 'Thalamus', 'Hypothalamus', 'Hippocampus', 'Cerebellum', 'Cerebral Nuclei', 'Cortex', 'Medulla', 'Pons']
 slices = [str(i) for i in klist[:-3]]
-writer = pandas.ExcelWriter('output.xlsx', engine='xlsxwriter')
-df1 = pandas.DataFrame(table[:, :, 0], slices, regionName)
-df1.to_excel(writer, 'Sheet1')
-df2 = pandas.DataFrame(table[:, :, 1], slices, regionName)
-df2.to_excel(writer, 'Sheet2')
-df3 = pandas.DataFrame(table[:, :, 2], slices, regionName)
-df3.to_excel(writer, 'Sheet3')
-df4 = pandas.DataFrame(table[:, :, 3], slices, regionName)
-df4.to_excel(writer, 'Sheet4')
-writer.save()
 colors = [(0, 255, 255), (128, 0, 0), (128, 128, 0), (255, 0, 0), (128, 0, 128), (255, 255, 0), (0, 0, 255), (0, 255, 0), (255, 0, 128), (255, 128, 0)]
 colors = [(0, 1, 1), (0.5, 0, 0), (0.5, 0.5, 0), (1, 0, 0), (0.5, 0, 0.5), (1, 1, 0), (0, 0, 1), (0, 1, 0), (1, 0, 0.5), (1, 0.5, 0)]
 colorsarr = np.zeros((10, 3))
@@ -215,21 +199,12 @@ ax.legend(recs, regionName, loc='upper left', fontsize='small')
 fig.tight_layout()
 fig.savefig("statPV3.png")
 
-iskpx = 135; iskpz = 10; iskpy = 71
-klist = [kv for kv in range(2632, 8026 - 68, iskpx) if (kv > 2420 and kv < 4000) or (kv > 5500 and kv < (7267 + 135))]
-# # dictSlice = {'saggital': 0, 'transverse': 2, 'coronal': 1}
-image = imread("sagittalUpsampledAllen.png")
-for i in klist[:-3]:
-    image[(i / 7), :, :] = 0
-imsave("all.png", image)
-
-topIm = imread("Mouse_brain_sagittal__582x279.png")
 klist = [kv for kv in range(2632, 8026 - 68, 135) if (kv > 2420 and kv < 4000) or (kv > 5500 and kv < (6952 + 135))]
 klist1 = [kv for kv in klist if kv < 5602]
 klist1.reverse()
 klist2 = [kv for kv in klist if kv >= 5602]
 klist2.reverse()
-imNames = ['length', 'totTortuosity', 'voxTortuosity']
+imNames = ['branchPoints', 'endPoints']
 im = np.ones((917, 582), dtype=np.uint8) * 255
 for imName in imNames:
     for i in range(1, 12):
@@ -260,30 +235,6 @@ for imName in imNames:
     img_masked = color.hsv2rgb(img_hsv)
     imsave("result" + imName + ".png", img_masked)
 
-# klist = [x for x in range(2632, 8026 - 68, 135) if (x > 2420 and x < 4000) or (x > 5500 and x < (7267 + 135))]
-regionName = ['Midbrain', 'Olfactory Bulb', 'Thalamus', 'Hypothalamus', 'Hippocampus', 'Cerebellum', 'Cerebral Nuclei', 'Cortex', 'Medulla', 'Pons']
-columnName = ["Samples", "Sum(F1)", "Average(F1)", "Sum(F2)", "Average(F2)", "Sum(F3)", "Average(F3)", "Sum(F4)", "Average(F4)"]
-slices = [str(kval) for kval in klist[:-3]]
-writer = pandas.ExcelWriter('output.xlsx', engine='xlsxwriter')
-for index in range(0, 10):
-    df1 = pandas.DataFrame(np.vstack((table1[:, index, 0], table[:, index, 0], table2[:, index, 0], table[:, index, 1], table2[:, index, 1], table[:, index, 2], table2[:, index, 2], table[:, index, 3], table2[:, index, 3])).T, slices, columnName)
-    df1.to_excel(writer, regionName[index])
-writer.save()
-
-
-# In [14]:         print(colorAnnotate[int((keyMax[0][0] - 160) / iskpz), int(keyMax[0][1] / iskpy), :])
-# [255 255   0]
-
-# In [15]: keyMax
-# Out[15]: [(300, 2694, 3577)]
-# 0.0936540161561 [(300, 2694, 3577)]
-
-# 0.0037841488014591046 [(890, 7451, 3982)]
-# [  0 255   0]
-# 7.20494207827 [(290, 9226, 5602)]
-# [128   0 128]
-# 6.24894418926 [(280, 11072, 5872)]
-# [0 255 0]
 AvgFeature = np.zeros((table.shape[1], table.shape[2]))
 for i in range(0, table.shape[2]):
     for j in range(0, table.shape[1]):
