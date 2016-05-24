@@ -92,15 +92,15 @@ def getNetworkxGraphFromarray(arr, skeletonIm=True):
 
     """
     from skeleton.thin3DVolume import getThinned3D
-    from skeleton.unitwidthcurveskeleton import getShortestPathskeleton
+    from skeleton.unitwidthcurveskeleton import getShortestPathSkeleton
     from skimage.morphology import skeletonize as getSkeletonize2D
     assert arr.max() == 1
     assert arr.min() in [0, 1]
     startt = time.time()
     if arr.ndim == 3 and skeletonIm == 0:
-        skeleton = getShortestPathskeleton(getThinned3D(arr))
+        skeleton = getShortestPathSkeleton(getThinned3D(arr))
     elif arr.ndim == 2 and skeletonIm == 0:
-        skeleton = getShortestPathskeleton(getSkeletonize2D(arr))
+        skeleton = getShortestPathSkeleton(getSkeletonize2D(arr))
     else:
         skeleton = arr
     dictOfIndicesAndAdjacentcoordinates = _setAdjacencylistarray(skeleton)

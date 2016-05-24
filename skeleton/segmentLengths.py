@@ -153,7 +153,8 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=
                     """ each node is connected to one or two other nodes implies it is a line,
                     set tortuosity to 1"""
                     endpoints = [k for (k, v) in nodeDegreedict.items() if v == 1]
-                    sourceOnLine = endpoints[0]; targetOnLine = endpoints[1]
+                    sourceOnLine = endpoints[0]
+                    targetOnLine = endpoints[1]
                     if sourceOnLine not in visitedSources:
                         segmentCountdict[sourceOnLine] = 1
                         visitedSources.append(sourceOnLine)
@@ -197,7 +198,8 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=
             branchpoints = [k for (k, v) in nodeDegreedict.items() if v != 2 and v != 1]
             endpoints = [k for (k, v) in nodeDegreedict.items() if v == 1]
             branchendpoints = branchpoints + endpoints
-            branchpoints.sort(); endpoints.sort()
+            branchpoints.sort()
+            endpoints.sort()
             listOfPerms = list(itertools.product(branchpoints, endpoints))
             for sourceOnTree, item in listOfPerms:
                 if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:

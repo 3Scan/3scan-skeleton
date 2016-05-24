@@ -196,7 +196,7 @@ def _findShortestPathFromCRcenterToexit(valencearray, source, dest):
     return path
 
 
-def getShortestPathskeleton(skeletonIm):
+def getShortestPathSkeleton(skeletonIm):
     se = np.ones([3] * skeletonIm.ndim, dtype=np.uint8)
     startt = time.time()
     aShape = skeletonIm.shape
@@ -221,11 +221,18 @@ def getShortestPathskeleton(skeletonIm):
             objectify = ndimage.find_objects(label)
             exits = np.logical_or(skeletonLabelled == 1, skeletonLabelled == 2)
             for i in range(0, noOfCrowdedregions):
+                print("cleaning crowded region # {}".format(i))
                 loc = objectify[i]
                 if skeletonIm.ndim == 3:
-                    zcoords = loc[0]; ycoords = loc[1]; xcoords = loc[2]
-                    regionLowerBoundZ = zcoords.start - 1; regionLowerBoundY = ycoords.start - 1; regionLowerBoundX = xcoords.start - 1
-                    regionUpperBoundZ = zcoords.stop + 1; regionUpperBoundY = ycoords.stop + 1; regionUpperBoundX = xcoords.stop + 1
+                    zcoords = loc[0]
+                    ycoords = loc[1]
+                    xcoords = loc[2]
+                    regionLowerBoundZ = zcoords.start - 1
+                    regionLowerBoundY = ycoords.start - 1
+                    regionLowerBoundX = xcoords.start - 1
+                    regionUpperBoundZ = zcoords.stop + 1
+                    regionUpperBoundY = ycoords.stop + 1
+                    regionUpperBoundX = xcoords.stop + 1
                     bounds = [regionLowerBoundZ, regionLowerBoundY, regionLowerBoundX, regionUpperBoundZ, regionUpperBoundY, regionUpperBoundX]
                     if outOfPixBounds(tuple((bounds[0], bounds[1], bounds[2])), aShape) or outOfPixBounds(tuple((bounds[3], bounds[4], bounds[5])), aShape):
                         for count, i in enumerate(bounds):
@@ -241,9 +248,12 @@ def getShortestPathskeleton(skeletonIm):
                         dilatedLabelledObjectLoc1 = _findShortestPathFromCRcenterToexit(dilatedLabelledObjectLoc, src, dest)
                         skeletonImNew[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]] = np.logical_or(skeletonImNew[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]], dilatedLabelledObjectLoc1)
                 else:
-                    ycoords = loc[0]; xcoords = loc[1]
-                    regionLowerBoundY = ycoords.start - 1; regionLowerBoundX = xcoords.start - 1
-                    regionUpperBoundY = ycoords.stop + 1; regionUpperBoundX = xcoords.stop + 1
+                    ycoords = loc[0]
+                    xcoords = loc[1]
+                    regionLowerBoundY = ycoords.start - 1
+                    regionLowerBoundX = xcoords.start - 1
+                    regionUpperBoundY = ycoords.stop + 1
+                    regionUpperBoundX = xcoords.stop + 1
                     bounds = [regionLowerBoundY, regionLowerBoundX, regionUpperBoundY, regionUpperBoundX]
                     if outOfPixBounds(tuple((bounds[0], bounds[1])), aShape) or outOfPixBounds(tuple((bounds[2], bounds[3])), aShape):
                         for count, i in enumerate(bounds):
@@ -271,4 +281,4 @@ def getShortestPathskeleton(skeletonIm):
 
 if __name__ == '__main__':
     skeletonIm = np.load(input("enter a path to your skeleton volume with crowded regions------"))
-    shortestPathSkel = getShortestPathskeleton(skeletonIm)
+    shortestPathSkel = getShortestPathSkeleton(skeletonIm)
