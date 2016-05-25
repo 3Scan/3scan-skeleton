@@ -100,7 +100,7 @@ def getNetworkxGraphFromarray(arr, skeletonIm=True):
     if arr.ndim == 3 and skeletonIm == 0:
         skeleton = getShortestPathSkeleton(getThinned3D(arr))
     elif arr.ndim == 2 and skeletonIm == 0:
-        skeleton = getShortestPathSkeleton(getSkeletonize2D(arr))
+        skeleton = getSkeletonize2D(arr)
     else:
         skeleton = arr
     dictOfIndicesAndAdjacentcoordinates = _setAdjacencylistarray(skeleton)

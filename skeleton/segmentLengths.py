@@ -237,7 +237,7 @@ def getSegmentsAndLengths(imArray, skelOrNot=True, arrayOrNot=True, aspectRatio=
                             curveDisplacement = np.sqrt(np.sum((np.array(sourceOnTree) - np.array(item)) ** 2))
                             segmentLengthdict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength
                             segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength / curveDisplacement
-                            segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveDisplacement / curveLength
+                            segmentContractiondict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveDisplacement / curveLength
                             segmentFractalDimensiondict[segmentCountdict[sourceOnTree], sourceOnTree, item] = log(curveDisplacement) / log(curveLength)
                             _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
             cycleList = nx.cycle_basis(subGraphskeleton)
