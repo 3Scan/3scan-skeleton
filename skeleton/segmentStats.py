@@ -230,7 +230,7 @@ def getSegmentStats(imArray):
                         segmentLengthdict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength
                         segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength / curveDisplacement
                         segmentContractiondict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveDisplacement / curveLength
-                        if log(curveLength) != 0.0:
+                        if log(curveDisplacement) != 0.0:
                             segmentHausdorffDimensiondict[segmentCountdict[sourceOnTree], sourceOnTree, item] = log(curveLength) / log(curveDisplacement)
                         _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
             if subGraphskeleton.number_of_edges() != 0:
@@ -251,7 +251,8 @@ def getSegmentStats(imArray):
                             segmentLengthdict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength
                             segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength / curveDisplacement
                             segmentContractiondict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveDisplacement / curveLength
-                            segmentHausdorffDimensiondict[segmentCountdict[sourceOnTree], sourceOnTree, item] = log(curveLength) / log(curveDisplacement)
+                            if log(curveDisplacement) != 0.0:
+                                segmentHausdorffDimensiondict[segmentCountdict[sourceOnTree], sourceOnTree, item] = log(curveLength) / log(curveDisplacement)
                             _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
             cycleList = nx.cycle_basis(subGraphskeleton)
             if subGraphskeleton.number_of_edges() != 0 and len(cycleList) != 0:
