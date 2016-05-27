@@ -1,4 +1,5 @@
 from scipy import ndimage
+from six.moves import cPickle
 
 from KESMAnalysis.imgtools import loadStack, saveStack
 from KESMAnalysis.pipeline.pipelineComponents import watershedMarker
@@ -32,3 +33,11 @@ saveStack(skeletonVol, filePath + "/skeleton")
 # vectorize and find metrics
 segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict = getSegmentStats(skeletonVol)
 
+# save the metrics dumping using cPickle as a list of elements as obtained from getSegmentStats
+# as segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict
+
+outputList = [segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict]
+cPickle.dump(outputList, open(filePath + "metrics.p", "wb"))
+
+# to load the statistics
+# outputList = cPickle.load(open("metrics.p", "rb"))
