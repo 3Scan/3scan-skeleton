@@ -7,7 +7,7 @@ import time
 from skeleton.cliqueRemoving import removeCliqueEdges
 from skeleton.networkxGraphFromarray import getNetworkxGraphFromarray
 from skeleton.radiusOfNodes import getRadiusByPointsOnCenterline
-from skeleton.segmentLengths import _removeEdgesInVisitedPath
+from skeleton.segmentStats import _removeEdgesInVisitedPath
 
 
 """
@@ -24,7 +24,7 @@ def getObjWrite(imArray, pathTosave, aspectRatio=None):
     """
     startt = time.time()  # for calculating time taken to write to an obj file
     if type(imArray) == np.ndarray:
-        networkxGraph = getNetworkxGraphFromarray(imArray, True)  # converts array to a networkx graph(based on non zero coordinates and the adjacent nonzeros)
+        networkxGraph = getNetworkxGraphFromarray(imArray)  # converts array to a networkx graph(based on non zero coordinates and the adjacent nonzeros)
         networkxGraph = removeCliqueEdges(networkxGraph)  # remove cliques in the graph
     else:
         networkxGraph = imArray
@@ -40,7 +40,10 @@ def getObjWrite(imArray, pathTosave, aspectRatio=None):
         if aspectRatio is not None:
             originalVertex = list(vertex)
             newVertex = [0] * len(vertex)
-            newVertex[0] = originalVertex[0] * aspectRatio[0]; newVertex[1] = originalVertex[2] * aspectRatio[1]; newVertex[2] = originalVertex[1] * aspectRatio[2]; vertex = tuple(newVertex)
+            newVertex[0] = originalVertex[0] * aspectRatio[0]
+            newVertex[1] = originalVertex[2] * aspectRatio[1]
+            newVertex[2] = originalVertex[1] * aspectRatio[2]
+            vertex = tuple(newVertex)
         strsVertices.append("v " + " ".join(str(vertex[i - 2]) for i in range(0, len(vertex))) + "\n")  # add strings of vertices to obj file
     objFile.writelines(strsVertices)  # write strings to obj file
     networkGraphIntegerNodes = nx.relabel_nodes(networkxGraph, mapping, False)
@@ -77,7 +80,8 @@ def getObjWrite(imArray, pathTosave, aspectRatio=None):
                 continue
             else:
                 endpoints = [k for (k, v) in nodeDegreedict.items() if v == 1]
-                sourceOnLine = endpoints[0]; targetOnLine = endpoints[1]
+                sourceOnLine = endpoints[0]
+                targetOnLine = endpoints[1]
                 simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnLine, target=targetOnLine))
                 simplePath = simplePaths[0]
                 strsSeq.append("l " + " ".join(str(x) for x in simplePath) + "\n")
@@ -101,7 +105,8 @@ def getObjWrite(imArray, pathTosave, aspectRatio=None):
             branchpoints = [k for (k, v) in nodeDegreedict.items() if v != 2 and v != 1]
             endpoints = [k for (k, v) in nodeDegreedict.items() if v == 1]
             branchendpoints = branchpoints + endpoints
-            branchpoints.sort(); endpoints.sort()
+            branchpoints.sort()
+            endpoints.sort()
             listOfPerms = list(itertools.product(branchpoints, endpoints))
             for sourceOnTree, item in listOfPerms:
                 if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
@@ -154,7 +159,10 @@ def getObjWriteWithradius(imArray, pathTosave, dictOfNodesAndRadius, aspectRatio
         if aspectRatio is not None:
             originalVertex = list(vertex)
             newVertex = [0] * len(vertex)
-            newVertex[0] = originalVertex[0] * aspectRatio[0]; newVertex[1] = originalVertex[2] * aspectRatio[1]; newVertex[2] = originalVertex[1] * aspectRatio[2]; vertex = tuple(newVertex)
+            newVertex[0] = originalVertex[0] * aspectRatio[0]
+            newVertex[1] = originalVertex[2] * aspectRatio[1]
+            newVertex[2] = originalVertex[1] * aspectRatio[2]
+            vertex = tuple(newVertex)
         strsVertices[index] = "v " + " ".join(str(vertex[i - 2]) for i in range(0, len(vertex))) + "\n"  # add strings of vertices to obj file
         strsVertices[index + len(verticesSorted)] = "vt " + " " + str(dictOfNodesAndRadius[vertex]) + "\n"
     objFile.writelines(strsVertices)  # write strings to obj file
@@ -192,7 +200,8 @@ def getObjWriteWithradius(imArray, pathTosave, dictOfNodesAndRadius, aspectRatio
                 continue
             else:
                 endpoints = [k for (k, v) in nodeDegreedict.items() if v == 1]
-                sourceOnLine = endpoints[0]; targetOnLine = endpoints[1]
+                sourceOnLine = endpoints[0]
+                targetOnLine = endpoints[1]
                 simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnLine, target=targetOnLine))
                 simplePath = simplePaths[0]
                 strsSeq.append("l " + " ".join(str(x) for x in simplePath) + "\n")
@@ -216,7 +225,8 @@ def getObjWriteWithradius(imArray, pathTosave, dictOfNodesAndRadius, aspectRatio
             branchpoints = [k for (k, v) in nodeDegreedict.items() if v != 2 and v != 1]
             endpoints = [k for (k, v) in nodeDegreedict.items() if v == 1]
             branchendpoints = branchpoints + endpoints
-            branchpoints.sort(); endpoints.sort()
+            branchpoints.sort()
+            endpoints.sort()
             listOfPerms = list(itertools.product(branchpoints, endpoints))
             for sourceOnTree, item in listOfPerms:
                 if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:

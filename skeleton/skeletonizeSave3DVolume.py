@@ -133,7 +133,7 @@ def skeletonizeAndSave(contrast=False, aspectRatio=[1, 1, 1], zoom=True, findMip
 def main():
     aspectRatio = input("please enter resolution of a voxel in 3D with resolution in z followed by y and x")
     aspectRatio = [float(item) for item in aspectRatio.split(' ')]
-    ShortestPathskeleton, boundaryIm = skeletonizeAndSave(zoom=True, aspectRatio))
+    ShortestPathskeleton, boundaryIm = skeletonizeAndSave(zoom=True, aspectRatio=aspectRatio)
 
 
 if __name__ == '__main__':

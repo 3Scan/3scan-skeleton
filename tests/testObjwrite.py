@@ -21,7 +21,8 @@ def getCyclesWithBranchesProtrude(size=(10, 10)):
     frame[2:-2, 2:-2] = 1
     frame[4:-4, 4:-4] = 0
     frame = getSkeletonize2D(frame)
-    frame[1, 5] = 1; frame[7, 5] = 1;
+    frame[1, 5] = 1
+    frame[7, 5] = 1
     sampleImage = np.zeros((3, 10, 10), dtype=np.uint8)
     sampleImage[1] = frame
     return sampleImage
