@@ -133,7 +133,7 @@ def getShortestPathSkeleton(skeletonIm):
                 skeletonImNew[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]] = np.logical_or(skeletonImNew[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]], dilatedLabelledObjectLoc1)
         skeletonImNew[skeletonLabelled < 4] = True
         skeletonImNew[skeletonLabelled == 0] = False
-        skeletonImNew[np.logical_and(valencearray == 0, skeletonIm == 1)] = 1  # see if isolated voxels can be removed (answer: yes)
+        skeletonImNew[np.logical_and(valencearray == 0, skeletonIm == 1)] = 0  # see if isolated voxels can be removed (answer: yes)
         print("time taken is %0.3f seconds" % (time.time() - startt))
         return skeletonImNew
 
