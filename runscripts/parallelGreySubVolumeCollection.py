@@ -42,7 +42,9 @@ if __name__ == '__main__':
     centers = []
     maskBrain = np.load('/home/pranathi//maskDownsampled10.npy')
     maskArtVein = np.load('/home/pranathi/maskArtVein.npy')
-    iskpx = 135; iskpz = 10; iskpy = 71
+    iskpx = 135
+    iskpz = 10
+    iskpy = 71
     root = '/home/pranathi/ii-5016-15-ms-brain_1920/filt/'
     formatOfFiles = 'png'
     listOfJpgs = [os.path.join(root, files) for files in os.listdir(root) if formatOfFiles in files]
@@ -61,7 +63,11 @@ if __name__ == '__main__':
     for i, j, k in validCenters:
         if maskArtVein[(int((i + 9) / 10.0), int((j + 6) / 7.0), int((k + 6) / 7.0))] != 1:
             centers.append((i, j, k))
-    del listElements; del klist; del it; del validit; del maskBrain;
+    del listElements
+    del klist
+    del it
+    del validit
+    del maskBrain
     startt = time.time()
     numProcessors = multiprocessing.cpu_count() - 2
     Nilist = len(ilist)

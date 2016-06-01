@@ -2,7 +2,7 @@ import numpy as np
 import time
 from scipy import ndimage
 from scipy.ndimage.filters import convolve
-from skeleton.rotationalOperators import directionList
+from runscripts.rotationalOperators import directionList
 
 """
    reference paper
@@ -13,7 +13,10 @@ import os
 lookUparray = np.load(os.path.join(os.path.dirname(__file__), 'lookuparray.npy'))
 
 """
-each of the 12 iterations corresponds to each of the following
+each of the 12 iterations corresponds to eac
+
+
+h of the following
 directions - us, ne, wd, es, uw, nd, sw, un, ed, nw, ue, sd
 imported from template expressions
 evaluated in advance using pyeda

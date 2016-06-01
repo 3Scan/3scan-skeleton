@@ -1,3 +1,5 @@
+import numpy as np
+
 from scipy import ndimage
 from six.moves import cPickle
 
@@ -21,23 +23,32 @@ stack = ndimage.interpolation.zoom(stack, zoom=aspectRatio, order=2, prefilter=F
 binaryVol = watershedMarker(stack)
 binaryVol[binaryVol == 255] = 1
 binaryVol = binaryVol.astype(bool)
+# save binary volume
+np.save(filePath + "binary.npy", binaryVol)
 # thin binarized volume of vessels
 thinnedVol = getThinned3D(binaryVol)
 
 # decluster thinned volume
 skeletonVol = getShortestPathSkeleton(thinnedVol)
 
-# save the skeleton volume
+# save the skeleton volume as pngs
 saveStack(skeletonVol, filePath + "/skeleton")
 
+# save the skeleton volume as npy
+np.save(filePath + "/skeleton/" + "skeleton.npy", skeletonVol)
+
 # vectorize and find metrics
-segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict = getSegmentStats(skeletonVol)
+segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(skeletonVol)
 
 # save the metrics dumping using cPickle as a list of elements as obtained from getSegmentStats
 # as segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict
 
-outputList = [segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict]
-cPickle.dump(outputList, open(filePath + "metrics.p", "wb"))
+outputList = [segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo]
+varList = ['segmentCountdict', 'segmentLengthdict', 'segmentTortuositydict', 'totalSegments', 'typeGraphdict', 'Average Branching', 'end Points', 'branch Points', 'segmentContractiondict', 'segmentHausdorffDimensiondict', 'cycleInfo']
+outputDict = {}
+for var, op in zip(varList, outputList):
+    outputDict[var] = op
+cPickle.dump(outputDict, open(filePath + "metrics.p", "wb"))
 
 # to load the statistics
-# outputList = cPickle.load(open("metrics.p", "rb"))
+# outputDict = cPickle.load(open("metrics.p", "rb"))

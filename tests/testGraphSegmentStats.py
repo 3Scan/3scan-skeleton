@@ -68,35 +68,36 @@ def getDisjointCyclesNoTrees2d(size=(10, 10)):
 
 def test_singlesegment():
     lineGraph = getSingleVoxelLineNobranches()
-    dlinecount, dlinelength, segmentTortuosityline, totalSegmentsLine, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentFractalDimensiondict = getSegmentStats(lineGraph)
-    assert totalSegmentsLine == 1 and typeGraphdict[0] == 2 and endP == 2 and branchP == 0 and segmentFractalDimensiondict == {}
+    dlinecount, dlinelength, segmentTortuosityline, totalSegmentsLine, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(lineGraph)
+    assert totalSegmentsLine == 1 and typeGraphdict[0] == 2 and endP == 2 and branchP == 0 and segmentHausdorffDimensiondict == {} and cycleInfo == {}
 
 
 def test_singlecycle():
     donutGraph = getCycleNotree()
-    dcyclecount, dcyclelength, segmentTortuositycycle, totalSegmentsDonut, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentFractalDimensiondict = getSegmentStats(donutGraph)
-    assert totalSegmentsDonut == 1 and typeGraphdict[0] == 1 and endP == 0 and branchP == 0 and segmentFractalDimensiondict == {}
+    dcyclecount, dcyclelength, segmentTortuositycycle, totalSegmentsDonut, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(donutGraph)
+    print(cycleInfo[1][0])
+    assert totalSegmentsDonut == 1 and typeGraphdict[0] == 1 and endP == 0 and branchP == 0 and segmentHausdorffDimensiondict == {} and cycleInfo[1][0] == 0
 
 
 def test_cycleAndTree():
     sampleGraph = getCyclesWithBranchesProtrude()
-    dcycleTreecount, dcycleTreelength, segmentTortuositycycletree, totalSegmentsSampleGraph, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentFractalDimensiondict = getSegmentStats(sampleGraph)
-    assert totalSegmentsSampleGraph == 4 and typeGraphdict[0] == 3 and endP == 2 and branchP == 2
+    dcycleTreecount, dcycleTreelength, segmentTortuositycycletree, totalSegmentsSampleGraph, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(sampleGraph)
+    assert totalSegmentsSampleGraph == 3 and typeGraphdict[0] == 3 and endP == 2 and branchP == 2 and cycleInfo[1][0] == 2
 
 
 def test_treeNocycle2d():
     crosGraph = getTreeNoCycle2d()
-    dTreecount, dTreelength, segmentTortuositytree, totalSegmentsTree, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentFractalDimensiondict = getSegmentStats(crosGraph)
-    assert totalSegmentsTree == 4 and typeGraphdict[0] == 4 and endP == 4 and branchP == 1
+    dTreecount, dTreelength, segmentTortuositytree, totalSegmentsTree, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(crosGraph)
+    assert totalSegmentsTree == 4 and typeGraphdict[0] == 4 and endP == 4 and branchP == 1 and cycleInfo == {}
 
 
 def test_disjointDoublecycle():
     multiloopgraph = getDisjointCyclesNoTrees2d()
-    disjointCyclescount, ddisjointCycleslength, segmentTortuositycycles, totalSegmentsDisjointCycles, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentFractalDimensiondict = getSegmentStats(multiloopgraph)
-    assert totalSegmentsDisjointCycles == 2 and typeGraphdict[0] == 1 and endP == 0 and branchP == 0
+    disjointCyclescount, ddisjointCycleslength, segmentTortuositycycles, totalSegmentsDisjointCycles, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(multiloopgraph)
+    assert totalSegmentsDisjointCycles == 2 and typeGraphdict[0] == 1 and endP == 0 and branchP == 0 and len(cycleInfo) == 2 and cycleInfo[1][0] == 0 and cycleInfo[2][0] == 0
 
 
 def test_treeNocycle3d():
     crosPairgraph = getDisjointTreesNoCycle3d()
-    dTreescount, dTreeslength, segmentTortuositytrees, totalSegmentsTrees, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentFractalDimensiondict = getSegmentStats(crosPairgraph)
-    assert totalSegmentsTrees == 8 and typeGraphdict[0] == 4 and endP == 8 and branchP == 2
+    dTreescount, dTreeslength, segmentTortuositytrees, totalSegmentsTrees, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(crosPairgraph)
+    assert totalSegmentsTrees == 8 and typeGraphdict[0] == 4 and endP == 8 and branchP == 2 and cycleInfo == {}

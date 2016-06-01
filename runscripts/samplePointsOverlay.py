@@ -34,7 +34,9 @@ for coords in centers:
 
 maskBrain = np.load('/media/pranathi/DATA/NPYS/maskDownsampled10.npy')
 maskArtVein = np.load('/media/pranathi/DATA/NPYS/maskArtVein.npy')
-iskpx = 900; iskpz = 10; iskpy = 71
+iskpx = 900
+iskpz = 10
+iskpy = 71
 ilist = list(range(60, 799 - 10, iskpz))
 klist = [3667, 6367, 7267]
 klist = [2767]
@@ -50,7 +52,8 @@ c = Counter(validit)
 validCenters = [element for element in c if c[element] == 8]
 # maskArtVein = ndimage.interpolation.zoom(maskArtVein, zoom=[5 / 0.7037037, 7, 7], order=0)
 for i, j, k in validCenters:
-    jm = int((j + 6) / 7.0); km = int((k + 6) / 7.0)
+    jm = int((j + 6) / 7.0)
+    km = int((k + 6) / 7.0)
     imf = int((i - 9 - 9) / 10.0)
     iml = int((i + 9 + 9) / 10.0)
     maskSub = maskArtVein[imf: iml + 1, jm - 9: jm + 10, km - 9, km + 10]

@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from skeleton.cliqueRemoving import removeCliqueEdges
-from skeleton.segmentLengths import getSegmentsAndLengths
+from skeleton.segmentStats import getSegmentStats
 
 """
    program to generate a balanced tree with a root node and the branches extending to the height
@@ -26,10 +26,10 @@ def _cycle(n):
     removeCliqueEdges(networkxGraph)
     print("nth cycle", n)
     startt = time.time()
-    dcyclecount, dcyclelength, segmentTortuositycycle, totalSegmentsDonut = getSegmentsAndLengths(networkxGraph, True, False)
+    segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(networkxGraph, True)
     timeTaken = time.time() - startt
-    print(n, totalSegmentsDonut)
-    assert totalSegmentsDonut == 1
+    print(n, totalSegments)
+    assert totalSegments == 1
     densityOfgraph = nx.density(networkxGraph)
     n = networkxGraph.number_of_nodes()
     return timeTaken, densityOfgraph, n
@@ -43,9 +43,9 @@ def _tree(n):
     removeCliqueEdges(networkxGraph)
     print("nth tree", n)
     startt = time.time()
-    dcyclecount, dcyclelength, segmentTortuositycycle, totalSegmentsDonut = getSegmentsAndLengths(networkxGraph, True, False)
+    segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(networkxGraph, True)
     timeTaken = time.time() - startt
-    print(n, totalSegmentsDonut)
+    print(n, totalSegments)
     densityOfgraph = nx.density(networkxGraph)
     n = networkxGraph.number_of_nodes()
     return timeTaken, densityOfgraph, n
@@ -74,4 +74,4 @@ def plotTreeAndTimetaken(treeOrCycle=1, heightRange=9):
     plt.plot(np.array(numberOfNodesarraytree), np.array(timeTree), 'r')
 
 if __name__ == '__main__':
-    plotTreeAndTimetaken(1, 13)
+    plotTreeAndTimetaken(1, 15)

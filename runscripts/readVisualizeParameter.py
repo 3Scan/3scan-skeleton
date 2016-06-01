@@ -14,7 +14,8 @@ formatOfFiles = 'txt'
 listOfNpys = [os.path.join(root, files) for files in os.listdir(root) if os.path.getsize(os.path.join(root, files)) != 82]
 listOfNpys = [os.path.join(root, files) for files in os.listdir(root) if os.path.getsize(os.path.join(root, files)) != 0]
 listOfNpys.sort()
-dictTortuosity2 = {}; dictTortuosity1 = {}
+dictTortuosity2 = {}
+dictTortuosity1 = {}
 # dictPercetages = {}; dictLength = {}
 for f in listOfNpys:
     file_contents = open(f, 'r')
