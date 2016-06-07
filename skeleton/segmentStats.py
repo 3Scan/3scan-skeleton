@@ -198,7 +198,8 @@ def getSegmentStats(imArray, nxg=False):
                 """ cyclic or acyclic tree """
                 if cycleCount != 0:
                     for nthcycle, cycle in enumerate(cycleList):
-                        branchpoints = [k for (k, v) in nodeDegreedict.items() if v != 2 and v != 1]
+                        nodeDegreedictFilt = {key: value for key, value in nodeDegreedict.items() if key in cycle}
+                        branchpoints = [k for (k, v) in nodeDegreedictFilt.items() if v != 2 and v != 1]
                         sourceOnCycle = cycle[0]
                         if sourceOnCycle not in visitedSources:
                             segmentCountdict[sourceOnCycle] = 1
@@ -278,12 +279,12 @@ def getSegmentStats(imArray, nxg=False):
                     cycles = cycles + len(cycleList)
             assert subGraphskeleton.number_of_edges() == 0
             print("{}th disjoint graph took {} seconds".format(ithDisjointgraph, time.time() - startDis))
-        totalSegments = len(segmentLengthdict)
-        listCounts = list(segmentCountdict.values())
-        avgBranching = sum(listCounts) / len(segmentCountdict)
-        endP = [1 for key, value in ndd.items() if value == 1]
-        branchP = [1 for key, value in ndd.items() if value > 2]
-        print("time taken to calculate segments and their lengths is %0.3f seconds" % (time.time() - startt))
+    totalSegments = len(segmentLengthdict)
+    listCounts = list(segmentCountdict.values())
+    avgBranching = sum(listCounts) / len(segmentCountdict)
+    endP = [1 for key, value in ndd.items() if value == 1]
+    branchP = [1 for key, value in ndd.items() if value > 2]
+    print("time taken to calculate segments and their lengths is %0.3f seconds" % (time.time() - startt))
     return segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching, sum(endP), sum(branchP), segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo
 
 if __name__ == '__main__':

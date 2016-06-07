@@ -52,36 +52,81 @@ def saveVolumeMetadata(inputIm):
     feedsjson.close()
 
 
-def getStatistics(dictOfNodesAndRadius, featureName):
+def getStatistics(dictF, featureName):
     """
        function to obtain common statistics like mean, median. featureName is the string variable
        that takes in the name of the feature being evaluated
     """
-    listRadius = [float(dictOfNodesAndRadius[k]) for k in dictOfNodesAndRadius]
-    meanRadius = mean(listRadius)
-    varianceRadius = (pvariance(listRadius, meanRadius))
-    radiusCounts = Counter(listRadius)
-    dictStats = {'Zerocount' + featureName: listRadius.count(0.0), 'max' + featureName: max(listRadius), 'min' + featureName: min(listRadius),
-                 'mean' + featureName: mean(listRadius),
-                 'median' + featureName: median(listRadius), 'mode' + featureName: mode(listRadius),
-                 'variance' + featureName: varianceRadius, 'stddev' + featureName: sqrt(varianceRadius),
-                 'uniqueCounts' + featureName: len(radiusCounts)}
-    with open("statistics.json", "a") as feedsjson:
+    import pandas
+    listF = [float(dictF[k]) for k in dictF]
+    meanF = mean(listF)
+    varianceF = (pvariance(listF, meanF))
+    fCounts = Counter(listF)
+    dictStats = {'Zerocount ' + featureName: listF.count(0.0), 'Maximum ' + featureName: max(listF), 'Minimum ' + featureName: min(listF),
+                 'Mean ' + featureName: mean(listF),
+                 'Median ' + featureName: median(listF), 'Mode ' + featureName: mode(listF),
+                 'Variance ' + featureName: varianceF, 'Standard Deviation ' + featureName: sqrt(varianceF),
+                 'Unique Counts ' + featureName: len(fCounts)}
+    df = pandas.DataFrame(dictStats, index=[1])
+    writer = pandas.ExcelWriter("statistics" + featureName + ".xlsx", engine='xlsxwriter')
+    df.to_excel(writer)
+    writer.save()
+    with open("statistics" + featureName + ".json", "w") as feedsjson:
         feedsjson.write("{}\n".format(json.dumps(dictStats)))
     feedsjson.close()
 
 
-def plotKDEAndHistogram(ndimarray):
+def getImportantMetrics(outputDict, binaryVol, skeletonVol):
+    """
+    outputList =
+    [segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments,
+    typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo]
+    varList = ['segmentCountdict', 'segmentLengthdict', 'segmentTortuositydict', 'totalSegments', 'typeGraphdict',
+    'Average Branching', 'end Points', 'branch Points', 'segmentContractiondict', 'segmentHausdorffDimensiondict', 'cycleInfo']
+    """
+    import pandas
+    dictStats = {'Vascular Volume': np.sum(binaryVol) / binaryVol.size, 'Vectorized Skeleton Volume': np.sum(skeletonVol) / skeletonVol.size,
+                 'Percentage skeleton per vascular volume': (np.sum(skeletonVol) / np.sum(binaryVol)) * 100,
+                 'Average Branching': outputDict['Average Branching'], 'End Points': outputDict['end Points'],
+                 'Branch Points': outputDict['branch Points'], 'Total Number of Segments': sum(list(outputDict['segmentCountdict'].values())) - len(outputDict['cycleInfo']),
+                 'Total Number of Cycles': len(outputDict['cycleInfo']),
+                 'Total Number of Branch points on cycles': sum([e[0] for e in list(outputDict['cycleInfo'].values())]),
+                 'Total Cycle length': sum([e[1] for e in list(outputDict['cycleInfo'].values())]),
+                 'Total Length': sum(list(outputDict['segmentLengthdict'].values())),
+                 'Mean Length': sum(list(outputDict['segmentLengthdict'].values())) / (sum(list(outputDict['segmentCountdict'].values())) - len(outputDict['cycleInfo'])),
+                 'Total Contraction': sum(list(outputDict['segmentContractiondict'].values())),
+                 'Mean Contraction': sum(list(outputDict['segmentContractiondict'].values())) / (sum(list(outputDict['segmentCountdict'].values())) - len(outputDict['cycleInfo'])),
+                 'Total Hausdorff Dimension': sum(list(outputDict['segmentHausdorffDimensiondict'].values())),
+                 'Mean Hausdorff Dimension': sum(list(outputDict['segmentHausdorffDimensiondict'].values())) / (sum(list(outputDict['segmentCountdict'].values())) - len(outputDict['cycleInfo']))}
+    df = pandas.DataFrame(dictStats, index=[1])
+    writer = pandas.ExcelWriter("statistics.xlsx", engine='xlsxwriter')
+    df.to_excel(writer)
+    writer.save()
+    with open("statistics.json", "w") as feedsjson:
+        feedsjson.write("{}\n".format(json.dumps(dictStats)))
+    feedsjson.close()
+
+
+def plotKDEAndHistogram(ndimarray, path, featureName, chooseBins=False):
     """
        function to obtain a KDE and histogram of the distribution.
        input ndimarray must be array. if it isn't then it is converted
        to one and histogram is plotted
     """
+    plt.ioff()
     if type(ndimarray) == list:
         ndimarray = np.array(ndimarray)
-    bins = np.unique(np.round(ndimarray, 0))
-    sns.distplot(ndimarray, kde=False, bins=bins)
-    plt.show()
+    if chooseBins:
+        bins = np.unique(np.round(ndimarray, 0))
+        print(bins)
+        sns.distplot(ndimarray, kde=True, bins=bins)
+    else:
+        sns.distplot(ndimarray, kde=True)
+    plt.xlabel(featureName)
+    plt.ylabel("KDE Of" + featureName)
+    plt.title("Frequency distribution of" + featureName)
+    plt.savefig(path, transparency=True, bbox_inches='tight', pad_inches=0)
+    plt.close("all")
 
 
 def plotKde(dictionary):
@@ -92,6 +137,18 @@ def plotKde(dictionary):
     log_dens = kde.score_samples(X_plot)
     plt.plot(X_plot[:, 0], np.exp(log_dens))
     plt.show()
+
+
+def plotMultiKde(sl, sl2, path, featureName):
+    sl = np.array(sl)
+    sl2 = np.array(sl2)
+    sns.kdeplot(sl, label="Forebrain")
+    sns.kdeplot(sl2, label="Cerebelllum")
+    plt.xlabel(featureName)
+    plt.ylabel("KDE of " + featureName)
+    plt.title("Frequency distribution of " + featureName)
+    plt.legend()
+    plt.savefig(path, transparency=True, bbox_inches='tight', pad_inches=0)
 
 
 def splineInterpolateStatistics(shskel, aspectRatio=[1, 1, 1]):
@@ -132,7 +189,8 @@ def splineInterpolateStatistics(shskel, aspectRatio=[1, 1, 1]):
     normalVectors = []
     for i in range(0, lenFirstDer):
         dotProduct = ((secondDerX[i] * tangentVectorsX[i]) + (secondDerY[i] * tangentVectorsY[i]) + (secondDerZ[i] * tangentVectorsZ[i]))
-        numeratorNormX = secondDerX[i] - dotProduct * tangentVectorsX[i]; numeratorNormY = secondDerY[i] - dotProduct * tangentVectorsY[i];
+        numeratorNormX = secondDerX[i] - dotProduct * tangentVectorsX[i]
+        numeratorNormY = secondDerY[i] - dotProduct * tangentVectorsY[i]
         numeratorNormZ = secondDerZ[i] - dotProduct * tangentVectorsZ[i]
         modOfVect = (sqrt(pow(numeratorNormX, 2) + pow(numeratorNormY, 2) + pow(numeratorNormZ, 2)))
         normalVectorsX[i] = numeratorNormX / modOfVect

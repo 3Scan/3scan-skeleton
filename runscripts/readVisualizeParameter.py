@@ -94,7 +94,9 @@ lut[(255, 128, 0)] = ["orange", "pons"]
 table = np.zeros((22, 10, 6))
 table1 = np.zeros((22, 10, 6))
 table2 = np.zeros((22, 10, 6))
-iskpx = 135; iskpz = 10; iskpy = 71
+iskpx = 135
+iskpz = 10
+iskpy = 71
 klist = [x for x in range(2632, 8026 - 68, iskpx) if (x > 2420 and x < 4000) or (x > 5500 and x < (7267 + 135))]
 for kIndex, i in enumerate(klist[:-3]):
     for index, dictStat in enumerate(dictList):
@@ -142,8 +144,11 @@ colorsarr = np.zeros((10, 3))
 for xdim in range(0, colorsarr.shape[0]):
     colorsarr[xdim, :] = colors[xdim]
 regionName = ['Midbrain', 'Olfactory Bulb', 'Thalamus', 'Hypothalamus', 'Hippocampus', 'Cerebellum', 'Cerebral Nuclei', 'Cortex', 'Medulla', 'Pons']
-x = []; y = []; z = []
-rnames = []; correctColors = []
+x = []
+y = []
+z = []
+rnames = []
+correctColors = []
 for index in range(0, 22):
     xlist = [i for i in table[index, :, 0].tolist() if i != 0.0]
     ylist = [i for i in table[index, :, 1].tolist() if i != 0.0]
@@ -176,8 +181,10 @@ colorsarr = np.zeros((10, 3))
 for xdim in range(0, colorsarr.shape[0]):
     colorsarr[xdim, :] = colors[xdim]
 regionName = ['Midbrain', 'Olfactory Bulb', 'Thalamus', 'Hypothalamus', 'Hippocampus', 'Cerebellum', 'Cerebral Nuclei', 'Cortex', 'Medulla', 'Pons']
-x = []; y = [];
-rnames = []; correctColors = []
+x = []
+y = []
+rnames = []
+correctColors = []
 for index in range(0, 22):
     xlist = [i for i in table[index, :, 0].tolist() if i != 0.0]
     ylist = [i for i in table[index, :, 3].tolist() if i != 0.0]

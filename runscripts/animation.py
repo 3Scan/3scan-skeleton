@@ -10,6 +10,7 @@ s = e.new_scene()
 mlab.contour3d(np.uint8(threshold), contours=[108.50]).actor.property.representation = 'points'
 mlab.contour3d(np.uint8(skeleton), colormap='gray')
 mlab.options.offscreen = True
+mlab.outline(s)
 # Make an animation:
 for i in range(36):
     # Rotate the camera by 10 degrees.
