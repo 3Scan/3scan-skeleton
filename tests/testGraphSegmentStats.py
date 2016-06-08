@@ -82,7 +82,7 @@ def test_singlecycle():
 def test_cycleAndTree():
     sampleGraph = getCyclesWithBranchesProtrude()
     dcycleTreecount, dcycleTreelength, segmentTortuositycycletree, totalSegmentsSampleGraph, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(sampleGraph)
-    assert totalSegmentsSampleGraph == 3 and typeGraphdict[0] == 3 and endP == 2 and branchP == 2 and cycleInfo[1][0] == 2
+    assert totalSegmentsSampleGraph == 4 and typeGraphdict[0] == 3 and endP == 2 and branchP == 2 and cycleInfo[1][0] == 2
 
 
 def test_treeNocycle2d():
