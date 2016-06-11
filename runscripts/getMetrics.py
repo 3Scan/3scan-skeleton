@@ -5,13 +5,14 @@ from six.moves import cPickle
 
 from KESMAnalysis.imgtools import loadStack, saveStack
 from KESMAnalysis.pipeline.pipelineComponents import watershedMarker
+from KESMAnalysis.segmentation.colorSegmentation import cleanupLabeledImage
 
 from skeleton.thin3DVolume import getThinned3D
 from skeleton.orientationStatisticsSpline import getStatistics, plotKDEAndHistogram, getImportantMetrics
 from skeleton.unitwidthcurveskeleton import getShortestPathSkeleton
 from skeleton.segmentStats import getSegmentStats
 
-# load 2D facelets to be processed
+# load 2D facelets median filtered to be vectorized
 filePath = input("please enter a root directory where your median filtered 2D slices are----")
 stack = loadStack(filePath)
 
@@ -23,10 +24,17 @@ stack = ndimage.interpolation.zoom(stack, zoom=aspectRatio, order=2, prefilter=F
 
 # binarize using 3D watershed transform
 binaryVol = watershedMarker(stack)
-binaryVol[binaryVol == 255] = 1
-binaryVol = binaryVol.astype(bool)
+
 # save binary volume
-np.save(filePath + "/" + "binary.npy", binaryVol)
+# np.save(filePath + "/" + "binary.npy", binaryVol)
+cleanupLabeledImage(binaryVol)
+
+# save binary volume
+np.save(filePath + "/" + "binaryLCC.npy", binaryVol)
+
+# convert to boolean becasue getThinned expects a boolean input
+binaryVol = binaryVol.astype(bool)
+
 # thin binarized volume of vessels
 thinnedVol = getThinned3D(binaryVol)
 
