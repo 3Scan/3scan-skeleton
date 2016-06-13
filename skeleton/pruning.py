@@ -2,6 +2,9 @@ import time
 import numpy as np
 from scipy.ndimage.filters import convolve
 from scipy import ndimage
+import networkx as nx
+from skeleton.networkxGraphFromarray import getNetworkxGraphFromarray
+from skeleton.cliqueRemoving import removeCliqueEdges
 # from skeleton.thin3DVolume import getThinned3D
 # from skeleton.unitwidthcurveskeleton import getShortestPathSkeleton
 
@@ -30,10 +33,14 @@ filePath = input("please enter a root directory where your 3D input is---")
 # skel = getShortestPathSkeleton(getThinned3D(np.load(filePath)))
 skel = np.load(filePath)
 label_img1, countObjects = ndimage.measurements.label(skel, structure=np.ones((3, 3, 3), dtype=np.uint8))
-B = bwmorph(skel, 'branchpoints')
-E = bwmorph(skel, 'endpoints')
-listEndIndices = list(np.transpose(np.array(np.where(E != 0))))
-listBranchIndices = list(set(map(tuple, list(np.transpose(np.nonzero(B))))))
+networkxGraph = getNetworkxGraphFromarray(skel)
+networkxGraph = removeCliqueEdges(networkxGraph)
+# list of disjointgraphs
+visitedSources = []
+disjointGraphs = list(nx.connected_component_subgraphs(networkxGraph))
+ndd = nx.degree(networkxGraph)
+listEndIndices = [np.array(k) for (k, v) in ndd.items() if v == 1]
+listBranchIndices = [k for (k, v) in ndd.items() if v != 2 and v != 1]
 listIndices = list(np.transpose(np.array(np.where(skel != 0))))
 skelD = np.copy(skel)
 for endPoint in listEndIndices:
