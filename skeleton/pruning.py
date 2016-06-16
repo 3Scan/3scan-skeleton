@@ -4,7 +4,7 @@ from scipy import ndimage
 import networkx as nx
 from skeleton.networkxGraphFromarray import getNetworkxGraphFromarray
 from skeleton.cliqueRemoving import removeCliqueEdges
-# from skeleton.segmentStats import _getDistanceBetweenPointsInpath
+from skeleton.segmentStats import _getDistanceBetweenPointsInpath
 
 """
     code to prune the spurious edges on skeleton
@@ -36,13 +36,11 @@ for endPoint in listEndIndices:
         tupEnd = tuple(endPoint)
         if nx.has_path(networkxGraph, tupEnd, tupItem):
             simplePath = next(nx.all_simple_paths(networkxGraph, source=tupEnd, target=tupItem), 6)
-            for pointsSmallBranches in simplePath[1:]:
-                skelD[pointsSmallBranches] = 0
-    #         dist = _getDistanceBetweenPointsInpath(simplePath)
-    #         D[tupItem] = dist
-    #         if tupItem in listBranchIndices:
-    #             listOfBranchDists.append(dist)
-    # skelD[D < min(listOfBranchDists)] = 0
+            dist = _getDistanceBetweenPointsInpath(simplePath)
+            D[tupItem] = dist
+            if tupItem in listBranchIndices:
+                listOfBranchDists.append(dist)
+    skelD[D < min(listOfBranchDists)] = 0
 
 label_img2, countObjectsPruned = ndimage.measurements.label(skelD, structure=np.ones((3, 3, 3), dtype=np.uint8))
 print("time taken is %0.3f seconds" % (time.time() - start_prune))
