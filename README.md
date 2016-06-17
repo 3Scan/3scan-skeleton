@@ -1,5 +1,15 @@
 # 3scan-skeleton
 3D Image Skeletonization Tools
+REQUIREMENTS:
+python > 3 https://www.python.org/downloads/
+miniconda http://conda.pydata.org/miniconda.html
+and then use conda to install the following packages
+scipy
+numpy
+skfmm - (conda install -c pranathi scikit-fmm=0.0.8)
+networkx
+skimage
+matplotlib
 
 This repository contains programs needed to obtain
 a 3D skeleton using python 3 and quantify the 
