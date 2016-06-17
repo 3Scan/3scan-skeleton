@@ -51,34 +51,37 @@ def getPrunedSkeleton(skel):
     networkxGraph = removeCliqueEdges(networkxGraph)
     ndd = nx.degree(networkxGraph)
     listEndIndices = [k for (k, v) in ndd.items() if v == 1]
+    print("number of end points are", len(listEndIndices))
     listBranchIndices = [k for (k, v) in ndd.items() if v != 2 and v != 1]
-    listIndices = list(np.transpose(np.array(np.where(skel != 0))))
+    listIndices = list(map(tuple, np.transpose(np.array(np.where(skel != 0)))))
+    print("number of branch points are", len(listBranchIndices))
     skelD = np.copy(skel)
-    skelD2 = np.copy(skel)
+    skelD1 = np.copy(skel)
+    count = 0
     for endPoint in listEndIndices:
         D = np.zeros(skel.shape)
         D1 = np.zeros(skel.shape)
         listOfBranchDists = []
         listOfBranchDists2 = []
-        for item in listIndices:
-            tupItem = tuple(item)
-            tupEnd = tuple(endPoint)
-        if nx.has_path(networkxGraph, tupEnd, tupItem):
-            simplePath = next(nx.all_simple_paths(networkxGraph, source=tupEnd, target=tupItem), 6)
-            dist = _getDistanceBetweenPointsInpath(simplePath)
-            dist2 = _getChessboardDist(simplePath)
-            D1[tupItem] = dist2
-            D[tupItem] = dist
-            if tupItem in listBranchIndices:
-                listOfBranchDists.append(dist)
-                listOfBranchDists2.append(dist2)
-        skelD[D < min(listOfBranchDists)] = 0
-        skelD2[D1 < min(listOfBranchDists2)] = 0
+        for nonzero in listIndices:
+            if nx.has_path(networkxGraph, endPoint, nonzero) and endPoint != nonzero:
+                simplePath = nx.shortest_path(networkxGraph, endPoint, nonzero)
+                dist = _getDistanceBetweenPointsInpath(simplePath)
+                dist2 = _getChessboardDist(simplePath)
+                D1[nonzero] = dist2
+                D[nonzero] = dist
+                if nonzero in listBranchIndices:
+                    listOfBranchDists.append(dist)
+                    listOfBranchDists2.append(dist2)
+        if listOfBranchDists != []:
+            count += 1
+            skelD[D < min(listOfBranchDists)] = 0
+            skelD1[D1 < min(listOfBranchDists2)] = 0
     label_img2, countObjectsPruned = ndimage.measurements.label(skelD, structure=np.ones((3, 3, 3), dtype=np.uint8))
     print("time taken to prune is %0.3f seconds" % (time.time() - start_prune))
     # assert countObjects == countObjectsPruned, "Number of disconnected objects in pruned skeleton {} is greater than input objects {}".format(countObjectsPruned, countObjects)
     print(countObjects, countObjectsPruned)
-    return skelD, skelD2
+    return skelD, skelD1
 
 
 if __name__ == '__main__':
