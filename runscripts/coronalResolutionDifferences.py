@@ -20,7 +20,8 @@ count = 0
 for fileName in subList:
     subVolume[count][:][:] = imread(fileName)
     count += 1
-j = 2567; k = 3357
+j = 2567
+k = 3357
 subSubvolume = subVolume[:, j - 67:j + 68, k - 67: k + 68]
 subSubvolume = 255 - subSubvolume
 subSubvolumefl = np.float64(subSubvolume)

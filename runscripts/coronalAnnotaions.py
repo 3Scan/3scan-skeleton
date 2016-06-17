@@ -13,7 +13,7 @@ transverseSlicearr = np.zeros((len(klist), 132, 89, 3), dtype=np.uint8)
 for index, imageName in enumerate(listOfJpgsWider):
     for countSlice, value in enumerate(klist):
         image = np.rot90(imread(imageName), 2)
-        transverseSlicearr[countSlice, index, :, :] = ndimage.interpolation.zoom(image[k, :, :], [1 / 125, 1], order=0)
+        transverseSlicearr[countSlice, index, :, :] = ndimage.interpolation.zoom(image[countSlice, :, :], [1 / 125, 1], order=0)
 for i in range(0, transverseSlicearr.shape[0]):
     imsave("transverseSlice%i.png" % i, transverseSlicearr[i])
 
