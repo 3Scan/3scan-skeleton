@@ -4,7 +4,6 @@ from scipy import ndimage
 import networkx as nx
 from skeleton.networkxGraphFromarray import getNetworkxGraphFromarray
 from skeleton.cliqueRemoving import removeCliqueEdges
-from skeleton.segmentStats import _getDistanceBetweenPointsInpath
 
 """
     code to prune the spurious edges on skeleton
@@ -14,8 +13,7 @@ from skeleton.segmentStats import _getDistanceBetweenPointsInpath
 """
 
 
-def getPrunedSkeleton(skel):
-    print(np.unique(skel))
+def getPrunedSkeleton(skel, cutoff=9):
     start_prune = time.time()
     label_img1, countObjects = ndimage.measurements.label(skel, structure=np.ones((3, 3, 3), dtype=np.uint8))
     networkxGraph = getNetworkxGraphFromarray(skel)
@@ -23,26 +21,22 @@ def getPrunedSkeleton(skel):
     ndd = nx.degree(networkxGraph)
     listEndIndices = [k for (k, v) in ndd.items() if v == 1]
     listBranchIndices = [k for (k, v) in ndd.items() if v != 2 and v != 1]
-    listIndices = list(np.transpose(np.array(np.where(skel != 0))))
     skelD = np.copy(skel)
+    branchendpoints = listEndIndices + listBranchIndices
     for endPoint in listEndIndices:
-        listOfBranchDists = []
-        D = np.zeros(skel.shape)
-        for item in listIndices:
+        for item in listBranchIndices:
             tupItem = tuple(item)
             tupEnd = tuple(endPoint)
             if nx.has_path(networkxGraph, tupEnd, tupItem):
-                simplePath = next(nx.all_simple_paths(networkxGraph, source=tupEnd, target=tupItem))
-                dist = _getDistanceBetweenPointsInpath(simplePath)
-                D[tupItem] = dist
-                if tupItem in listBranchIndices:
-                    listOfBranchDists.append(dist)
-        if listOfBranchDists != []:
-            skelD[D < min(listOfBranchDists)] = 0
-
+                simplePaths = list(nx.all_simple_paths(networkxGraph, source=tupEnd, target=tupItem, cutoff=cutoff))
+                for simplePath in simplePaths:
+                    if sum([1 for point in simplePath if point in branchendpoints]) == 2:
+                        for pointsSmallBranches in simplePath[:-1]:
+                            skelD[pointsSmallBranches] = 0
     label_img2, countObjectsPruned = ndimage.measurements.label(skelD, structure=np.ones((3, 3, 3), dtype=np.uint8))
     print("time taken is %0.3f seconds" % (time.time() - start_prune))
-    assert countObjects == countObjectsPruned, "Number of disconnected objects in pruned skeleton {} is greater than input objects {}".format(countObjectsPruned, countObjects)
+    print(countObjects, countObjectsPruned)
+    # assert countObjects == countObjectsPruned, "Number of disconnected objects in pruned skeleton {} is greater than input objects {}".format(countObjectsPruned, countObjects)
     return skelD
 
 
