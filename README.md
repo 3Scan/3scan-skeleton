@@ -4,6 +4,8 @@ REQUIREMENTS:
 python > 3 https://www.python.org/downloads/
 miniconda http://conda.pydata.org/miniconda.html
 and then use conda to install the following packages
+
+PACKAGES
 scipy
 numpy
 skfmm - (conda install -c pranathi scikit-fmm=0.0.8)
