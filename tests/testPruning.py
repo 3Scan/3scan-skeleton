@@ -1,6 +1,6 @@
 import numpy as np
 from scipy import ndimage
-from skeleton.pruning import getPrunedSkeleton
+from skeleton.pruningByDistTransform import getPrunedSkeleton
 from skeleton.unitwidthcurveskeleton import getShortestPathSkeleton
 from skeleton.thin3DVolume import getThinned3D
 
