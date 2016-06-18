@@ -1,7 +1,7 @@
 import numpy as np
 import time
 from scipy import ndimage
-from scipy.ndimage.filters import convolve
+from conv import cy_convolve
 from runscripts.rotationalOperators import directionList
 
 """
@@ -33,21 +33,28 @@ def getThinned3D(image):
     start_skeleton = time.time()
     numPixelsremoved = 1
     iterCount = 0
+    zOrig, yOrig, xOrig = np.shape(image)
     label_img1, countObjects = ndimage.measurements.label(image, structure=np.ones((3, 3, 3), dtype=np.uint8))
+    data = np.pad(np.uint64(image), 1, mode='constant', constant_values=0).copy(order='C')
     while numPixelsremoved > 0:
         iterTime = time.time()
-        pixBefore = image.sum()
+        pixBefore = data.sum()
         for i in range(0, 12):
-            convImage = convolve(np.uint64(image), directionList[i], mode='constant')
-            convImage[image == 0] = 0
-            image[lookUparray[convImage[:]] == 1] = 0
+            data = np.pad(np.uint64(image), 1, mode='constant', constant_values=0).copy(order='C')
+            points = np.array(np.transpose(np.nonzero(data))).copy(order='C')
+            convImage = cy_convolve(data, kernel=directionList[i], points=points)
+            for value, index in zip(convImage.tolist(), points.tolist()):
+                if lookUparray[value] == 1:
+                    print(tuple(index))
+                    data[tuple(index)] = 0
         numPixelsremoved = pixBefore - image.sum()
         print("Finished iteration {}, {} s, removed {} pixels".format(iterCount, time.time() - iterTime, numPixelsremoved))
         iterCount += 1
     print("done %i number of pixels in %0.2f seconds (%i iterations)" % (np.sum(image), time.time() - start_skeleton, iterCount))
+    result = data[1:zOrig + 1, 1:yOrig + 1, 1:xOrig + 1]
     label_img2, countObjectsSkel = ndimage.measurements.label(image, structure=np.ones((3, 3, 3), dtype=np.uint8))
     assert countObjects == countObjectsSkel
-    return image
+    return result
 
 
 def main():

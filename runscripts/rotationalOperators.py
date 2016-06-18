@@ -243,18 +243,18 @@ def twelvethSubIter(validateMatrix):
     return listedMatrix
 
 
-firstSubiteration = referenceArray
-secondSubiteration = _rot3D90(_rot3D90(referenceArray, 'y', 2), 'x', 3)
-thirdSubiteration = _rot3D90(_rot3D90(referenceArray, 'x', 1), 'z', 1)
-fourthSubiteration = _rot3D90(referenceArray, 'x', 3)
-fifthSubiteration = _rot3D90(referenceArray, 'y', 3)
-sixthSubiteration = _rot3D90(_rot3D90(_rot3D90(referenceArray, 'x', 3), 'z', 1), 'y', 1)
-seventhSubiteration = _rot3D90(referenceArray, 'x', 1)
-eighthSubiteration = _rot3D90(referenceArray, 'y', 2)
-ninthSubiteration = _rot3D90(_rot3D90(referenceArray, 'x', 3), 'z', 1)
-tenthSubiteration = _rot3D90(_rot3D90(referenceArray, 'y', 2), 'x', 1)
-eleventhSubiteration = _rot3D90(referenceArray, 'y', 1)
-twelvethSubiteration = _rot3D90(referenceArray, 'x', 2)
+firstSubiteration = referenceArray.copy(order='C')
+secondSubiteration = _rot3D90(_rot3D90(referenceArray, 'y', 2), 'x', 3).copy(order='C')
+thirdSubiteration = _rot3D90(_rot3D90(referenceArray, 'x', 1), 'z', 1).copy(order='C')
+fourthSubiteration = _rot3D90(referenceArray, 'x', 3).copy(order='C')
+fifthSubiteration = _rot3D90(referenceArray, 'y', 3).copy(order='C')
+sixthSubiteration = _rot3D90(_rot3D90(_rot3D90(referenceArray, 'x', 3), 'z', 1), 'y', 1).copy(order='C')
+seventhSubiteration = _rot3D90(referenceArray, 'x', 1).copy(order='C')
+eighthSubiteration = _rot3D90(referenceArray, 'y', 2).copy(order='C')
+ninthSubiteration = _rot3D90(_rot3D90(referenceArray, 'x', 3), 'z', 1).copy(order='C')
+tenthSubiteration = _rot3D90(_rot3D90(referenceArray, 'y', 2), 'x', 1).copy(order='C')
+eleventhSubiteration = _rot3D90(referenceArray, 'y', 1).copy(order='C')
+twelvethSubiteration = _rot3D90(referenceArray, 'x', 2).copy(order='C')
 
 directionList = [firstSubiteration, secondSubiteration, thirdSubiteration, fourthSubiteration,
                  fifthSubiteration, sixthSubiteration, seventhSubiteration, eighthSubiteration,
