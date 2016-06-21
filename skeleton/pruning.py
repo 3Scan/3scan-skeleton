@@ -9,11 +9,10 @@ from skeleton.cliqueRemoving import removeCliqueEdges
     code to prune the spurious edges on skeleton
     References:
     https://en.wikipedia.org/wiki/Pruning_(morphology)
-    http://www.mathworks.com/matlabcentral/answers/88284-remove-the-spurious-edge-of-skeleton?requestedDomain=www.mathworks.com
 """
 
 
-def getPrunedSkeleton(skel, cutoff=20):
+def getPrunedSkeleton(skel, cutoff=9):
     start_prune = time.time()
     label_img1, countObjects = ndimage.measurements.label(skel, structure=np.ones((3, 3, 3), dtype=np.uint8))
     networkxGraph = getNetworkxGraphFromarray(skel)
@@ -21,10 +20,7 @@ def getPrunedSkeleton(skel, cutoff=20):
     ndd = nx.degree(networkxGraph)
     listEndIndices = [k for (k, v) in ndd.items() if v == 1]
     listBranchIndices = [k for (k, v) in ndd.items() if v != 2 and v != 1]
-    listIndices = networkxGraph.nodes()
-    skelD = np.zeros_like(skel)
-    for item in listIndices:
-        skelD[item] = 1
+    skelD = np.copy(skel)
     branchendpoints = listEndIndices + listBranchIndices
     for endPoint in listEndIndices:
         for item in listBranchIndices:
