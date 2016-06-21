@@ -29,29 +29,31 @@ def getThinned3D(image):
     function to skeletonize a 3D binary image with object in brighter contrast than background.
     In other words, 1 = object, 0 = background
     """
-    assert np.max(image) in [0, 1]
+    imagec = np.copy(image)
+    del image
+    assert np.max(imagec) in [0, 1]
     start_skeleton = time.time()
     numPixelsremoved = 1
     iterCount = 0
-    label_img1, countObjects = ndimage.measurements.label(image, structure=np.ones((3, 3, 3), dtype=np.uint8))
+    label_img1, countObjects = ndimage.measurements.label(imagec, structure=np.ones((3, 3, 3), dtype=np.uint8))
     while numPixelsremoved > 0:
         iterTime = time.time()
-        pixBefore = image.sum()
+        pixBefore = imagec.sum()
         for i in range(0, 12):
-            convImage = convolve(np.uint64(image), directionList[i], mode='constant')
-            convImage[image == 0] = 0
-            image[lookUparray[convImage[:]] == 1] = 0
-        numPixelsremoved = pixBefore - image.sum()
+            convImage = convolve(np.uint64(imagec), directionList[i], mode='constant')
+            convImage[imagec == 0] = 0
+            imagec[lookUparray[convImage[:]] == 1] = 0
+        numPixelsremoved = pixBefore - imagec.sum()
         print("Finished iteration {}, {} s, removed {} pixels".format(iterCount, time.time() - iterTime, numPixelsremoved))
         iterCount += 1
-    print("done %i number of pixels in %0.2f seconds (%i iterations)" % (np.sum(image), time.time() - start_skeleton, iterCount))
-    label_img2, countObjectsSkel = ndimage.measurements.label(image, structure=np.ones((3, 3, 3), dtype=np.uint8))
+    print("done %i number of pixels in %0.2f seconds (%i iterations)" % (np.sum(imagec), time.time() - start_skeleton, iterCount))
+    label_img2, countObjectsSkel = ndimage.measurements.label(imagec, structure=np.ones((3, 3, 3), dtype=np.uint8))
     assert countObjects == countObjectsSkel
-    return image
+    return imagec
 
 
 def main():
-    sample = np.ones((5, 5, 5), dtype=np.uint8)
+    sample = np.ones((5, 4, 3), dtype=np.uint8)
     resultSkel = getThinned3D(sample)
     print("resultSkeleton", resultSkel)
 

@@ -13,7 +13,7 @@ from skeleton.cliqueRemoving import removeCliqueEdges
 """
 
 
-def getPrunedSkeleton(skel, cutoff=9):
+def getPrunedSkeleton(skel, cutoff=20):
     start_prune = time.time()
     label_img1, countObjects = ndimage.measurements.label(skel, structure=np.ones((3, 3, 3), dtype=np.uint8))
     networkxGraph = getNetworkxGraphFromarray(skel)
@@ -21,7 +21,10 @@ def getPrunedSkeleton(skel, cutoff=9):
     ndd = nx.degree(networkxGraph)
     listEndIndices = [k for (k, v) in ndd.items() if v == 1]
     listBranchIndices = [k for (k, v) in ndd.items() if v != 2 and v != 1]
-    skelD = np.copy(skel)
+    listIndices = networkxGraph.nodes()
+    skelD = np.zeros_like(skel)
+    for item in listIndices:
+        skelD[item] = 1
     branchendpoints = listEndIndices + listBranchIndices
     for endPoint in listEndIndices:
         for item in listBranchIndices:
