@@ -33,6 +33,7 @@ def getThinned3D(image):
     del image
     assert np.max(imagec) in [0, 1]
     start_skeleton = time.time()
+    imagec = imagec.astype(np.uint64)
     numPixelsremoved = 1
     iterCount = 0
     label_img1, countObjects = ndimage.measurements.label(imagec, structure=np.ones((3, 3, 3), dtype=np.uint8))
@@ -40,9 +41,9 @@ def getThinned3D(image):
         iterTime = time.time()
         pixBefore = imagec.sum()
         for i in range(0, 12):
-            convImage = convolve(np.uint64(imagec), directionList[i], mode='constant')
+            convImage = convolve(imagec, directionList[i], mode='constant')
             convImage[imagec == 0] = 0
-            imagec[lookUparray[convImage[:]] == 1] = 0
+            imagec[lookUparray[convImage.ravel()] == 1] = 0
         numPixelsremoved = pixBefore - imagec.sum()
         print("Finished iteration {}, {} s, removed {} pixels".format(iterCount, time.time() - iterTime, numPixelsremoved))
         iterCount += 1
