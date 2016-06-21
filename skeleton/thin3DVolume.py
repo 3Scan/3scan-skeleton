@@ -35,24 +35,25 @@ def getThinned3D(image):
     iterCount = 0
     zOrig, yOrig, xOrig = np.shape(image)
     label_img1, countObjects = ndimage.measurements.label(image, structure=np.ones((3, 3, 3), dtype=np.uint8))
-    data = np.pad(np.uint64(image), 1, mode='constant', constant_values=0).copy(order='C')
+    orig = np.pad(np.uint64(image), 1, mode='constant', constant_values=0).copy(order='C')
+    del image, label_img1
+    data = np.copy(orig, order='C')
     while numPixelsremoved > 0:
         iterTime = time.time()
         pixBefore = data.sum()
         for i in range(0, 12):
-            data = np.pad(np.uint64(image), 1, mode='constant', constant_values=0).copy(order='C')
             points = np.array(np.transpose(np.nonzero(data))).copy(order='C')
             convImage = cy_convolve(data, kernel=directionList[i], points=points)
             for value, index in zip(convImage.tolist(), points.tolist()):
                 if lookUparray[value] == 1:
-                    print(tuple(index))
                     data[tuple(index)] = 0
-        numPixelsremoved = pixBefore - image.sum()
+            data[orig == 0] = 0
+        numPixelsremoved = pixBefore - data.sum()
         print("Finished iteration {}, {} s, removed {} pixels".format(iterCount, time.time() - iterTime, numPixelsremoved))
         iterCount += 1
-    print("done %i number of pixels in %0.2f seconds (%i iterations)" % (np.sum(image), time.time() - start_skeleton, iterCount))
+    print("done %i number of pixels in %0.2f seconds (%i iterations)" % (np.sum(orig), time.time() - start_skeleton, iterCount))
     result = data[1:zOrig + 1, 1:yOrig + 1, 1:xOrig + 1]
-    label_img2, countObjectsSkel = ndimage.measurements.label(image, structure=np.ones((3, 3, 3), dtype=np.uint8))
+    label_img2, countObjectsSkel = ndimage.measurements.label(data, structure=np.ones((3, 3, 3), dtype=np.uint8))
     assert countObjects == countObjectsSkel
     return result
 
