@@ -3,7 +3,8 @@ import numpy as np
 from skimage.morphology import skeletonize as getSkeletonize2D
 
 from skeleton.segmentStats import getSegmentStats
-
+from skeleton.cliqueRemoving import removeCliqueEdges
+from skeleton.networkxGraphFromarray import getNetworkxGraphFromarray
 from tests.test3DThinning import getDonut
 
 """
@@ -23,27 +24,27 @@ def getCyclesWithBranchesProtrude(size=(10, 10)):
     frame[7, 5] = 1
     sampleImage = np.zeros((3, 10, 10), dtype=np.uint8)
     sampleImage[1] = frame
-    return sampleImage
+    return removeCliqueEdges(getNetworkxGraphFromarray(sampleImage))
 
 
 def getSingleVoxelLineNobranches(size=(5, 5, 5)):
     sampleLine = np.zeros(size, dtype=np.uint8)
     sampleLine[1, :, 4] = 1
-    return sampleLine
+    return removeCliqueEdges(getNetworkxGraphFromarray(sampleLine))
 
 
 def getCycleNotree():
     from skeleton.thin3DVolume import getThinned3D
     from skeleton.unitwidthcurveskeleton import getShortestPathSkeleton
     donut = getDonut()
-    return getShortestPathSkeleton(getThinned3D(donut))
+    return removeCliqueEdges(getNetworkxGraphFromarray(getShortestPathSkeleton(getThinned3D(donut))))
 
 
 def getTreeNoCycle2d(size=(5, 5)):
     cros = np.zeros(size, dtype=np.uint8)
     cros[:, 2] = 1
     cros[2, :] = 1
-    return cros
+    return removeCliqueEdges(getNetworkxGraphFromarray(cros))
 
 
 def getDisjointTreesNoCycle3d(size=(10, 10, 10)):
@@ -53,7 +54,7 @@ def getDisjointTreesNoCycle3d(size=(10, 10, 10)):
     cros[2, :] = 1
     crosPair[0, 0:5, 0:5] = cros
     crosPair[5, 5:10, 5:10] = cros
-    return crosPair
+    return removeCliqueEdges(getNetworkxGraphFromarray(crosPair))
 
 
 def getDisjointCyclesNoTrees2d(size=(10, 10)):
@@ -63,41 +64,46 @@ def getDisjointCyclesNoTrees2d(size=(10, 10)):
     multiLoop = np.zeros(size, dtype=bool)
     multiLoop[2:5, 2:5] = tinyLoop
     multiLoop[7:10, 7:10] = tinyLoop
-    return multiLoop
+    return removeCliqueEdges(getNetworkxGraphFromarray(multiLoop))
 
 
 def test_singlesegment():
     lineGraph = getSingleVoxelLineNobranches()
     dlinecount, dlinelength, segmentTortuosityline, totalSegmentsLine, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(lineGraph)
+    assert sum(list(dlinelength.values())) == 0
     assert totalSegmentsLine == 0 and typeGraphdict[0] == 2 and endP == 2 and branchP == 0 and segmentHausdorffDimensiondict == {} and cycleInfo == {}
 
 
 def test_singlecycle():
     donutGraph = getCycleNotree()
     dcyclecount, dcyclelength, segmentTortuositycycle, totalSegmentsDonut, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(donutGraph)
-    print(cycleInfo[1][0])
+    assert sum(list(dcyclelength.values())) == sum([np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2)) for item, item2 in donutGraph.edges()])
     assert totalSegmentsDonut == 1 and typeGraphdict[0] == 1 and endP == 0 and branchP == 0 and segmentHausdorffDimensiondict == {} and cycleInfo[1][0] == 0
-
-
-def test_cycleAndTree():
-    sampleGraph = getCyclesWithBranchesProtrude()
-    dcycleTreecount, dcycleTreelength, segmentTortuositycycletree, totalSegmentsSampleGraph, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(sampleGraph)
-    assert totalSegmentsSampleGraph == 4 and typeGraphdict[0] == 3 and endP == 2 and branchP == 2 and cycleInfo[1][0] == 2
 
 
 def test_treeNocycle2d():
     crosGraph = getTreeNoCycle2d()
     dTreecount, dTreelength, segmentTortuositytree, totalSegmentsTree, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(crosGraph)
+    assert sum(list(dTreelength.values())) == sum([np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2)) for item, item2 in crosGraph.edges()])
     assert totalSegmentsTree == 4 and typeGraphdict[0] == 4 and endP == 4 and branchP == 1 and cycleInfo == {}
 
 
 def test_disjointDoublecycle():
     multiloopgraph = getDisjointCyclesNoTrees2d()
     disjointCyclescount, ddisjointCycleslength, segmentTortuositycycles, totalSegmentsDisjointCycles, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(multiloopgraph)
+    assert sum(list(ddisjointCycleslength.values())) == sum([np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2)) for item, item2 in multiloopgraph.edges()])
     assert totalSegmentsDisjointCycles == 2 and typeGraphdict[0] == 1 and endP == 0 and branchP == 0 and len(cycleInfo) == 2 and cycleInfo[1][0] == 0 and cycleInfo[2][0] == 0
 
 
 def test_treeNocycle3d():
     crosPairgraph = getDisjointTreesNoCycle3d()
     dTreescount, dTreeslength, segmentTortuositytrees, totalSegmentsTrees, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(crosPairgraph)
+    assert sum(list(dTreeslength.values())) == sum([np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2)) for item, item2 in crosPairgraph.edges()])
     assert totalSegmentsTrees == 8 and typeGraphdict[0] == 4 and endP == 8 and branchP == 2 and cycleInfo == {}
+
+
+def test_cycleAndTree():
+    sampleGraph = getCyclesWithBranchesProtrude()
+    dcycleTreecount, dcycleTreelength, segmentTortuositycycletree, totalSegmentsSampleGraph, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(sampleGraph)
+    assert sum(list(dcycleTreelength.values())) == sum([np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2)) for item, item2 in sampleGraph.edges()])
+    assert totalSegmentsSampleGraph == 3 and typeGraphdict[0] == 3 and endP == 2 and branchP == 2 and cycleInfo[1][0] == 2

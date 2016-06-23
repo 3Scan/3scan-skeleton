@@ -111,9 +111,7 @@ def checkAlgorithmSinglePixeled(image):
     newImage = getShortestPathSkeleton(getThinned3D(image))
     label_img, countObjectsn = ndimage.measurements.label(newImage, structure=np.ones((3, 3, 3), dtype=np.uint8))
     label_img, countObjects = ndimage.measurements.label(image, structure=np.ones((3, 3, 3), dtype=np.uint8))
-    if countObjects != countObjectsn:
-        np.save("newImage.npy", image)
-    assert (countObjectsn == countObjects) or np.sum(label_img) == 1
+    assert (countObjectsn == countObjects) or np.sum(label_img == 2) == 1
 
 
 def checkCycles(image):
