@@ -36,8 +36,8 @@ np.save(filePath + "/" + "binaryLCC.npy", binaryVol)
 binaryVol = binaryVol.astype(bool)
 
 # thin binarized volume of vessels
-thinnedVol = getThinned3D(binaryVol)
-
+thinnedVol = getThinned3D(np.swapaxes(binaryVol, 0, 2))
+thinnedVol = np.swapaxes(thinnedVol, 0, 2)
 # decluster thinned volume
 skeletonVol = getShortestPathSkeleton(thinnedVol)
 
@@ -58,21 +58,21 @@ varList = ['segmentCountdict', 'segmentLengthdict', 'segmentTortuositydict', 'to
 outputDict = {}
 for var, op in zip(varList, outputList):
     outputDict[var] = op
-cPickle.dump(outputDict, open(filePath + "/" + "metrics.p", "wb"))
+cPickle.dump(outputDict, open(filePath + "/" + "metrics_Cerebellum.p", "wb"))
 
 # to load the statistics
 # outputDict = cPickle.load(open("/home/3scan-data/exports/78c507c6e37294470/block-00000000/region-00023120-00023632-00023124-00023636-00000282-00000354/median/skeleton/skeletonregion-00023120-00023632-00023124-00023636-00000282-00000354.npymetrics.p", "rb"))
 
 # save important statistics in a json file
 getImportantMetrics(outputDict, binaryVol, skeletonVol)
-getStatistics(segmentLengthdict, "Segment Length")
+getStatistics(segmentLengthdict, "Segment Length_Cerebellum")
 
-getStatistics(segmentContractiondict, "Segment Contraction")
+getStatistics(segmentContractiondict, "Segment Contraction_Cerebellum")
 
-getStatistics(segmentHausdorffDimensiondict, "Segment Hausdorff Dimension")
+getStatistics(segmentHausdorffDimensiondict, "Segment Hausdorff Dimension_Cerebellum")
 
-plotKDEAndHistogram(list(segmentLengthdict.values()), "/home/pranathi/Pictures/segment Length Histogram.png", 'Length(um)', True)
-plotKDEAndHistogram(list(segmentContractiondict.values()), "/home/pranathi/Pictures/segment Contraction Histogram.png", 'Contraction')
-plotKDEAndHistogram(list(segmentHausdorffDimensiondict.values()), "/home/pranathi/Pictures/segment Hausdorff Dimension Histogram.png", 'Hausdorff Dimension')
-plotKDEAndHistogram(list(typeGraphdict.values()), "/home/pranathi/Pictures/Sub-graph in a network Histogram.png", 'subgraphs')
+plotKDEAndHistogram(list(segmentLengthdict.values()), "/home/pranathi/NPYS/segment Length Histogram_Cerebellum.png", 'Length(um)', True)
+plotKDEAndHistogram(list(segmentContractiondict.values()), "/home/pranathi/NPYS/segment Contraction Histogram_Cerebellum.png", 'Contraction')
+plotKDEAndHistogram(list(segmentHausdorffDimensiondict.values()), "/home/pranathi/NPYS/segment Hausdorff Dimension Histogram_Cerebellum.png", 'Hausdorff Dimension')
+plotKDEAndHistogram(list(typeGraphdict.values()), "/home/pranathi/NPYS/Sub-graph in a network Histogram_Cerebellum.png", 'Subgraphs')
 
