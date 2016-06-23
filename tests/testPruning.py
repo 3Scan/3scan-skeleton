@@ -37,11 +37,13 @@ def getRandomBlob():
 
 def checkAlgorithmSinglePixeled(image):
     print("sum before", np.sum(image))
-    newImage = getPrunedSkeleton(getShortestPathSkeleton(getThinned3D(image)))
+    newImage = getPrunedSkeleton(getShortestPathSkeleton(getThinned3D(image)), 2)
     label_img, countObjectsn = ndimage.measurements.label(newImage, structure=np.ones((3, 3, 3), dtype=np.uint8))
     label_img, countObjects = ndimage.measurements.label(image, structure=np.ones((3, 3, 3), dtype=np.uint8))
     print(countObjects, countObjectsn, np.sum(newImage))
-    assert (countObjectsn == countObjects)
+    if countObjects != countObjectsn:
+        np.save("newImage.npy", image)
+    assert (countObjectsn == countObjects) or np.sum(label_img == 2) == 1
 
 
 def test_rectangle():
