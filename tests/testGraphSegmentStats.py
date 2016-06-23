@@ -69,7 +69,7 @@ def getDisjointCyclesNoTrees2d(size=(10, 10)):
 def test_singlesegment():
     lineGraph = getSingleVoxelLineNobranches()
     dlinecount, dlinelength, segmentTortuosityline, totalSegmentsLine, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(lineGraph)
-    assert totalSegmentsLine == 1 and typeGraphdict[0] == 2 and endP == 2 and branchP == 0 and segmentHausdorffDimensiondict == {} and cycleInfo == {}
+    assert totalSegmentsLine == 0 and typeGraphdict[0] == 2 and endP == 2 and branchP == 0 and segmentHausdorffDimensiondict == {} and cycleInfo == {}
 
 
 def test_singlecycle():

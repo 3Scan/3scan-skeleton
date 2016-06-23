@@ -256,6 +256,6 @@ tenthSubiteration = _rot3D90(_rot3D90(referenceArray, 'y', 2), 'x', 1).copy(orde
 eleventhSubiteration = _rot3D90(referenceArray, 'y', 1).copy(order='C')
 twelvethSubiteration = _rot3D90(referenceArray, 'x', 2).copy(order='C')
 
-directionList = [firstSubiteration, secondSubiteration, thirdSubiteration, fourthSubiteration,
-                 fifthSubiteration, sixthSubiteration, seventhSubiteration, eighthSubiteration,
-                 ninthSubiteration, tenthSubiteration, eleventhSubiteration, twelvethSubiteration]
+directionList = np.array([firstSubiteration, secondSubiteration, thirdSubiteration, fourthSubiteration,
+                          fifthSubiteration, sixthSubiteration, seventhSubiteration, eighthSubiteration,
+                          ninthSubiteration, tenthSubiteration, eleventhSubiteration, twelvethSubiteration]).copy(order='C')

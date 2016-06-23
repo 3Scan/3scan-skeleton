@@ -11,6 +11,15 @@ from skeleton.cliqueRemoving import removeCliqueEdges
 
 """
     Find the segments, lengths and tortuosity of a network
+    algorithm - 1) go through each of the disjoint graphs
+            2) decide if it is one of the following a) line
+            b) cycle c) acyclic tree like structure d) cyclic tree like structure
+            e) single node
+            3) Find all the paths in a given disjoint graph from a point whose degree is greater
+            than or equal to 2 to a point whose degree equal to one
+            4) calculate distance between edges in each path and displacement to find curve length and
+            curve displacement to find tortuosity
+            5) Remove all the edges in this path once they are traced
 """
 
 
@@ -67,17 +76,127 @@ def mod(point):
     return point[0] ** 2 + point[1] ** 2 + point[2] ** 2
 
 
+def _singleCycle(subGraphskeleton, segmentCountdict, segmentLengthdict, segmentTortuositydict,
+                 segmentContractiondict, segmentHausdorffDimensiondict, cycle, cycles, visitedSources):
+    sourceOnCycle = cycle[0]
+    if sourceOnCycle not in visitedSources:
+        segmentCountdict[sourceOnCycle] = 1
+        visitedSources.append(sourceOnCycle)
+    else:
+        segmentCountdict[sourceOnCycle] += 1
+    curveLength = _getDistanceBetweenPointsInpath(cycle, 1)
+    cycleInfo[cycles] = [0, curveLength]
+    segmentLengthdict[segmentCountdict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = curveLength
+    segmentTortuositydict[segmentCountdict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = 0
+    segmentContractiondict[segmentCountdict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = 0
+    _removeEdgesInVisitedPath(subGraphskeleton, cycle, 1)
+    cycles = cycles + 1
+
+
+def _cyclicTree(subGraphskeleton, nodeDegreedict, visitedSources, segmentCountdict, segmentLengthdict,
+                segmentTortuositydict, segmentContractiondict, segmentHausdorffDimensiondict, cycleList, cycles):
+    visitedPaths = []
+    for nthcycle, cycle in enumerate(cycleList):
+        nodeDegreedictFilt = {key: value for key, value in nodeDegreedict.items() if key in cycle}
+        branchpoints = [k for (k, v) in nodeDegreedictFilt.items() if v != 2 and v != 1]
+        mods = [mod(point) for point in branchpoints]
+        sourceOnCycle = [point for point in branchpoints if point in branchpoints and mod(point) == min(mods)][0]
+        for item in branchpoints:
+            if nx.has_path(subGraphskeleton, sourceOnCycle, item) and sourceOnCycle != item:
+                simplePaths = nx.all_simple_paths(subGraphskeleton, source=sourceOnCycle, target=item)
+                for simplePath in simplePaths:
+                    if sum([1 for point in simplePath if point in branchpoints]) == 2 and simplePath not in visitedPaths:
+                        if sourceOnCycle not in visitedSources:
+                            segmentCountdict[sourceOnCycle] = 1
+                            visitedSources.append(sourceOnCycle)
+                        else:
+                            segmentCountdict[sourceOnCycle] += 1
+                        curveLength = _getDistanceBetweenPointsInpath(simplePath)
+                        cycleInfo[cycles + nthcycle] = [len(branchpoints), curveLength]
+                        segmentLengthdict[segmentCountdict[sourceOnCycle], sourceOnCycle, item] = curveLength
+                        segmentTortuositydict[segmentCountdict[sourceOnCycle], sourceOnCycle, item] = 0
+                        segmentContractiondict[segmentCountdict[sourceOnCycle], sourceOnCycle, item] = 0
+                        visitedPaths.append(simplePath)
+        sourceOnCycle = item
+    for path in visitedPaths:
+        _removeEdgesInVisitedPath(subGraphskeleton, path, 0)
+    cycles += len(cycleList)
+
+
+def _tree(subGraphskeleton, visitedSources, segmentCountdict, segmentLengthdict,
+          segmentTortuositydict, segmentContractiondict, segmentHausdorffDimensiondict, branchpoints, endpoints):
+    listOfPerms = list(itertools.product(branchpoints, endpoints))
+    for sourceOnTree, item in listOfPerms:
+        if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
+            simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
+            for simplePath in simplePaths:
+                if sum([1 for point in simplePath if point in branchpoints]) == 1:
+                    if sourceOnTree not in visitedSources:
+                        "trees - check if the same source has multiple segments, if it doesn't number of segments is 1"""
+                        segmentCountdict[sourceOnTree] = 1
+                        visitedSources.append(sourceOnTree)
+                    else:
+                        segmentCountdict[sourceOnTree] = segmentCountdict[sourceOnTree] + 1
+                    curveLength = _getDistanceBetweenPointsInpath(simplePath)
+                    curveDisplacement = np.sqrt(np.sum((np.array(sourceOnTree) - np.array(item)) ** 2))
+                    segmentLengthdict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength
+                    segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength / curveDisplacement
+                    segmentContractiondict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveDisplacement / curveLength
+                    if log(curveDisplacement) != 0.0:
+                        segmentHausdorffDimensiondict[segmentCountdict[sourceOnTree], sourceOnTree, item] = log(curveLength) / log(curveDisplacement)
+                    _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
+
+
+def _branchToBranch(subGraphskeleton, visitedSources, segmentCountdict, segmentLengthdict,
+                    segmentTortuositydict, segmentContractiondict, segmentHausdorffDimensiondict, branchpoints):
+    listOfPerms = list(itertools.combinations(branchpoints, 2))
+    for sourceOnTree, item in listOfPerms:
+        if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
+            simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
+            for simplePath in simplePaths:
+                if sum([1 for point in simplePath if point in branchpoints]) == 2:
+                    if sourceOnTree not in visitedSources:
+                        "edges !=0 check if the same source has multiple segments, if it doesn't number of segments is 1"""
+                        segmentCountdict[sourceOnTree] = 1
+                        visitedSources.append(sourceOnTree)
+                    else:
+                        segmentCountdict[sourceOnTree] = segmentCountdict[sourceOnTree] + 1
+                    curveLength = _getDistanceBetweenPointsInpath(simplePath)
+                    curveDisplacement = np.sqrt(np.sum((np.array(sourceOnTree) - np.array(item)) ** 2))
+                    segmentLengthdict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength
+                    segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength / curveDisplacement
+                    segmentContractiondict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveDisplacement / curveLength
+                    if log(curveDisplacement) != 0.0:
+                        segmentHausdorffDimensiondict[segmentCountdict[sourceOnTree], sourceOnTree, item] = log(curveLength) / log(curveDisplacement)
+                    _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
+
+
+def _remCycles(subGraphskeleton, segmentCountdict, segmentLengthdict, segmentTortuositydict,
+               segmentContractiondict, segmentHausdorffDimensiondict, cycle, cycles, visitedSources, nodeDegreedict):
+    cycleList = nx.cycle_basis(subGraphskeleton)
+    if subGraphskeleton.number_of_edges() != 0:
+        "Extra cycles"
+        nodeDegreedictFilt = {key: value for key, value in nodeDegreedict.items() if key in cycle}
+        branchpoints = [k for (k, v) in nodeDegreedictFilt.items() if v != 2 and v != 1]
+        for nthcycle, cycle in enumerate(cycleList):
+            sourceOnCycle = cycle[0]
+            if sourceOnCycle not in visitedSources:
+                segmentCountdict[sourceOnCycle] = 1
+                visitedSources.append(sourceOnCycle)
+            else:
+                segmentCountdict[sourceOnCycle] += 1
+            curveLength = _getDistanceBetweenPointsInpath(cycle, 1)
+            cycleInfo[cycles + nthcycle] = [len(branchpoints), curveLength]
+            segmentLengthdict[segmentCountdict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = curveLength
+            segmentTortuositydict[segmentCountdict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = 0
+            segmentContractiondict[segmentCountdict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = 0
+            _removeEdgesInVisitedPath(subGraphskeleton, cycle, 1)
+        cycles = cycles + len(cycleList)
+
+
 def getSegmentStats(imArray, nxg=False):
     """
-        algorithm - 1) go through each of the disjoint graphs
-                    2) decide if it is one of the following a) line
-                    b) cycle c) acyclic tree like structure d) cyclic tree like structure
-                    e) single node
-                    3) Find all the paths in a given disjoint graph from a point whose degree is greater
-                    than or equal to 2 to a point whose degree equal to one
-                    4) calculate distance between edges in each path and displacement to find curve length and
-                    curve displacement to find tortuosity
-                    5) Remove all the edges in this path once they are traced
+
         INPUT: should be a skeletonized binary[0, 1] or [True, False] array
         tortuosity = curveLength / curveDisplacement
         contraction = curveDisplacement / curveLength (better becuase there is no change of instability (undefined) in case of cycles)
@@ -149,154 +268,35 @@ def getSegmentStats(imArray, nxg=False):
                 tortuosity to infinity (NaN) set to zero here"""
                 typeGraphdict[ithDisjointgraph] = 1
                 cycle = cycleList[0]
-                sourceOnCycle = cycle[0]
-                if sourceOnCycle not in visitedSources:
-                    segmentCountdict[sourceOnCycle] = 1
-                    visitedSources.append(sourceOnCycle)
-                else:
-                    segmentCountdict[sourceOnCycle] += 1
-                curveLength = _getDistanceBetweenPointsInpath(cycle, 1)
-                cycleInfo[cycles] = [0, curveLength]
-                segmentLengthdict[segmentCountdict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = curveLength
-                segmentTortuositydict[segmentCountdict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = 0
-                segmentContractiondict[segmentCountdict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = 0
-                _removeEdgesInVisitedPath(subGraphskeleton, cycle, 1)
-                cycles = cycles + cycleCount
+                _singleCycle(subGraphskeleton, segmentCountdict, segmentLengthdict, segmentTortuositydict,
+                             segmentContractiondict, segmentHausdorffDimensiondict, cycle, cycles, visitedSources)
             elif set(degreeList) == set((1, 2)) or set(degreeList) == {1}:
-                """ straight line or dichtonomous tree"""
-                listOfPerms = list(itertools.combinations(nodes, 2))
-                if type(nodes[0]) == int:
-                    modulus = [[start - end] for start, end in listOfPerms]
-                    dists = [abs(i[0]) for i in modulus]
-                else:
-                    dims = len(nodes[0])
-                    modulus = [[start[dim] - end[dim] for dim in range(0, dims)] for start, end in listOfPerms]
-                    dists = [sum(modulus[i][dim] * modulus[i][dim] for dim in range(0, dims)) for i in range(0, len(modulus))]
-                if len(list(nx.articulation_points(subGraphskeleton))) == 1 and set(dists) != 1:
-                    """ each node is connected to one or two other nodes which are not a distance of 1 implies there is a
-                        one branch point with two end points in a single dichotomous tree"""
-                    edges = subGraphskeleton.edges()
-                    subGraphskeleton.remove_edges_from(edges)
-                else:
-                    """ each node is connected to one or two other nodes implies it is a line,
-                    set tortuosity to 1"""
-                    endpoints = [k for (k, v) in nodeDegreedict.items() if v == 1]
-                    sourceOnLine = endpoints[0]
-                    targetOnLine = endpoints[1]
-                    if sourceOnLine not in visitedSources:
-                        segmentCountdict[sourceOnLine] = 1
-                        visitedSources.append(sourceOnLine)
-                    else:
-                        segmentCountdict[sourceOnLine] += 1
-                    simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnLine, target=targetOnLine))
-                    simplePath = simplePaths[0]
-                    curveLength = _getDistanceBetweenPointsInpath(simplePath, 0)
-                    curveDisplacement = np.sqrt(np.sum((np.array(sourceOnLine) - np.array(targetOnLine)) ** 2))
-                    segmentLengthdict[segmentCountdict[sourceOnLine], sourceOnLine, targetOnLine] = curveLength
-                    segmentTortuositydict[segmentCountdict[sourceOnLine], sourceOnLine, targetOnLine] = curveLength / curveDisplacement
-                    segmentContractiondict[segmentCountdict[sourceOnLine], sourceOnLine, targetOnLine] = curveDisplacement / curveLength
-                    edges = subGraphskeleton.edges()
-                    subGraphskeleton.remove_edges_from(edges)
-                    typeGraphdict[ithDisjointgraph] = 2
+                edges = subGraphskeleton.edges()
+                subGraphskeleton.remove_edges_from(edges)
+                typeGraphdict[ithDisjointgraph] = 2
             else:
                 """ cyclic or acyclic tree """
-                visitedPaths = []
                 if cycleCount != 0:
-                    for nthcycle, cycle in enumerate(cycleList):
-                        nodeDegreedictFilt = {key: value for key, value in nodeDegreedict.items() if key in cycle}
-                        branchpoints = [k for (k, v) in nodeDegreedictFilt.items() if v != 2 and v != 1]
-                        mods = [mod(point) for point in branchpoints]
-                        sourceOnCycle = [point for point in branchpoints if point in branchpoints and mod(point) == min(mods)][0]
-                        for item in branchpoints:
-                            if nx.has_path(subGraphskeleton, sourceOnCycle, item) and sourceOnCycle != item:
-                                simplePaths = nx.all_simple_paths(subGraphskeleton, source=sourceOnCycle, target=item)
-                                for simplePath in simplePaths:
-                                    if sum([1 for point in simplePath if point in branchpoints]) == 2 and simplePath not in visitedPaths:
-                                        if sourceOnCycle not in visitedSources:
-                                            segmentCountdict[sourceOnCycle] = 1
-                                            visitedSources.append(sourceOnCycle)
-                                        else:
-                                            segmentCountdict[sourceOnCycle] += 1
-                                        curveLength = _getDistanceBetweenPointsInpath(simplePath)
-                                        cycleInfo[cycles + nthcycle] = [len(branchpoints), curveLength]
-                                        segmentLengthdict[segmentCountdict[sourceOnCycle], sourceOnCycle, item] = curveLength
-                                        segmentTortuositydict[segmentCountdict[sourceOnCycle], sourceOnCycle, item] = 0
-                                        segmentContractiondict[segmentCountdict[sourceOnCycle], sourceOnCycle, item] = 0
-                                        visitedPaths.append(simplePath)
-                                        break
-                        sourceOnCycle = item
-                for path in visitedPaths:
-                    _removeEdgesInVisitedPath(subGraphskeleton, path, 0)
-                cycles += len(cycleList)
+                    _cyclicTree(subGraphskeleton, nodeDegreedict, visitedSources, segmentCountdict, segmentLengthdict,
+                                segmentTortuositydict, segmentContractiondict, segmentHausdorffDimensiondict, cycleList, cycles)
                 branchpoints = [k for (k, v) in nodeDegreedict.items() if v != 2 and v != 1]
                 endpoints = [k for (k, v) in nodeDegreedict.items() if v == 1]
-                branchendpoints = branchpoints + endpoints
-                branchpoints.sort()
-                endpoints.sort()
                 "sorted branch and end points in trees"
-                listOfPerms = list(itertools.product(branchpoints, endpoints))
-                for sourceOnTree, item in listOfPerms:
-                    if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
-                        simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
-                        simplePath = simplePaths[0]
-                        if sum([1 for point in simplePath if point in branchendpoints]) == 2:
-                            if sourceOnTree not in visitedSources:
-                                "trees - check if the same source has multiple segments, if it doesn't number of segments is 1"""
-                                segmentCountdict[sourceOnTree] = 1
-                                visitedSources.append(sourceOnTree)
-                            else:
-                                segmentCountdict[sourceOnTree] = segmentCountdict[sourceOnTree] + 1
-                            curveLength = _getDistanceBetweenPointsInpath(simplePath)
-                            curveDisplacement = np.sqrt(np.sum((np.array(sourceOnTree) - np.array(item)) ** 2))
-                            segmentLengthdict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength
-                            segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength / curveDisplacement
-                            segmentContractiondict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveDisplacement / curveLength
-                            if log(curveDisplacement) != 0.0:
-                                segmentHausdorffDimensiondict[segmentCountdict[sourceOnTree], sourceOnTree, item] = log(curveLength) / log(curveDisplacement)
-                            _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
+                _tree(subGraphskeleton, visitedSources, segmentCountdict, segmentLengthdict,
+                      segmentTortuositydict, segmentContractiondict, segmentHausdorffDimensiondict, branchpoints, endpoints)
                 if subGraphskeleton.number_of_edges() != 0:
-                    listOfPerms = list(itertools.combinations(branchpoints, 2))
-                    for sourceOnTree, item in listOfPerms:
-                        if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
-                            simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
-                            simplePath = simplePaths[0]
-                            if sum([1 for point in simplePath if point in branchpoints]) == 2:
-                                if sourceOnTree not in visitedSources:
-                                    "edges !=0 check if the same source has multiple segments, if it doesn't number of segments is 1"""
-                                    segmentCountdict[sourceOnTree] = 1
-                                    visitedSources.append(sourceOnTree)
-                                else:
-                                    segmentCountdict[sourceOnTree] = segmentCountdict[sourceOnTree] + 1
-                                curveLength = _getDistanceBetweenPointsInpath(simplePath)
-                                curveDisplacement = np.sqrt(np.sum((np.array(sourceOnTree) - np.array(item)) ** 2))
-                                segmentLengthdict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength
-                                segmentTortuositydict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveLength / curveDisplacement
-                                segmentContractiondict[segmentCountdict[sourceOnTree], sourceOnTree, item] = curveDisplacement / curveLength
-                                if log(curveDisplacement) != 0.0:
-                                    segmentHausdorffDimensiondict[segmentCountdict[sourceOnTree], sourceOnTree, item] = log(curveLength) / log(curveDisplacement)
-                                _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
-                cycleList = nx.cycle_basis(subGraphskeleton)
-                if subGraphskeleton.number_of_edges() != 0 and cycleCount != 0:
-                    "Extra cycles"
-                    for cycle in cycleList:
-                        sourceOnCycle = cycle[0]
-                        branchpoints = [k for (k, v) in nodeDegreedict.items() if v != 2 and v != 1]
-                        if sourceOnCycle not in visitedSources:
-                            segmentCountdict[sourceOnCycle] = 1
-                            visitedSources.append(sourceOnCycle)
-                        else:
-                            segmentCountdict[sourceOnCycle] += 1
-                        cycleInfo[cycles + nthcycle] = [len(branchpoints), curveLength]
-                        segmentLengthdict[segmentCountdict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = _getDistanceBetweenPointsInpath(cycle, 1)
-                        segmentTortuositydict[segmentCountdict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = 0
-                        segmentContractiondict[segmentCountdict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = 0
-                        _removeEdgesInVisitedPath(subGraphskeleton, cycle, 1)
-                    cycles = cycles + len(cycleList)
-            assert subGraphskeleton.number_of_edges() == 0
+                    _branchToBranch(subGraphskeleton, visitedSources, segmentCountdict, segmentLengthdict,
+                                    segmentTortuositydict, segmentContractiondict, segmentHausdorffDimensiondict, branchpoints)
+                if subGraphskeleton.number_of_edges() != 0:
+                    _remCycles(subGraphskeleton, segmentCountdict, segmentLengthdict, segmentTortuositydict,
+                               segmentContractiondict, segmentHausdorffDimensiondict, cycle, cycles, visitedSources, nodeDegreedict)
+            print(subGraphskeleton.number_of_edges())
             print("{}th disjoint graph took {} seconds".format(ithDisjointgraph, time.time() - startDis))
     totalSegments = len(segmentLengthdict)
     listCounts = list(segmentCountdict.values())
-    avgBranching = sum(listCounts) / len(segmentCountdict)
+    avgBranching = 0
+    if len(segmentCountdict) != 0:
+        avgBranching = sum(listCounts) / len(segmentCountdict)
     endP = [1 for key, value in ndd.items() if value == 1]
     branchP = [1 for key, value in ndd.items() if value > 2]
     print("time taken to calculate segments and their lengths is %0.3f seconds" % (time.time() - startt))
