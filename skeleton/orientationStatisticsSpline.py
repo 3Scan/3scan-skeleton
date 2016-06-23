@@ -118,13 +118,12 @@ def plotKDEAndHistogram(ndimarray, path, featureName, chooseBins=False):
         ndimarray = np.array(ndimarray)
     if chooseBins:
         bins = np.unique(np.round(ndimarray, 0))
-        print(bins)
         sns.distplot(ndimarray, kde=True, bins=bins)
     else:
         sns.distplot(ndimarray, kde=True)
     plt.xlabel(featureName)
-    plt.ylabel("KDE Of" + featureName)
-    plt.title("Frequency distribution of" + featureName)
+    plt.ylabel("KDE Of " + featureName)
+    plt.title("Frequency distribution of " + featureName)
     plt.savefig(path, transparency=True, bbox_inches='tight', pad_inches=0)
     plt.close("all")
 
@@ -140,6 +139,7 @@ def plotKde(dictionary):
 
 
 def plotMultiKde(sl, sl2, path, featureName):
+    plt.ioff()
     sl = np.array(sl)
     sl2 = np.array(sl2)
     sns.kdeplot(sl, label="Forebrain")
@@ -149,6 +149,7 @@ def plotMultiKde(sl, sl2, path, featureName):
     plt.title("Frequency distribution of " + featureName)
     plt.legend()
     plt.savefig(path, transparency=True, bbox_inches='tight', pad_inches=0)
+    plt.close("all")
 
 
 def splineInterpolateStatistics(shskel, aspectRatio=[1, 1, 1]):

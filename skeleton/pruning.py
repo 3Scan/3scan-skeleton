@@ -39,7 +39,8 @@ def getPrunedSkeleton(skel, cutoff=9):
         print("pruning in progress {}% \r".format(progress), end="", flush=True)
     label_img2, countObjectsPruned = ndimage.measurements.label(skelD, structure=np.ones((3, 3, 3), dtype=np.uint8))
     del label_img2
-    print("time taken is %0.3f seconds" % (time.time() - start_prune))
+    print("time taken to prune is %0.3f seconds" % (time.time() - start_prune))
+    print(countObjects, countObjectsPruned)
     # assert countObjects == countObjectsPruned, "Number of disconnected objects in pruned skeleton {} is greater than input objects {}".format(countObjectsPruned, countObjects)
     return skelD
 

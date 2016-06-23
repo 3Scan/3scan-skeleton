@@ -180,7 +180,8 @@ def _remCycles(subGraphskeleton, segmentCountdict, segmentLengthdict, segmentTor
 def getSegmentStats(imArray, nxg=True):
     """
 
-        INPUT: should be a skeletonized binary[0, 1] or [True, False] array
+        INPUT: should be a skeletonized binary[0, 1] or [True, False] array or a network graph, if it is
+        then nxG is set to true
         tortuosity = curveLength / curveDisplacement
         contraction = curveDisplacement / curveLength (better becuase there is no change of instability (undefined) in case of cycles)
         Hausdorff Dimension = log(curveLength) / log(curveDisplacement) https://en.wikipedia.org/wiki/Hausdorff_dimension

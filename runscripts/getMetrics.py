@@ -5,15 +5,15 @@ from six.moves import cPickle
 
 from KESMAnalysis.imgtools import loadStack, saveStack
 from KESMAnalysis.pipeline.pipelineComponents import watershedMarker
-from KESMAnalysis.segmentation.colorSegmentation import cleanupLabeledImage
 
 from skeleton.thin3DVolume import getThinned3D
-from skeleton.orientationStatisticsSpline import getStatistics, plotKDEAndHistogram, getImportantMetrics
+from skeleton.orientationStatisticsSpline import getStatistics, plotKDEAndHistogram, getImportantMetrics, plotMultiKde
 from skeleton.unitwidthcurveskeleton import getShortestPathSkeleton
 from skeleton.segmentStats import getSegmentStats
+from skeleton.pruning import getPrunedSkeleton
 
 # load 2D facelets median filtered to be vectorized
-filePath = input("please enter a root directory where your median filtered 2D slices are----")
+filePath = "/home/3scan-data/exports/78c507c6e37294470/block-00000000/region-00013048-00013560-00023340-00023852-00000117-00000189/median/"
 stack = loadStack(filePath)
 
 # load aspect ratio to make the 3D volume isotropic using quadratic interpolation
@@ -26,11 +26,7 @@ stack = ndimage.interpolation.zoom(stack, zoom=aspectRatio, order=2, prefilter=F
 binaryVol = watershedMarker(stack)
 
 # save binary volume
-# np.save(filePath + "/" + "binary.npy", binaryVol)
-cleanupLabeledImage(binaryVol)
-
-# save binary volume
-np.save(filePath + "/" + "binaryLCC.npy", binaryVol)
+np.save(filePath + "/" + "binary.npy", binaryVol)
 
 # convert to boolean becasue getThinned expects a boolean input
 binaryVol = binaryVol.astype(bool)
@@ -39,7 +35,7 @@ binaryVol = binaryVol.astype(bool)
 thinnedVol = getThinned3D(np.swapaxes(binaryVol, 0, 2))
 thinnedVol = np.swapaxes(thinnedVol, 0, 2)
 # decluster thinned volume
-skeletonVol = getShortestPathSkeleton(thinnedVol)
+skeletonVol = getPrunedSkeleton(getShortestPathSkeleton(thinnedVol), cutoff=5)
 
 # save the skeleton volume as pngs
 saveStack(skeletonVol, filePath + "/skeleton")
@@ -48,7 +44,8 @@ saveStack(skeletonVol, filePath + "/skeleton")
 np.save(filePath + "/skeleton/" + "skeleton.npy", skeletonVol)
 
 # vectorize and find metrics
-segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(skeletonVol)
+(segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments,
+ typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo) = getSegmentStats(skeletonVol, False)
 
 # save the metrics dumping using cPickle as a list of elements as obtained from getSegmentStats
 # as segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict
@@ -65,14 +62,14 @@ cPickle.dump(outputDict, open(filePath + "/" + "metrics_Cerebellum.p", "wb"))
 
 # save important statistics in a json file
 getImportantMetrics(outputDict, binaryVol, skeletonVol)
-getStatistics(segmentLengthdict, "Segment Length_Cerebellum")
 
-getStatistics(segmentContractiondict, "Segment Contraction_Cerebellum")
-
-getStatistics(segmentHausdorffDimensiondict, "Segment Hausdorff Dimension_Cerebellum")
-
-plotKDEAndHistogram(list(segmentLengthdict.values()), "/home/pranathi/NPYS/segment Length Histogram_Cerebellum.png", 'Length(um)', True)
-plotKDEAndHistogram(list(segmentContractiondict.values()), "/home/pranathi/NPYS/segment Contraction Histogram_Cerebellum.png", 'Contraction')
-plotKDEAndHistogram(list(segmentHausdorffDimensiondict.values()), "/home/pranathi/NPYS/segment Hausdorff Dimension Histogram_Cerebellum.png", 'Hausdorff Dimension')
-plotKDEAndHistogram(list(typeGraphdict.values()), "/home/pranathi/NPYS/Sub-graph in a network Histogram_Cerebellum.png", 'Subgraphs')
-
+graphs = ['segmentCountdict', 'segmentLengthdict', 'segmentHausdorffDimensiondict', 'segmentContractiondict', 'typeGraphdict']
+FeatureName = ['Branching Index', 'Segment Length', 'Segment Hausdorff Dimension', 'Segment Contraction', 'Type of Subgraphs']
+dictforebrain = cPickle.load(open("/home/pranathi/results/metrics_Forebrain.p", "rb"))
+dictcerebellum = cPickle.load(open("/home/pranathi/results/metrics_Cerebellum.p", "rb"))
+for i, graph in enumerate(graphs):
+    plotMultiKde(list(dictforebrain[graph].values()), list(dictcerebellum[graph].values()), "/home/pranathi/results2/" + FeatureName[i] + "Histogram.png", FeatureName[i])
+    plotKDEAndHistogram(list(dictforebrain[graph].values()), "/home/pranathi/results2/" + FeatureName[i] + "Histogram_Forebrain.png", FeatureName[i])
+    plotKDEAndHistogram(list(dictcerebellum[graph].values()), "/home/pranathi/results2/" + FeatureName[i] + "Histogram_Cerebellum.png", FeatureName[i])
+    getStatistics(list(dictforebrain[graph].values()), FeatureName[i] + "Histogram_Forebrain")
+    getStatistics(list(dictcerebellum[graph].values()), FeatureName[i] + "Histogram_Cerebellum")
