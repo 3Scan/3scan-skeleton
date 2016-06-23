@@ -28,6 +28,9 @@ with insturctions executed in a virtual environment with python 2.6 as below
 Install nosetests to execute programs in this folder
 *conda install nose
 *pip install nose
+Run nose tests from within the directory
+pranathi@pranathi-3Scan:~/src/3scan-skeleton$ nosetests -xs "/home/pranathi/src/3scan-skeleton/tests/"
+
 
 The folder notebook contains ipynb(ipython notebook file)
 created to see how the graph reconstruction and quantification
