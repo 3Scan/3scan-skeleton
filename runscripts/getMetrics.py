@@ -45,13 +45,13 @@ np.save(filePath + "/skeleton/" + "skeleton.npy", skeletonVol)
 
 # vectorize and find metrics
 (segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments,
- typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo) = getSegmentStats(skeletonVol, False)
+ typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo, isolatedEdgeInfo) = getSegmentStats(skeletonVol, False)
 
 # save the metrics dumping using cPickle as a list of elements as obtained from getSegmentStats
 # as segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict
 
-outputList = [segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo]
-varList = ['segmentCountdict', 'segmentLengthdict', 'segmentTortuositydict', 'totalSegments', 'typeGraphdict', 'Average Branching', 'end Points', 'branch Points', 'segmentContractiondict', 'segmentHausdorffDimensiondict', 'cycleInfo']
+outputList = [segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo, isolatedEdgeInfo]
+varList = ['segmentCountdict', 'segmentLengthdict', 'segmentTortuositydict', 'totalSegments', 'typeGraphdict', 'Average Branching', 'end Points', 'branch Points', 'segmentContractiondict', 'segmentHausdorffDimensiondict', 'cycleInfo', 'isolatedEdgeInfo']
 outputDict = {}
 for var, op in zip(varList, outputList):
     outputDict[var] = op
@@ -64,7 +64,7 @@ cPickle.dump(outputDict, open("/home/pranathi/MTR/metrics_cerebellum.p", "wb"))
 getImportantMetrics(outputDict, binaryVol, skeletonVol)
 
 graphs = ['segmentCountdict', 'segmentLengthdict', 'segmentHausdorffDimensiondict', 'segmentContractiondict', 'typeGraphdict']
-FeatureName = ['Branching Index', 'Segment Length', 'Segment Hausdorff Dimension', 'Segment Contraction', 'Type of Subgraphs']
+FeatureName = ['Branching Index', 'Segment Length(um)', 'Segment Hausdorff Dimension', 'Segment Contraction', 'Type of Subgraphs']
 dictforebrain = cPickle.load(open("/home/pranathi/MTR/metrics_forebrain.p", "rb"))
 dictcerebellum = cPickle.load(open("/home/pranathi/MTR/metrics_cerebellum.p", "rb"))
 for i, graph in enumerate(graphs):

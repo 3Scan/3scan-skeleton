@@ -241,6 +241,7 @@ def getSegmentStats(imArray, nxg=True):
     cycles = 0
     e = 0
     stupidEdges = 0
+    isolatedEdgeInfo = {}
     visitedSources = []
     visitedPaths = []
     sortedSegments = []
@@ -280,10 +281,40 @@ def getSegmentStats(imArray, nxg=True):
             elif set(degreeList) == set((1, 2)) or set(degreeList) == {1}:
                 """ disjoint line or a bent line at 45 degrees appearing as dichtonomous tree but an error due to
                     improper binarization, so remove them and do not account for statistics"""
+                """ straight line or dichtonomous tree"""
                 edges = subGraphskeleton.edges()
-                stupidEdges += sum([np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2)) for item, item2 in subGraphskeleton.edges()])
-                subGraphskeleton.remove_edges_from(edges)
-                typeGraphdict[ithDisjointgraph] = 2
+                stupidEdges += sum([np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2)) for item, item2 in edges])
+                listOfPerms = list(itertools.combinations(nodes, 2))
+                if type(nodes[0]) == int:
+                    modulus = [[start - end] for start, end in listOfPerms]
+                    dists = [abs(i[0]) for i in modulus]
+                else:
+                    dims = len(nodes[0])
+                    modulus = [[start[dim] - end[dim] for dim in range(0, dims)] for start, end in listOfPerms]
+                    dists = [sum(modulus[i][dim] * modulus[i][dim] for dim in range(0, dims)) for i in range(0, len(modulus))]
+                if len(list(nx.articulation_points(subGraphskeleton))) == 1 and set(dists) != 1:
+                    """ each node is connected to one or two other nodes which are not a distance of 1 implies there is a
+                        one branch point with two end points in a single dichotomous tree"""
+                    for sourceOnTree, item in listOfPerms:
+                        if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
+                            simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
+                            simplePath = simplePaths[0]
+                            if sum([1 for point in simplePath if point in nodes]) == 2:
+                                curveLength = _getDistanceBetweenPointsInpath(simplePath, 0)
+                                isolatedEdgeInfo[sourceOnTree, item] = curveLength
+                                _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
+                else:
+                    """ each node is connected to one or two other nodes implies it is a line,
+                    set tortuosity to 1"""
+                    endpoints = [k for (k, v) in nodeDegreedict.items() if v == 1]
+                    sourceOnLine = endpoints[0]
+                    targetOnLine = endpoints[1]
+                    simplePath = nx.shortest_path(subGraphskeleton, source=sourceOnLine, target=targetOnLine)
+                    curveLength = _getDistanceBetweenPointsInpath(simplePath, 0)
+                    isolatedEdgeInfo[sourceOnLine, targetOnLine] = curveLength
+                    edges = subGraphskeleton.edges()
+                    subGraphskeleton.remove_edges_from(edges)
+                    typeGraphdict[ithDisjointgraph] = 2
             else:
                 """ cyclic or acyclic tree """
                 if cycleCount != 0:
@@ -315,8 +346,9 @@ def getSegmentStats(imArray, nxg=True):
     # testing the total network length is same after and before tracing
     a = sum(list(segmentLengthdict.values())) + stupidEdges
     np.testing.assert_allclose(a, b)
-    return segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching, sum(endP), sum(branchP), segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo
+    return segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching, sum(endP), sum(branchP), segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo, isolatedEdgeInfo
+
 
 if __name__ == '__main__':
     shskel = np.load(input("enter a path to shortest path skeleton volume------"))
-    segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(shskel)
+    segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo, isolatedEdgeInfo = getSegmentStats(shskel)
