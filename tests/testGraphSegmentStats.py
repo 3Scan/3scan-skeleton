@@ -77,33 +77,44 @@ def test_singlesegment():
 def test_singlecycle():
     donutGraph = getCycleNotree()
     dcyclecount, dcyclelength, segmentTortuositycycle, totalSegmentsDonut, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(donutGraph)
-    assert sum(list(dcyclelength.values())) == sum([np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2)) for item, item2 in donutGraph.edges()])
+    a = sum(list(dcyclelength.values()))
+    b = sum([np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2)) for item, item2 in donutGraph.edges()])
+    np.testing.assert_allclose(a, b)
     assert totalSegmentsDonut == 1 and typeGraphdict[0] == 1 and endP == 0 and branchP == 0 and segmentHausdorffDimensiondict == {} and cycleInfo[1][0] == 0
 
 
 def test_treeNocycle2d():
     crosGraph = getTreeNoCycle2d()
     dTreecount, dTreelength, segmentTortuositytree, totalSegmentsTree, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(crosGraph)
-    assert sum(list(dTreelength.values())) == sum([np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2)) for item, item2 in crosGraph.edges()])
+    a = sum(list(dTreelength.values()))
+    b = sum([np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2)) for item, item2 in crosGraph.edges()])
+    np.testing.assert_allclose(a, b)
     assert totalSegmentsTree == 4 and typeGraphdict[0] == 4 and endP == 4 and branchP == 1 and cycleInfo == {}
 
 
 def test_disjointDoublecycle():
     multiloopgraph = getDisjointCyclesNoTrees2d()
     disjointCyclescount, ddisjointCycleslength, segmentTortuositycycles, totalSegmentsDisjointCycles, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(multiloopgraph)
-    assert sum(list(ddisjointCycleslength.values())) == sum([np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2)) for item, item2 in multiloopgraph.edges()])
+    a = sum(list(ddisjointCycleslength.values()))
+    b = sum([np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2)) for item, item2 in multiloopgraph.edges()])
+    np.testing.assert_allclose(a, b)
     assert totalSegmentsDisjointCycles == 2 and typeGraphdict[0] == 1 and endP == 0 and branchP == 0 and len(cycleInfo) == 2 and cycleInfo[1][0] == 0 and cycleInfo[2][0] == 0
 
 
 def test_treeNocycle3d():
     crosPairgraph = getDisjointTreesNoCycle3d()
     dTreescount, dTreeslength, segmentTortuositytrees, totalSegmentsTrees, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(crosPairgraph)
-    assert sum(list(dTreeslength.values())) == sum([np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2)) for item, item2 in crosPairgraph.edges()])
+    a = sum(list(dTreeslength.values()))
+    b = sum([np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2)) for item, item2 in crosPairgraph.edges()])
+    np.testing.assert_allclose(a, b)
     assert totalSegmentsTrees == 8 and typeGraphdict[0] == 4 and endP == 8 and branchP == 2 and cycleInfo == {}
 
 
 def test_cycleAndTree():
     sampleGraph = getCyclesWithBranchesProtrude()
     dcycleTreecount, dcycleTreelength, segmentTortuositycycletree, totalSegmentsSampleGraph, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(sampleGraph)
-    assert sum(list(dcycleTreelength.values())) == sum([np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2)) for item, item2 in sampleGraph.edges()])
-    assert totalSegmentsSampleGraph == 3 and typeGraphdict[0] == 3 and endP == 2 and branchP == 2 and cycleInfo[1][0] == 2
+    a = sum(list(dcycleTreelength.values()))
+    b = sum([np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2)) for item, item2 in sampleGraph.edges()])
+    np.testing.assert_allclose(a, b)
+    assert totalSegmentsSampleGraph == 4 and typeGraphdict[0] == 3 and endP == 2 and branchP == 2 and cycleInfo[1][0] == 2
+
