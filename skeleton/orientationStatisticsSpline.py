@@ -13,7 +13,7 @@ from sklearn.neighbors import KernelDensity
 
 from collections import Counter
 from math import sqrt, pow, atan2, degrees
-from statistics import median, mode, pvariance, mean
+from statistics import median, pvariance, mean
 
 
 """
@@ -64,7 +64,7 @@ def getStatistics(dictF, featureName):
     fCounts = Counter(listF)
     dictStats = {'Zerocount ' + featureName: listF.count(0.0), 'Maximum ' + featureName: max(listF), 'Minimum ' + featureName: min(listF),
                  'Mean ' + featureName: mean(listF),
-                 'Median ' + featureName: median(listF), 'Mode ' + featureName: mode(listF),
+                 'Median ' + featureName: median(listF),
                  'Variance ' + featureName: varianceF, 'Standard Deviation ' + featureName: sqrt(varianceF),
                  'Unique Counts ' + featureName: len(fCounts)}
     df = pandas.DataFrame(dictStats, index=[1])

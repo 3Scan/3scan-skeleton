@@ -80,7 +80,7 @@ def test_singlecycle():
     a = sum(list(dcyclelength.values()))
     b = sum([np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2)) for item, item2 in donutGraph.edges()])
     np.testing.assert_allclose(a, b)
-    assert totalSegmentsDonut == 1 and typeGraphdict[0] == 1 and endP == 0 and branchP == 0 and segmentHausdorffDimensiondict == {} and cycleInfo[1][0] == 0
+    assert totalSegmentsDonut == 1 and typeGraphdict[0] == 1 and endP == 0 and branchP == 0 and segmentHausdorffDimensiondict == {} and cycleInfo[0][0] == 0
 
 
 def test_treeNocycle2d():
@@ -98,7 +98,7 @@ def test_disjointDoublecycle():
     a = sum(list(ddisjointCycleslength.values()))
     b = sum([np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2)) for item, item2 in multiloopgraph.edges()])
     np.testing.assert_allclose(a, b)
-    assert totalSegmentsDisjointCycles == 2 and typeGraphdict[0] == 1 and endP == 0 and branchP == 0 and len(cycleInfo) == 2 and cycleInfo[1][0] == 0 and cycleInfo[2][0] == 0
+    assert totalSegmentsDisjointCycles == 2 and typeGraphdict[0] == 1 and endP == 0 and branchP == 0 and len(cycleInfo) == 2 and cycleInfo[0][0] == 0 and cycleInfo[1][0] == 0
 
 
 def test_treeNocycle3d():
@@ -116,5 +116,7 @@ def test_cycleAndTree():
     a = sum(list(dcycleTreelength.values()))
     b = sum([np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2)) for item, item2 in sampleGraph.edges()])
     np.testing.assert_allclose(a, b)
-    assert totalSegmentsSampleGraph == 4 and typeGraphdict[0] == 3 and endP == 2 and branchP == 2 and cycleInfo[1][0] == 2
+    print(a, b)
+    print(dcycleTreelength)
+    assert totalSegmentsSampleGraph == 4 and typeGraphdict[0] == 3 and endP == 2 and branchP == 2 and cycleInfo[0][0] == 2
 

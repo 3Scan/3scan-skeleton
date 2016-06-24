@@ -55,7 +55,7 @@ varList = ['segmentCountdict', 'segmentLengthdict', 'segmentTortuositydict', 'to
 outputDict = {}
 for var, op in zip(varList, outputList):
     outputDict[var] = op
-cPickle.dump(outputDict, open(filePath + "/" + "metrics_Cerebellum.p", "wb"))
+cPickle.dump(outputDict, open("/home/pranathi/MTR/metrics_cerebellum.p", "wb"))
 
 # to load the statistics
 # outputDict = cPickle.load(open("/home/3scan-data/exports/78c507c6e37294470/block-00000000/region-00023120-00023632-00023124-00023636-00000282-00000354/median/skeleton/skeletonregion-00023120-00023632-00023124-00023636-00000282-00000354.npymetrics.p", "rb"))
@@ -65,11 +65,11 @@ getImportantMetrics(outputDict, binaryVol, skeletonVol)
 
 graphs = ['segmentCountdict', 'segmentLengthdict', 'segmentHausdorffDimensiondict', 'segmentContractiondict', 'typeGraphdict']
 FeatureName = ['Branching Index', 'Segment Length', 'Segment Hausdorff Dimension', 'Segment Contraction', 'Type of Subgraphs']
-dictforebrain = cPickle.load(open("/home/pranathi/results/metrics_Forebrain.p", "rb"))
-dictcerebellum = cPickle.load(open("/home/pranathi/results/metrics_Cerebellum.p", "rb"))
+dictforebrain = cPickle.load(open("/home/pranathi/MTR/metrics_forebrain.p", "rb"))
+dictcerebellum = cPickle.load(open("/home/pranathi/MTR/metrics_cerebellum.p", "rb"))
 for i, graph in enumerate(graphs):
-    plotMultiKde(list(dictforebrain[graph].values()), list(dictcerebellum[graph].values()), "/home/pranathi/results2/" + FeatureName[i] + "Histogram.png", FeatureName[i])
-    plotKDEAndHistogram(list(dictforebrain[graph].values()), "/home/pranathi/results2/" + FeatureName[i] + "Histogram_Forebrain.png", FeatureName[i])
-    plotKDEAndHistogram(list(dictcerebellum[graph].values()), "/home/pranathi/results2/" + FeatureName[i] + "Histogram_Cerebellum.png", FeatureName[i])
-    getStatistics(list(dictforebrain[graph].values()), FeatureName[i] + "Histogram_Forebrain")
-    getStatistics(list(dictcerebellum[graph].values()), FeatureName[i] + "Histogram_Cerebellum")
+    plotMultiKde(list(dictforebrain[graph].values()), list(dictcerebellum[graph].values()), "/home/pranathi/MTR/" + FeatureName[i] + "Histogram.png", FeatureName[i])
+    plotKDEAndHistogram(list(dictforebrain[graph].values()), "/home/pranathi/MTR/" + FeatureName[i] + "Histogram_Forebrain.png", FeatureName[i])
+    plotKDEAndHistogram(list(dictcerebellum[graph].values()), "/home/pranathi/MTR/" + FeatureName[i] + "Histogram_Cerebellum.png", FeatureName[i])
+    getStatistics(dictforebrain[graph], FeatureName[i] + "Histogram_Forebrain")
+    getStatistics(dictcerebellum[graph], FeatureName[i] + "Histogram_Cerebellum")
