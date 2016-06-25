@@ -113,6 +113,8 @@ def plotKDEAndHistogram(ndimarray, path, featureName, chooseBins=False):
        input ndimarray must be array. if it isn't then it is converted
        to one and histogram is plotted
     """
+    state = plt.isinteractive()
+    # turn interactive mode off to prevent creation of a superfluous figure when viewer is initiated
     plt.ioff()
     if type(ndimarray) == list:
         ndimarray = np.array(ndimarray)
@@ -124,8 +126,10 @@ def plotKDEAndHistogram(ndimarray, path, featureName, chooseBins=False):
     plt.xlabel(featureName)
     plt.ylabel("KDE Of " + featureName)
     plt.title("Frequency distribution of " + featureName)
-    plt.savefig(path, transparency=True, bbox_inches='tight', pad_inches=0)
+    plt.savefig(path, transparency=True, bbox_inches='tight', pad_inches=1)
     plt.close("all")
+    if state:
+        plt.ion()
 
 
 def plotKde(dictionary):
@@ -138,18 +142,62 @@ def plotKde(dictionary):
     plt.show()
 
 
-def plotMultiKde(sl, sl2, path, featureName):
+def saveMultiKde(sl, sl2, path, featureName, label1="Forebrain", label2="Cerebelllum"):
+    state = plt.isinteractive()
     plt.ioff()
     sl = np.array(sl)
     sl2 = np.array(sl2)
-    sns.kdeplot(sl, label="Forebrain")
-    sns.kdeplot(sl2, label="Cerebelllum")
+    histData, bins = np.histogram(sl, density=True)
+    clr = sns.color_palette("Set1", n_colors=2, desat=0.5)
+    sns.set_palette(clr)
+    sns.set_style("whitegrid", {"xtick.color": '0'})
+    sns.distplot(sl, kde=True, label=label1, bins=bins, hist_kws=dict(alpha=1))
+    sns.distplot(sl2, kde=True, label=label2, bins=bins, hist_kws=dict(alpha=1))
     plt.xlabel(featureName)
     plt.ylabel("KDE of " + featureName)
     plt.title("Frequency distribution of " + featureName)
     plt.legend()
-    plt.savefig(path, transparency=True, bbox_inches='tight', pad_inches=0)
+    plt.savefig(path, transparency=True, bbox_inches='tight', pad_inches=1)
     plt.close("all")
+    if state:
+        plt.ion()
+
+
+def plotMultiKde(sl, sl2, featureName, minBin, maxBin, label1="Forebrain", label2="Cerebelllum"):
+    state = plt.isinteractive()
+    plt.ioff()
+    # meanF = mean(sl)
+    # sdsl = sqrt(pvariance(sl, meanF))
+    # nsl = len(sl)
+    # print(sdsl, nsl)
+    # bin_width_sl = 3.5 * sdsl * pow(nsl, (-1 / 3))
+    # meanF = mean(sl2)
+    # # sdsl2 = sqrt(pvariance(sl2, meanF))
+    # # nsl2 = len(sl2)
+    # # bin_width_sl2 = 3.5 * sdsl2 * pow(nsl2, (-1 / 3))
+    # if minBin is None and maxBin is None:
+    #     minBin = min(sl)
+    #     maxBin = max(sl)
+    # bins_sl = np.arange(minBin, maxBin, bin_width_sl)
+    # print("bins", bins_sl)
+    # bins_sl2 = np.arange(minBin, maxBin, bin_width_sl)
+    histData, bins = np.histogram(sl, density=True)
+    sl = np.array(sl)
+    sl2 = np.array(sl2)
+    sl = sl[(sl >= minBin) & (sl < maxBin)]
+    sl2 = sl2[(sl2 >= minBin) & (sl2 < maxBin)]
+    clr = sns.color_palette("Set1", n_colors=2, desat=0.5)
+    sns.set_palette(clr)
+    sns.set_style("whitegrid", {"xtick.color": '0'})
+    sns.distplot(sl, kde=True, label=label1, bins=bins, hist_kws=dict(alpha=1))
+    sns.distplot(sl2, kde=True, label=label2, bins=bins, hist_kws=dict(alpha=1))
+    plt.xlabel(featureName, fontsize='12')
+    plt.ylabel("KDE of " + featureName, fontsize='12')
+    plt.title("Frequency distribution of " + featureName, fontsize='15')
+    plt.legend()
+    if state:
+        plt.ion()
+    return plt
 
 
 def splineInterpolateStatistics(shskel, aspectRatio=[1, 1, 1]):

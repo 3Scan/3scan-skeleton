@@ -69,14 +69,14 @@ def getDisjointCyclesNoTrees2d(size=(10, 10)):
 
 def test_singlesegment():
     lineGraph = getSingleVoxelLineNobranches()
-    dlinecount, dlinelength, segmentTortuosityline, totalSegmentsLine, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(lineGraph)
+    dlinecount, dlinelength, segmentTortuosityline, totalSegmentsLine, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo, isolatedEdgeInfo = getSegmentStats(lineGraph)
     assert sum(list(dlinelength.values())) == 0
     assert totalSegmentsLine == 0 and typeGraphdict[0] == 2 and endP == 2 and branchP == 0 and segmentHausdorffDimensiondict == {} and cycleInfo == {}
 
 
 def test_singlecycle():
     donutGraph = getCycleNotree()
-    dcyclecount, dcyclelength, segmentTortuositycycle, totalSegmentsDonut, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(donutGraph)
+    dcyclecount, dcyclelength, segmentTortuositycycle, totalSegmentsDonut, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo, isolatedEdgeInfo = getSegmentStats(donutGraph)
     a = sum(list(dcyclelength.values()))
     b = sum([np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2)) for item, item2 in donutGraph.edges()])
     np.testing.assert_allclose(a, b)
@@ -85,7 +85,7 @@ def test_singlecycle():
 
 def test_treeNocycle2d():
     crosGraph = getTreeNoCycle2d()
-    dTreecount, dTreelength, segmentTortuositytree, totalSegmentsTree, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(crosGraph)
+    dTreecount, dTreelength, segmentTortuositytree, totalSegmentsTree, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo, isolatedEdgeInfo = getSegmentStats(crosGraph)
     a = sum(list(dTreelength.values()))
     b = sum([np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2)) for item, item2 in crosGraph.edges()])
     np.testing.assert_allclose(a, b)
@@ -94,7 +94,7 @@ def test_treeNocycle2d():
 
 def test_disjointDoublecycle():
     multiloopgraph = getDisjointCyclesNoTrees2d()
-    disjointCyclescount, ddisjointCycleslength, segmentTortuositycycles, totalSegmentsDisjointCycles, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(multiloopgraph)
+    disjointCyclescount, ddisjointCycleslength, segmentTortuositycycles, totalSegmentsDisjointCycles, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo, isolatedEdgeInfo = getSegmentStats(multiloopgraph)
     a = sum(list(ddisjointCycleslength.values()))
     b = sum([np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2)) for item, item2 in multiloopgraph.edges()])
     np.testing.assert_allclose(a, b)
@@ -103,7 +103,7 @@ def test_disjointDoublecycle():
 
 def test_treeNocycle3d():
     crosPairgraph = getDisjointTreesNoCycle3d()
-    dTreescount, dTreeslength, segmentTortuositytrees, totalSegmentsTrees, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(crosPairgraph)
+    dTreescount, dTreeslength, segmentTortuositytrees, totalSegmentsTrees, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo, isolatedEdgeInfo = getSegmentStats(crosPairgraph)
     a = sum(list(dTreeslength.values()))
     b = sum([np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2)) for item, item2 in crosPairgraph.edges()])
     np.testing.assert_allclose(a, b)
@@ -112,11 +112,9 @@ def test_treeNocycle3d():
 
 def test_cycleAndTree():
     sampleGraph = getCyclesWithBranchesProtrude()
-    dcycleTreecount, dcycleTreelength, segmentTortuositycycletree, totalSegmentsSampleGraph, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo = getSegmentStats(sampleGraph)
+    dcycleTreecount, dcycleTreelength, segmentTortuositycycletree, totalSegmentsSampleGraph, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo, isolatedEdgeInfo = getSegmentStats(sampleGraph)
     a = sum(list(dcycleTreelength.values()))
     b = sum([np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2)) for item, item2 in sampleGraph.edges()])
     np.testing.assert_allclose(a, b)
-    print(a, b)
-    print(dcycleTreelength)
     assert totalSegmentsSampleGraph == 4 and typeGraphdict[0] == 3 and endP == 2 and branchP == 2 and cycleInfo[0][0] == 2
 

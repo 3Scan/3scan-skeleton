@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 from scipy import ndimage
 from six.moves import cPickle
@@ -7,9 +8,9 @@ from KESMAnalysis.imgtools import loadStack, saveStack
 from KESMAnalysis.pipeline.pipelineComponents import watershedMarker
 
 from skeleton.thin3DVolume import getThinned3D
-from skeleton.orientationStatisticsSpline import getStatistics, plotKDEAndHistogram, getImportantMetrics, plotMultiKde
+from skeleton.orientationStatisticsSpline import getStatistics, plotKDEAndHistogram, getImportantMetrics, plotMultiKde, saveMultiKde
 from skeleton.unitwidthcurveskeleton import getShortestPathSkeleton
-from skeleton.segmentStats import getSegmentStats
+from runscripts.segmentStatsLRwhitecutoffs import getSegmentStats
 from skeleton.pruning import getPrunedSkeleton
 
 # load 2D facelets median filtered to be vectorized
@@ -67,9 +68,26 @@ graphs = ['segmentCountdict', 'segmentLengthdict', 'segmentHausdorffDimensiondic
 FeatureName = ['Branching Index', 'Segment Length(um)', 'Segment Hausdorff Dimension', 'Segment Contraction', 'Type of Subgraphs']
 dictforebrain = cPickle.load(open("/home/pranathi/MTR/metrics_forebrain.p", "rb"))
 dictcerebellum = cPickle.load(open("/home/pranathi/MTR/metrics_cerebellum.p", "rb"))
+binsmin = [0, 0, 0.7, 0.2, 0]
+binsmax = [4, 200, 1.25, 1, 6]
 for i, graph in enumerate(graphs):
-    plotMultiKde(list(dictforebrain[graph].values()), list(dictcerebellum[graph].values()), "/home/pranathi/MTR/" + FeatureName[i] + "Histogram.png", FeatureName[i])
+    saveMultiKde(list(dictforebrain[graph].values()), list(dictcerebellum[graph].values()), "/home/pranathi/MTR/new_graphs/" + FeatureName[i] + "Histogram.png", FeatureName[i], binsmin[i], binsmax[i])
     plotKDEAndHistogram(list(dictforebrain[graph].values()), "/home/pranathi/MTR/" + FeatureName[i] + "Histogram_Forebrain.png", FeatureName[i])
     plotKDEAndHistogram(list(dictcerebellum[graph].values()), "/home/pranathi/MTR/" + FeatureName[i] + "Histogram_Cerebellum.png", FeatureName[i])
     getStatistics(dictforebrain[graph], FeatureName[i] + "Histogram_Forebrain")
     getStatistics(dictcerebellum[graph], FeatureName[i] + "Histogram_Cerebellum")
+
+fig_object = plt.figure()
+binsmin = [0, 0, 0.2, 0.7, 0]
+binsmax = [4, 200, 1, 1.25, 6]
+plt.suptitle("Vectorization Metrics", fontsize='20')
+plotName = ['Branching Index', 'Segment Length(um)', 'Segment Contraction', 'Segment Hausdorff Dimension']
+plotGraphs = ['segmentCountdict', 'segmentLengthdict', 'segmentContractiondict', 'segmentHausdorffDimensiondict']
+for i in range(4):
+    plt.subplot(2, 2, i + 1)
+    graph = plotGraphs[i]
+    plotMultiKde(list(dictforebrain[graph].values()), list(dictcerebellum[graph].values()), plotName[i], minBin=binsmin[i], maxBin=binsmax[i])
+    # im = imread("/home/pranathi/MTR/new_graphs/" + plotName[i] + "Histogram.png")
+    # plt.imshow(im)
+
+cPickle.dump(fig_object, open("fig_picke", "wb"))
