@@ -12,6 +12,11 @@ and then use conda to install the following packages
 *skimage
 *matplotlib
 
+Input must be a binary array with z in it's first dimension
+
+Thinning is cythonized for fast execution and pyximport is used to automatically build and use cythoized function
+(reference - http://docs.cython.org/src/reference/compilation.html)
+
 This repository contains programs needed to obtain a 3D skeleton using python 3 and quantify the 
 skeleotnized array to statistics with the help of function present in skeleton.segmentStats
 

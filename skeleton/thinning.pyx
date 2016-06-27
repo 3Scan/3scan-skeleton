@@ -2,7 +2,7 @@ import numpy as np
 cimport cython  # NOQA
 
 import os
-lookUparray = np.load(os.path.join(os.path.dirname(__file__), 'lookuparray.npy'))
+lookUparray = np.load(os.path.join(os.path.dirname("__file__"), 'lookuparray.npy'))
 
 @cython.boundscheck(False)
 def cy_convolve(unsigned long long int[:, :, :] im, unsigned long long int[:, :, :] kernel, Py_ssize_t[:, ::1] points):

@@ -1,5 +1,6 @@
 import numpy as np
-from skeleton.thinning import cy_getThinned3D
+import pyximport; pyximport.install(pyimport = True) # NOQA
+from skeleton.thinning import cy_getThinned3D # NOQA
 from scipy import ndimage
 import time
 from runscripts.rotationalOperators import directionList
