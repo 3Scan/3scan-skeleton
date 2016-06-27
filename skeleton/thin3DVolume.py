@@ -1,5 +1,5 @@
 import numpy as np
-from skeleton.skeleton.thinning import cy_getThinned3D
+from skeleton.thinning import cy_getThinned3D
 from scipy import ndimage
 import time
 from runscripts.rotationalOperators import directionList
