@@ -1,5 +1,5 @@
 import numpy as np
-import pyximport; pyximport.install(pyimport = True) # NOQA
+import pyximport; pyximport.install() # NOQA
 from skeleton.thinning import cy_getThinned3D # NOQA
 from scipy import ndimage
 import time
