@@ -8,7 +8,8 @@ from KESMAnalysis.imgtools import loadStack, saveStack
 from KESMAnalysis.pipeline.pipelineComponents import watershedMarker
 
 from skeleton.thin3DVolume import getThinned3D
-from skeleton.orientationStatisticsSpline import getStatistics, plotKDEAndHistogram, getImportantMetrics, plotMultiKde, saveMultiKde, welchsTtest, saveDictAsJsonAndxlsx
+from skeleton.orientationStatisticsSpline import getStatistics, plotKDEAndHistogram, saveDictAsJson, nonParametricRanksums
+from skeleton.orientationStatisticsSpline import getImportantMetrics, plotMultiKde, saveMultiKde, welchsTtest
 from skeleton.unitwidthcurveskeleton import getShortestPathSkeleton
 from runscripts.segmentStatsLRwhitecutoffs import getSegmentStats
 from skeleton.pruning import getPrunedSkeleton
@@ -87,18 +88,19 @@ for i in range(4):
     plt.subplot(2, 2, i + 1)
     graph = plotGraphs[i]
     plotMultiKde(list(dictforebrain[graph].values()), list(dictcerebellum[graph].values()), plotName[i], minBin=binsmin[i], maxBin=binsmax[i])
-    # im = imread("/home/pranathi/MTR/new_graphs/" + plotName[i] + "Histogram.png")
-    # plt.imshow(im)
 
 cPickle.dump(fig_object, open("fig_picke", "wb"))
 plotName = ['Branching Index', 'Segment Length(um)', 'Segment Contraction', 'Segment Hausdorff Dimension']
 plotGraphs = ['segmentCountdict', 'segmentLengthdict', 'segmentContractiondict', 'segmentHausdorffDimensiondict']
 tstats = {}
+rankStats = {}
 for i in range(4):
     graph = plotGraphs[i]
     a = np.array(list(dictforebrain[graph].values()))
     b = np.array(list(dictcerebellum[graph].values()))
     t, p, n1, n2, v1, v2 = welchsTtest(a, b)
     tstats[plotName[i]] = (t, p, n1, n2, v1, v2)
-cPickle.dump(tstats, open("tstats.p", "wb"))
-saveDictAsJsonAndxlsx(tstats)
+    rankStats[plotName[i]] = nonParametricRanksums(a, b)
+
+saveDictAsJson(tstats, "/home/pranathi/MTR/tstats.json")
+saveDictAsJson(rankStats, "/home/pranathi/MTR/wilcoxon.json")

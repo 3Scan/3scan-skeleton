@@ -76,17 +76,24 @@ def getStatistics(dictF, featureName):
     feedsjson.close()
 
 
-def saveDictAsJsonAndxlsx(dictStats):
-    df = pandas.DataFrame(dictStats, index=[0, 1])
-    writer = pandas.ExcelWriter("statistics.xlsx", engine='xlsxwriter')
-    df.to_excel(writer)
-    writer.save()
-    with open("statistics.json", "w") as feedsjson:
+def saveDictAsJson(dictStats, path):
+    if path is None:
+        path = "statistics.json"
+    with open(path, "w") as feedsjson:
         feedsjson.write("{}\n".format(json.dumps(dictStats)))
     feedsjson.close()
 
 
-def getImportantMetrics(outputDict, binaryVol, skeletonVol):
+def saveDictAsXlsx(dictStats, path=None, index=[1]):
+    if path is None:
+        path = "statistics.xlsx"
+    df = pandas.DataFrame(dictStats, index=index)
+    writer = pandas.ExcelWriter(path, engine='xlsxwriter')
+    df.to_excel(writer)
+    writer.save()
+
+
+def getImportantMetrics(outputDict, binaryVol, skeletonVol, path=None):
     """
     outputList =
     [segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments,
@@ -107,13 +114,7 @@ def getImportantMetrics(outputDict, binaryVol, skeletonVol):
                  'Mean Contraction': sum(list(outputDict['segmentContractiondict'].values())) / (sum(list(outputDict['segmentCountdict'].values())) - len(outputDict['cycleInfo'])),
                  'Total Hausdorff Dimension': sum(list(outputDict['segmentHausdorffDimensiondict'].values())),
                  'Mean Hausdorff Dimension': sum(list(outputDict['segmentHausdorffDimensiondict'].values())) / (sum(list(outputDict['segmentCountdict'].values())) - len(outputDict['cycleInfo']))}
-    df = pandas.DataFrame(dictStats, index=[1])
-    writer = pandas.ExcelWriter("statistics.xlsx", engine='xlsxwriter')
-    df.to_excel(writer)
-    writer.save()
-    with open("statistics.json", "w") as feedsjson:
-        feedsjson.write("{}\n".format(json.dumps(dictStats)))
-    feedsjson.close()
+    saveDictAsJson(dictStats, path)
 
 
 def plotKDEAndHistogram(ndimarray, path, featureName, chooseBins=False):
@@ -173,27 +174,25 @@ def saveMultiKde(sl, sl2, path, featureName, label1="Forebrain", label2="Cerebel
 
 
 def welchsTtest(a, b):
-    return (scipy.stats.ttest_ind(a, b, axis=0, equal_var=False), 
+    """ computes t test on unequal number of sample sizes,
+    if sample size is equal returns same answer as a t test
+    assumes gaussian distribution of data with unequal variances
+    """
+    t, p = scipy.stats.ttest_ind(a, b, axis=0, equal_var=False)
+    return (t, p, a.size, b.size, pvariance(a.tolist(), mean(a.tolist())), pvariance(b.tolist(), mean(b.tolist())))
+
+
+def nonParametricRanksums(a, b):
+    """
+    no parameters of data are assumed
+    """
+    t, p = scipy.stats.ranksums(a, b)
+    return t, p
 
 
 def plotMultiKde(sl, sl2, featureName, minBin, maxBin, label1="Forebrain", label2="Cerebelllum"):
     state = plt.isinteractive()
     plt.ioff()
-    # meanF = mean(sl)
-    # sdsl = sqrt(pvariance(sl, meanF))
-    # nsl = len(sl)
-    # print(sdsl, nsl)
-    # bin_width_sl = 3.5 * sdsl * pow(nsl, (-1 / 3))
-    # meanF = mean(sl2)
-    # # sdsl2 = sqrt(pvariance(sl2, meanF))
-    # # nsl2 = len(sl2)
-    # # bin_width_sl2 = 3.5 * sdsl2 * pow(nsl2, (-1 / 3))
-    # if minBin is None and maxBin is None:
-    #     minBin = min(sl)
-    #     maxBin = max(sl)
-    # bins_sl = np.arange(minBin, maxBin, bin_width_sl)
-    # print("bins", bins_sl)
-    # bins_sl2 = np.arange(minBin, maxBin, bin_width_sl)
     sl = np.array(sl)
     sl2 = np.array(sl2)
     sl = sl[(sl >= minBin) & (sl < maxBin)]
