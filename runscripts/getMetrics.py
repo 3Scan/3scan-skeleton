@@ -52,8 +52,10 @@ np.save(filePath + "/skeleton/" + "skeleton.npy", skeletonVol)
 # save the metrics dumping using cPickle as a list of elements as obtained from getSegmentStats
 # as segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict
 
-outputList = [segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo, isolatedEdgeInfo]
-varList = ['segmentCountdict', 'segmentLengthdict', 'segmentTortuositydict', 'totalSegments', 'typeGraphdict', 'Average Branching', 'end Points', 'branch Points', 'segmentContractiondict', 'segmentHausdorffDimensiondict', 'cycleInfo', 'isolatedEdgeInfo']
+outputList = [segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching,
+              endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo, isolatedEdgeInfo]
+varList = ['segmentCountdict', 'segmentLengthdict', 'segmentTortuositydict', 'totalSegments', 'typeGraphdict', 'Average Branching',
+           'end Points', 'branch Points', 'segmentContractiondict', 'segmentHausdorffDimensiondict', 'cycleInfo', 'isolatedEdgeInfo']
 outputDict = {}
 for var, op in zip(varList, outputList):
     outputDict[var] = op
@@ -72,7 +74,8 @@ dictcerebellum = cPickle.load(open("/home/pranathi/MTR/metrics_cerebellum.p", "r
 binsmin = [0, 0, 0.7, 0.2, 0]
 binsmax = [4, 200, 1.25, 1, 6]
 for i, graph in enumerate(graphs):
-    saveMultiKde(list(dictforebrain[graph].values()), list(dictcerebellum[graph].values()), "/home/pranathi/MTR/new_graphs/" + FeatureName[i] + "Histogram.png", FeatureName[i], binsmin[i], binsmax[i])
+    saveMultiKde([list(dictforebrain[graph].values()), list(dictcerebellum[graph].values())], "/home/pranathi/MTR/new_graphs/" + FeatureName[i] +
+                 "Histogram.png", FeatureName[i], binsmin[i], binsmax[i], ["Forebrain", "Cerebellum"])
     plotKDEAndHistogram(list(dictforebrain[graph].values()), "/home/pranathi/MTR/" + FeatureName[i] + "Histogram_Forebrain.png", FeatureName[i])
     plotKDEAndHistogram(list(dictcerebellum[graph].values()), "/home/pranathi/MTR/" + FeatureName[i] + "Histogram_Cerebellum.png", FeatureName[i])
     getStatistics(dictforebrain[graph], FeatureName[i] + "Histogram_Forebrain")
@@ -87,7 +90,8 @@ plotGraphs = ['segmentCountdict', 'segmentLengthdict', 'segmentContractiondict',
 for i in range(4):
     plt.subplot(2, 2, i + 1)
     graph = plotGraphs[i]
-    plotMultiKde(list(dictforebrain[graph].values()), list(dictcerebellum[graph].values()), plotName[i], minBin=binsmin[i], maxBin=binsmax[i])
+    plotMultiKde([list(dictforebrain[graph].values()), list(dictcerebellum[graph].values())], plotName[i], minBin=binsmin[i], maxBin=binsmax[i],
+                 labels=["Forebrain", "Cerebellum"])
 
 cPickle.dump(fig_object, open("fig_picke", "wb"))
 plotName = ['Branching Index', 'Segment Length(um)', 'Segment Contraction', 'Segment Hausdorff Dimension']

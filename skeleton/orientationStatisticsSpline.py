@@ -152,25 +152,60 @@ def plotKde(dictionary):
     plt.show()
 
 
-def saveMultiKde(sl, sl2, path, featureName, label1="Forebrain", label2="Cerebelllum"):
+def saveMultiKde(features, path, featureName, minBin, maxBin, labels, bins=None):
     state = plt.isinteractive()
     plt.ioff()
-    sl = np.array(sl)
-    sl2 = np.array(sl2)
-    histData, bins = np.histogram(sl, density=True)
-    clr = sns.color_palette("Set1", n_colors=2, desat=0.5)
-    sns.set_palette(clr)
-    sns.set_style("whitegrid", {"xtick.color": '0'})
-    sns.distplot(sl, kde=True, label=label1, bins=bins, hist_kws=dict(alpha=1))
-    sns.distplot(sl2, kde=True, label=label2, bins=bins, hist_kws=dict(alpha=1))
-    plt.xlabel(featureName)
-    plt.ylabel("KDE of " + featureName)
-    plt.title("Frequency distribution of " + featureName)
+    for i in range(len(labels)):
+        features[i] = features[i][(features[i] >= minBin) & (features[i] < maxBin)]
+        clr = sns.color_palette("Set1", n_colors=2, desat=0.5)
+        sns.set_palette(clr)
+        if bins is None:
+            bins = _getBins(features)
+        sns.set_style("whitegrid", {"xtick.color": '0'})
+        sns.distplot(features[i], kde=True, label=labels[i], bins=bins)
+        plt.xlabel(featureName, fontsize='12')
+        plt.ylabel("KDE of " + featureName, fontsize='12')
+        plt.title("Frequency distribution of " + featureName, fontsize='15')
     plt.legend()
     plt.savefig(path, transparency=True, bbox_inches='tight', pad_inches=1)
     plt.close("all")
     if state:
         plt.ion()
+
+
+def _IQR(data):
+    """
+    return the interquartile range of the data
+    """
+    return np.subtract(*np.percentile(data, [75, 25]))
+
+
+def _findBinWidth(data, scale=None):
+    """
+    given a list of data (1D-array), find the optimal bin width
+    based on the Freedman-Diaconis rule
+      h = 2 * IQR * n ^(-1/3)
+    where IQR is the interquartile range (between 75% and 25%)
+    """
+    if data.ndim > 1:
+        data = data.ravel()
+    if not scale:  # we aren't adding a manual scaling value
+        scale = 1
+    return 2 * _IQR(data) * data.size ** (-1 / 3) / scale
+
+
+def _getBins(features):
+
+    # typical bin width optimization is the square root of the number of data points
+    # bw = np.sqrt(df[metricName].count())
+    data = np.empty(())
+    for i in range(len(features)):
+        data = np.hstack((data, features[i]))
+    bw = _findBinWidth(data[1:], scale=2)
+    minV = data.min()
+    maxV = data.max()
+    bins = np.arange(minV, maxV, bw)
+    return bins
 
 
 def welchsTtest(a, b):
@@ -190,22 +225,20 @@ def nonParametricRanksums(a, b):
     return t, p
 
 
-def plotMultiKde(sl, sl2, featureName, minBin, maxBin, label1="Forebrain", label2="Cerebelllum"):
+def plotMultiKde(features, featureName, minBin, maxBin, labels, bins=None):
     state = plt.isinteractive()
     plt.ioff()
-    sl = np.array(sl)
-    sl2 = np.array(sl2)
-    sl = sl[(sl >= minBin) & (sl < maxBin)]
-    sl2 = sl2[(sl2 >= minBin) & (sl2 < maxBin)]
-    clr = sns.color_palette("Set1", n_colors=2, desat=0.5)
-    sns.set_palette(clr)
-    histData, bins = np.histogram(sl, density=True)
-    sns.set_style("whitegrid", {"xtick.color": '0'})
-    sns.distplot(sl, kde=True, label=label1, bins=bins, hist_kws=dict(alpha=1))
-    sns.distplot(sl2, kde=True, label=label2, bins=bins, hist_kws=dict(alpha=1))
-    plt.xlabel(featureName, fontsize='12')
-    plt.ylabel("KDE of " + featureName, fontsize='12')
-    plt.title("Frequency distribution of " + featureName, fontsize='15')
+    for i in range(len(labels)):
+        features[i] = features[i][(features[i] >= minBin) & (features[i] < maxBin)]
+        clr = sns.color_palette("Set1", n_colors=2, desat=0.5)
+        sns.set_palette(clr)
+        if bins is None:
+            bins = _getBins(features)
+        sns.set_style("whitegrid", {"xtick.color": '0'})
+        sns.distplot(features[i], kde=True, label=labels[i], bins=bins)
+        plt.xlabel(featureName, fontsize='12')
+        plt.ylabel("KDE of " + featureName, fontsize='12')
+        plt.title("Frequency distribution of " + featureName, fontsize='15')
     plt.legend()
     if state:
         plt.ion()
