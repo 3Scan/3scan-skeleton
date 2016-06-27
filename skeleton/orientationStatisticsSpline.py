@@ -1,4 +1,4 @@
-
+import pandas
 import json
 import time
 
@@ -76,6 +76,16 @@ def getStatistics(dictF, featureName):
     feedsjson.close()
 
 
+def saveDictAsJsonAndxlsx(dictStats):
+    df = pandas.DataFrame(dictStats, index=[0, 1])
+    writer = pandas.ExcelWriter("statistics.xlsx", engine='xlsxwriter')
+    df.to_excel(writer)
+    writer.save()
+    with open("statistics.json", "w") as feedsjson:
+        feedsjson.write("{}\n".format(json.dumps(dictStats)))
+    feedsjson.close()
+
+
 def getImportantMetrics(outputDict, binaryVol, skeletonVol):
     """
     outputList =
@@ -84,7 +94,6 @@ def getImportantMetrics(outputDict, binaryVol, skeletonVol):
     varList = ['segmentCountdict', 'segmentLengthdict', 'segmentTortuositydict', 'totalSegments', 'typeGraphdict',
     'Average Branching', 'end Points', 'branch Points', 'segmentContractiondict', 'segmentHausdorffDimensiondict', 'cycleInfo']
     """
-    import pandas
     dictStats = {'Vascular Volume': np.sum(binaryVol) / binaryVol.size, 'Vectorized Skeleton Volume': np.sum(skeletonVol) / skeletonVol.size,
                  'Percentage skeleton per vascular volume': (np.sum(skeletonVol) / np.sum(binaryVol)) * 100,
                  'Average Branching': outputDict['Average Branching'], 'End Points': outputDict['end Points'],
@@ -163,6 +172,10 @@ def saveMultiKde(sl, sl2, path, featureName, label1="Forebrain", label2="Cerebel
         plt.ion()
 
 
+def welchsTtest(a, b):
+    return (scipy.stats.ttest_ind(a, b, axis=0, equal_var=False), 
+
+
 def plotMultiKde(sl, sl2, featureName, minBin, maxBin, label1="Forebrain", label2="Cerebelllum"):
     state = plt.isinteractive()
     plt.ioff()
@@ -181,13 +194,13 @@ def plotMultiKde(sl, sl2, featureName, minBin, maxBin, label1="Forebrain", label
     # bins_sl = np.arange(minBin, maxBin, bin_width_sl)
     # print("bins", bins_sl)
     # bins_sl2 = np.arange(minBin, maxBin, bin_width_sl)
-    histData, bins = np.histogram(sl, density=True)
     sl = np.array(sl)
     sl2 = np.array(sl2)
     sl = sl[(sl >= minBin) & (sl < maxBin)]
     sl2 = sl2[(sl2 >= minBin) & (sl2 < maxBin)]
     clr = sns.color_palette("Set1", n_colors=2, desat=0.5)
     sns.set_palette(clr)
+    histData, bins = np.histogram(sl, density=True)
     sns.set_style("whitegrid", {"xtick.color": '0'})
     sns.distplot(sl, kde=True, label=label1, bins=bins, hist_kws=dict(alpha=1))
     sns.distplot(sl2, kde=True, label=label2, bins=bins, hist_kws=dict(alpha=1))

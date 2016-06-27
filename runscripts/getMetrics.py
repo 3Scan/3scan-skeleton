@@ -8,7 +8,7 @@ from KESMAnalysis.imgtools import loadStack, saveStack
 from KESMAnalysis.pipeline.pipelineComponents import watershedMarker
 
 from skeleton.thin3DVolume import getThinned3D
-from skeleton.orientationStatisticsSpline import getStatistics, plotKDEAndHistogram, getImportantMetrics, plotMultiKde, saveMultiKde
+from skeleton.orientationStatisticsSpline import getStatistics, plotKDEAndHistogram, getImportantMetrics, plotMultiKde, saveMultiKde, welchsTtest, saveDictAsJsonAndxlsx
 from skeleton.unitwidthcurveskeleton import getShortestPathSkeleton
 from runscripts.segmentStatsLRwhitecutoffs import getSegmentStats
 from skeleton.pruning import getPrunedSkeleton
@@ -91,3 +91,14 @@ for i in range(4):
     # plt.imshow(im)
 
 cPickle.dump(fig_object, open("fig_picke", "wb"))
+plotName = ['Branching Index', 'Segment Length(um)', 'Segment Contraction', 'Segment Hausdorff Dimension']
+plotGraphs = ['segmentCountdict', 'segmentLengthdict', 'segmentContractiondict', 'segmentHausdorffDimensiondict']
+tstats = {}
+for i in range(4):
+    graph = plotGraphs[i]
+    a = np.array(list(dictforebrain[graph].values()))
+    b = np.array(list(dictcerebellum[graph].values()))
+    t, p, n1, n2, v1, v2 = welchsTtest(a, b)
+    tstats[plotName[i]] = (t, p, n1, n2, v1, v2)
+cPickle.dump(tstats, open("tstats.p", "wb"))
+saveDictAsJsonAndxlsx(tstats)
