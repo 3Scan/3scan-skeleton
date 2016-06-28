@@ -3,7 +3,6 @@ import json
 import time
 
 from scipy import interpolate
-from scipy import ndimage
 
 import numpy as np
 import scipy
@@ -33,9 +32,7 @@ def saveVolumeFeatures(image, nameOfTheImage):
     t = t.replace('%', nameOfTheImage)
     label, countObjectsInput = scipy.ndimage.measurements.label(image, structure=np.ones((3, 3, 3), dtype=np.uint8))
     dictStats = {t: countObjectsInput}
-    with open("statistics.json", "a") as feedsjson:
-        feedsjson.write("{}\n".format(json.dumps(dictStats)))
-    feedsjson.close()
+    saveDictAsJson(dictStats)
 
 
 def saveVolumeMetadata(inputIm):
@@ -47,9 +44,7 @@ def saveVolumeMetadata(inputIm):
     volumeOfDataset = inputIm.size * resolution
     dictStats = {'resolution': resolution,
                  'volumeOfDataset': volumeOfDataset}
-    with open("statistics.json", "a") as feedsjson:
-        feedsjson.write("{}\n".format(json.dumps(dictStats)))
-    feedsjson.close()
+    saveDictAsJson(dictStats)
 
 
 def getStatistics(dictF, featureName):
@@ -57,7 +52,6 @@ def getStatistics(dictF, featureName):
        function to obtain common statistics like mean, median. featureName is the string variable
        that takes in the name of the feature being evaluated
     """
-    import pandas
     listF = [float(dictF[k]) for k in dictF]
     meanF = mean(listF)
     varianceF = (pvariance(listF, meanF))
@@ -67,16 +61,11 @@ def getStatistics(dictF, featureName):
                  'Median ' + featureName: median(listF),
                  'Variance ' + featureName: varianceF, 'Standard Deviation ' + featureName: sqrt(varianceF),
                  'Unique Counts ' + featureName: len(fCounts)}
-    df = pandas.DataFrame(dictStats, index=[1])
-    writer = pandas.ExcelWriter("statistics" + featureName + ".xlsx", engine='xlsxwriter')
-    df.to_excel(writer)
-    writer.save()
-    with open("statistics" + featureName + ".json", "w") as feedsjson:
-        feedsjson.write("{}\n".format(json.dumps(dictStats)))
-    feedsjson.close()
+    saveDictAsJson(dictStats)
+    saveDictAsXlsx(dictStats)
 
 
-def saveDictAsJson(dictStats, path):
+def saveDictAsJson(dictStats, path=None):
     if path is None:
         path = "statistics.json"
     with open(path, "w") as feedsjson:
@@ -152,16 +141,20 @@ def plotKde(dictionary):
     plt.show()
 
 
-def saveMultiKde(features, path, featureName, minBin, maxBin, labels, bins=None):
+def saveMultiKde(features, path, featureName, minBin=None, maxBin=None, labels=[], bins=None):
     state = plt.isinteractive()
     plt.ioff()
     for i in range(len(labels)):
-        features[i] = features[i][(features[i] >= minBin) & (features[i] < maxBin)]
+        features[i] = np.array(features[i])
+        if minBin is not None and maxBin is not None:
+            features[i] = features[i][(features[i] >= minBin) & (features[i] < maxBin)]
+    if bins is None:
+        bins = _getBins(features)
+    for i in range(len(labels)):
         clr = sns.color_palette("Set1", n_colors=2, desat=0.5)
         sns.set_palette(clr)
-        if bins is None:
-            bins = _getBins(features)
         sns.set_style("whitegrid", {"xtick.color": '0'})
+        print(features[i].shape)
         sns.distplot(features[i], kde=True, label=labels[i], bins=bins)
         plt.xlabel(featureName, fontsize='12')
         plt.ylabel("KDE of " + featureName, fontsize='12')
@@ -204,6 +197,7 @@ def _getBins(features):
     bw = _findBinWidth(data[1:], scale=2)
     minV = data.min()
     maxV = data.max()
+    print(minV, maxV, bw)
     bins = np.arange(minV, maxV, bw)
     return bins
 
@@ -229,11 +223,14 @@ def plotMultiKde(features, featureName, minBin, maxBin, labels, bins=None):
     state = plt.isinteractive()
     plt.ioff()
     for i in range(len(labels)):
-        features[i] = features[i][(features[i] >= minBin) & (features[i] < maxBin)]
+        features[i] = np.array(features[i])
+        if minBin is not None and maxBin is not None:
+            features[i] = features[i][(features[i] >= minBin) & (features[i] < maxBin)]
+    if bins is None:
+        bins = _getBins(features)
+    for i in range(len(labels)):
         clr = sns.color_palette("Set1", n_colors=2, desat=0.5)
         sns.set_palette(clr)
-        if bins is None:
-            bins = _getBins(features)
         sns.set_style("whitegrid", {"xtick.color": '0'})
         sns.distplot(features[i], kde=True, label=labels[i], bins=bins)
         plt.xlabel(featureName, fontsize='12')
@@ -245,13 +242,13 @@ def plotMultiKde(features, featureName, minBin, maxBin, labels, bins=None):
     return plt
 
 
-def splineInterpolateStatistics(shskel, aspectRatio=[1, 1, 1]):
+def splineInterpolateStatistics(shskel, path=None):
     """
+       assumes an array with z as it's first dimension
        spline curve fitting and orientation finding from
        the derivatives
     """
-    interpolatedSkeleton = ndimage.interpolation.zoom(shskel, zoom=aspectRatio, order=0)
-    z_sample, y_sample, x_sample = np.array(np.where(interpolatedSkeleton != 0))
+    z_sample, y_sample, x_sample = np.array(np.where(shskel != 0))
     starttInterp = time.time()
     tck, u = interpolate.splprep([z_sample, y_sample, x_sample])
     print("interpolate.splprep done and took %0.3f seconds" % (time.time() - starttInterp))
@@ -307,9 +304,7 @@ def splineInterpolateStatistics(shskel, aspectRatio=[1, 1, 1]):
                  'orientationThetaMean': orientationTheta.mean(), 'orientationThetaMax': orientationTheta.max(), 'orientationThetaMin': orientationTheta.min(),
                  'orientationThetaMedian': median(orientationTheta), 'orientationPhiMedian': median(orientationPhi),
                  'orientationPhiVariance': pvariance(orientationPhi), 'orientationThetaVariance': pvariance(orientationTheta)}
-    with open("statistics.json", "a") as feedsjson:
-        feedsjson.write("{}\n".format(json.dumps(dictStats)))
-    feedsjson.close()
+    saveDictAsJson(dictStats, path)
     return x_knots, y_knots, z_knots, tangentVectors, normalVectors, binormalVectors, orientationPhi, orientationTheta, curvature, radiusoFCurvature
 
 
@@ -366,9 +361,7 @@ def plot3Dfigure(inrerpolatedImage):
 
 if __name__ == '__main__':
     shskel = np.load(input("please enter a path to your unit width voxelized skeleton"))
-    # interpolatedImage = np.load('/Users/3scan_editing/records/interpolatedSkeleton.npy')
-    # saveVolumeFeatures(shskel, ' Unit Width Voxel image')
-    aspectRatio = input("please enter a sequence resolution of a voxel in 3D with resolution in z followed by y and x")
-    x_knots, y_knots, z_knots, tangentVectors, normalVectors, binormalVectors, orientationPhi, orientationTheta, curvature, radiusoFCurvature = splineInterpolateStatistics(shskel, aspectRatio)
+    (x_knots, y_knots, z_knots, tangentVectors, normalVectors, binormalVectors,
+     orientationPhi, orientationTheta, curvature, radiusoFCurvature) = splineInterpolateStatistics(shskel)
     plotKDEAndHistogram(orientationPhi)
     plotKDEAndHistogram(orientationTheta)

@@ -9,13 +9,13 @@ from KESMAnalysis.pipeline.pipelineComponents import watershedMarker
 
 from skeleton.thin3DVolume import getThinned3D
 from skeleton.orientationStatisticsSpline import getStatistics, plotKDEAndHistogram, saveDictAsJson, nonParametricRanksums
-from skeleton.orientationStatisticsSpline import getImportantMetrics, plotMultiKde, saveMultiKde, welchsTtest
+from skeleton.orientationStatisticsSpline import getImportantMetrics, plotMultiKde, saveMultiKde, welchsTtest, splineInterpolateStatistics
 from skeleton.unitwidthcurveskeleton import getShortestPathSkeleton
 from runscripts.segmentStatsLRwhitecutoffs import getSegmentStats
 from skeleton.pruning import getPrunedSkeleton
 
 # load 2D facelets median filtered to be vectorized
-filePath = "/home/3scan-data/exports/78c507c6e37294470/block-00000000/region-00013048-00013560-00023340-00023852-00000117-00000189/median/"
+filePath = input("please enter a path to directory with 2D grey scale slices to be skeletonized")
 stack = loadStack(filePath)
 
 # load aspect ratio to make the 3D volume isotropic using quadratic interpolation
@@ -67,12 +67,12 @@ cPickle.dump(outputDict, open("/home/pranathi/MTR/metrics_cerebellum.p", "wb"))
 # save important statistics in a json file
 getImportantMetrics(outputDict, binaryVol, skeletonVol)
 
-graphs = ['segmentCountdict', 'segmentLengthdict', 'segmentHausdorffDimensiondict', 'segmentContractiondict', 'typeGraphdict']
-FeatureName = ['Branching Index', 'Segment Length(um)', 'Segment Hausdorff Dimension', 'Segment Contraction', 'Type of Subgraphs']
+graphs = ['segmentLengthdict', 'segmentHausdorffDimensiondict', 'segmentContractiondict']
+FeatureName = ['Segment Length(um)', 'Segment Hausdorff Dimension', 'Segment Contraction']
 dictforebrain = cPickle.load(open("/home/pranathi/MTR/metrics_forebrain.p", "rb"))
 dictcerebellum = cPickle.load(open("/home/pranathi/MTR/metrics_cerebellum.p", "rb"))
-binsmin = [0, 0, 0.7, 0.2, 0]
-binsmax = [4, 200, 1.25, 1, 6]
+binsmin = [0, 0.7, 0.2]
+binsmax = [200, 1.25, 1]
 for i, graph in enumerate(graphs):
     saveMultiKde([list(dictforebrain[graph].values()), list(dictcerebellum[graph].values())], "/home/pranathi/MTR/new_graphs/" + FeatureName[i] +
                  "Histogram.png", FeatureName[i], binsmin[i], binsmax[i], ["Forebrain", "Cerebellum"])
@@ -108,3 +108,21 @@ for i in range(4):
 
 saveDictAsJson(tstats, "/home/pranathi/MTR/tstats.json")
 saveDictAsJson(rankStats, "/home/pranathi/MTR/wilcoxon.json")
+
+skelCerebellum = np.swapaxes(np.load("/home/pranathi/results/skeleton_cerebellum.npy"), 0, 2)
+(x_knots, y_knots, z_knots, tangentVectors, normalVectors, binormalVectors, orientationPhi,
+ orientationTheta, curvature, radiusoFCurvature) = splineInterpolateStatistics(skelCerebellum,
+                                                                               "/home/pranathi/MTR/orientationStats_cerebellum.json")
+
+skelForebrain = np.swapaxes(np.load("/home/pranathi/results/skeleton_forebrain.npy"), 0, 2)
+(x_knots, y_knots, z_knots, tangentVectors, normalVectors, binormalVectors, orientationPhif,
+ orientationThetaf, curvaturef, radiusoFCurvaturef) = splineInterpolateStatistics(skelForebrain,
+                                                                                  "/home/pranathi/MTR/orientationStats_forebrain.json")
+orientationName = ['Orientation Phi(degrees)', 'Orientation Theta(degrees)', 'Curvature', 'Radius of curvature']
+orientationGraphsf = [orientationPhif.tolist(), orientationThetaf.tolist(), curvaturef.tolist(), radiusoFCurvaturef.tolist()]
+orientationGraphsc = [orientationPhi.tolist(), orientationTheta.tolist(), curvature.tolist(), radiusoFCurvature.tolist()]
+binsmin = [-180, -180, 0, 0]
+binsmax = [180, 180, 10, 10]
+for i, graph in enumerate(orientationName):
+    saveMultiKde([orientationGraphsf[i], orientationGraphsc[i]], "/home/pranathi/MTR/new_graphs/" + graph +
+                 "Histogram.svg", graph, binsmin[i], binsmax[i], ["Forebrain", "Cerebellum"])
