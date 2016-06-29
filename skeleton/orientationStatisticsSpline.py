@@ -154,7 +154,6 @@ def saveMultiKde(features, path, featureName, minBin=None, maxBin=None, labels=[
         clr = sns.color_palette("Set1", n_colors=2, desat=0.5)
         sns.set_palette(clr)
         sns.set_style("whitegrid", {"xtick.color": '0'})
-        print(features[i].shape)
         sns.distplot(features[i], kde=True, label=labels[i], bins=bins)
         plt.xlabel(featureName, fontsize='12')
         plt.ylabel("KDE of " + featureName, fontsize='12')

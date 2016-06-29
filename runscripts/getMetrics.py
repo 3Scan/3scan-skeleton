@@ -8,9 +8,9 @@ from KESMAnalysis.imgtools import loadStack, saveStack
 from KESMAnalysis.pipeline.pipelineComponents import watershedMarker
 
 from skeleton.thin3DVolume import getThinned3D
+from skeleton.unitwidthcurveskeleton import getShortestPathSkeleton
 from skeleton.orientationStatisticsSpline import getStatistics, plotKDEAndHistogram, saveDictAsJson, nonParametricRanksums
 from skeleton.orientationStatisticsSpline import getImportantMetrics, plotMultiKde, saveMultiKde, welchsTtest, splineInterpolateStatistics
-from skeleton.unitwidthcurveskeleton import getShortestPathSkeleton
 from runscripts.segmentStatsLRwhitecutoffs import getSegmentStats
 from skeleton.pruning import getPrunedSkeleton
 
@@ -50,7 +50,8 @@ np.save(filePath + "/skeleton/" + "skeleton.npy", skeletonVol)
  typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo, isolatedEdgeInfo) = getSegmentStats(skeletonVol, False)
 
 # save the metrics dumping using cPickle as a list of elements as obtained from getSegmentStats
-# as segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict
+# as segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching, endP, branchP, segmentContractiondict, segmentHausdorffDimensiondic
+
 
 outputList = [segmentCountdict, segmentLengthdict, segmentTortuositydict, totalSegments, typeGraphdict, avgBranching,
               endP, branchP, segmentContractiondict, segmentHausdorffDimensiondict, cycleInfo, isolatedEdgeInfo]
@@ -80,6 +81,15 @@ for i, graph in enumerate(graphs):
     plotKDEAndHistogram(list(dictcerebellum[graph].values()), "/home/pranathi/MTR/" + FeatureName[i] + "Histogram_Cerebellum.png", FeatureName[i])
     getStatistics(dictforebrain[graph], FeatureName[i] + "Histogram_Forebrain")
     getStatistics(dictcerebellum[graph], FeatureName[i] + "Histogram_Cerebellum")
+
+
+otherStats = ['total Segments', 'total Cycles', 'end Points', 'branch Points']
+stats = [dictcerebellum['totalSegments'], len(dictcerebellum['cycleInfo']), dictcerebellum['end Points'], dictcerebellum['branch Points']]
+otherStatsDict = {}
+for i, stat in enumerate(otherStats):
+    otherStatsDict[stat] = stats[i]
+saveDictAsJson(otherStatsDict, "/home/pranathi/MTR/otherStats_cerebellum.json")
+
 
 fig_object = plt.figure()
 binsmin = [0, 0, 0.2, 0.7, 0]
