@@ -9,8 +9,8 @@ from KESMAnalysis.pipeline.pipelineComponents import watershedMarker
 
 from skeleton.thin3DVolume import getThinned3D
 from skeleton.unitwidthcurveskeleton import getShortestPathSkeleton
-from skeleton.orientationStatisticsSpline import getStatistics, plotKDEAndHistogram, saveDictAsJson, nonParametricRanksums
-from skeleton.orientationStatisticsSpline import getImportantMetrics, plotMultiKde, saveMultiKde, welchsTtest, splineInterpolateStatistics
+from skeleton.plotStats import getStatistics, plotKDEAndHistogram, saveDictAsJson, nonParametricRanksums
+from skeleton.plotStats import getImportantMetrics, plotMultiKde, saveMultiKde, welchsTtest, splineInterpolateStatistics
 from runscripts.segmentStatsLRwhitecutoffs import getSegmentStats
 from skeleton.pruning import getPrunedSkeleton
 
@@ -75,8 +75,8 @@ dictcerebellum = cPickle.load(open("/home/pranathi/MTR/metrics_cerebellum.p", "r
 binsmin = [0, 0.7, 0.2]
 binsmax = [200, 1.25, 1]
 for i, graph in enumerate(graphs):
-    saveMultiKde([list(dictforebrain[graph].values()), list(dictcerebellum[graph].values())], "/home/pranathi/MTR/new_graphs/" + FeatureName[i] +
-                 "Histogram.png", FeatureName[i], binsmin[i], binsmax[i], ["Forebrain", "Cerebellum"])
+    saveMultiKde([list(dictcerebellum[graph].values()), list(dictforebrain[graph].values())], "/home/pranathi/MTR/new_graphs/" + "Segment Tortuosity" +
+                 "Histogram.png", "Segment Tortuosity", minBin=1.01, maxBin=1.8, labels=["cerebellum", "forebrain"])
     plotKDEAndHistogram(list(dictforebrain[graph].values()), "/home/pranathi/MTR/" + FeatureName[i] + "Histogram_Forebrain.png", FeatureName[i])
     plotKDEAndHistogram(list(dictcerebellum[graph].values()), "/home/pranathi/MTR/" + FeatureName[i] + "Histogram_Cerebellum.png", FeatureName[i])
     getStatistics(dictforebrain[graph], FeatureName[i] + "Histogram_Forebrain")
