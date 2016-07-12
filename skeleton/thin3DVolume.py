@@ -1,7 +1,6 @@
 import numpy as np
 import pyximport; pyximport.install() # NOQA
 from skeleton.thinning import cy_getThinned3D # NOQA
-from scipy import ndimage
 import time
 from runscripts.rotationalOperators import directionList
 
@@ -32,15 +31,10 @@ def getThinned3D(image):
     assert np.max(image) in [0, 1]
     start_skeleton = time.time()
     zOrig, yOrig, xOrig = np.shape(image)
-    label_img1, countObjects = ndimage.measurements.label(image, structure=np.ones((3, 3, 3), dtype=np.uint8))
     orig = np.pad(np.uint64(image), 1, mode='constant', constant_values=0).copy(order='C')
-    del image, label_img1
     data = cy_getThinned3D(orig, directionList)
     print("done %i number of pixels in %0.2f seconds" % (np.sum(orig), time.time() - start_skeleton))
     result = data[1:zOrig + 1, 1: yOrig + 1, 1: xOrig + 1]
-    label_img2, countObjectsSkel = ndimage.measurements.label(result, structure=np.ones((3, 3, 3), dtype=np.uint8))
-    del label_img2
-    assert countObjects == countObjectsSkel
     return result
 
 
