@@ -10,7 +10,7 @@ from KESMAnalysis.pipeline.pipelineComponents import watershedMarker
 from skeleton.thin3DVolume import getThinned3D
 from skeleton.unitwidthcurveskeleton import getShortestPathSkeleton
 from skeleton.plotStats import getStatistics, plotKDEAndHistogram, saveDictAsJson, nonParametricRanksums
-from skeleton.plotStats import getImportantMetrics, plotMultiKde, saveMultiKde, welchsTtest, splineInterpolateStatistics
+from skeleton.plotStats import getImportantMetrics, plotMultiKde, saveMultiKde, welchsTtest
 from runscripts.segmentStatsLRwhitecutoffs import getSegmentStats
 from skeleton.pruning import getPrunedSkeleton
 
@@ -34,10 +34,10 @@ np.save(filePath + "/" + "binary.npy", binaryVol)
 binaryVol = binaryVol.astype(bool)
 
 # thin binarized volume of vessels
-thinnedVol = getThinned3D(np.swapaxes(binaryVol, 0, 2))
+thinnedVol = getShortestPathSkeleton(getThinned3D(np.swapaxes(binaryVol, 0, 2)))
 thinnedVol = np.swapaxes(thinnedVol, 0, 2)
 # decluster thinned volume
-skeletonVol = getPrunedSkeleton(getShortestPathSkeleton(thinnedVol), cutoff=5)
+skeletonVol = getPrunedSkeleton(thinnedVol, cutoff=5)
 
 # save the skeleton volume as pngs
 saveStack(skeletonVol, filePath + "/skeleton")
@@ -118,21 +118,3 @@ for i in range(4):
 
 saveDictAsJson(tstats, "/home/pranathi/MTR/tstats.json")
 saveDictAsJson(rankStats, "/home/pranathi/MTR/wilcoxon.json")
-
-skelCerebellum = np.swapaxes(np.load("/home/pranathi/results/skeleton_cerebellum.npy"), 0, 2)
-(x_knots, y_knots, z_knots, tangentVectors, normalVectors, binormalVectors, orientationPhi,
- orientationTheta, curvature, radiusoFCurvature) = splineInterpolateStatistics(skelCerebellum,
-                                                                               "/home/pranathi/MTR/orientationStats_cerebellum.json")
-
-skelForebrain = np.swapaxes(np.load("/home/pranathi/results/skeleton_forebrain.npy"), 0, 2)
-(x_knots, y_knots, z_knots, tangentVectors, normalVectors, binormalVectors, orientationPhif,
- orientationThetaf, curvaturef, radiusoFCurvaturef) = splineInterpolateStatistics(skelForebrain,
-                                                                                  "/home/pranathi/MTR/orientationStats_forebrain.json")
-orientationName = ['Orientation Phi(degrees)', 'Orientation Theta(degrees)', 'Curvature', 'Radius of curvature']
-orientationGraphsf = [orientationPhif.tolist(), orientationThetaf.tolist(), curvaturef.tolist(), radiusoFCurvaturef.tolist()]
-orientationGraphsc = [orientationPhi.tolist(), orientationTheta.tolist(), curvature.tolist(), radiusoFCurvature.tolist()]
-binsmin = [-180, -180, 0, 0]
-binsmax = [180, 180, 10, 10]
-for i, graph in enumerate(orientationName):
-    saveMultiKde([orientationGraphsf[i], orientationGraphsc[i]], "/home/pranathi/MTR/new_graphs/" + graph +
-                 "Histogram.svg", graph, binsmin[i], binsmax[i], ["Forebrain", "Cerebellum"])
