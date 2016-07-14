@@ -74,12 +74,6 @@ def _removeEdgesInVisitedPath(subGraphskeleton, path, cycle):
         subGraphskeleton.remove_edges_from(shortestPathedges)
 
 
-def _removePathInCycle(cycle, simplePath, branchpoints):
-    for pathpt in simplePath:
-        if pathpt not in branchpoints:
-            cycle.remove(pathpt)
-
-
 def checkBackTracing(simplePath, sortedSegments):
     check = 1
     for path in sortedSegments:
@@ -116,7 +110,6 @@ def _cyclicTree(subGraphskeleton, nodeDegreedict, visitedSources, segmentCountdi
         else:
             for point in cycle:
                 if point in branchpoints:
-                    sourceOnCycle, point
                     if nx.has_path(subGraphskeleton, source=sourceOnCycle, target=point) and sourceOnCycle != point:
                         simplePath = nx.shortest_path(subGraphskeleton, source=sourceOnCycle, target=point)
                         sortedSegment = sorted(simplePath)
