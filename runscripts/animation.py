@@ -1,25 +1,43 @@
 import numpy as np
 from mayavi.api import Engine
 from mayavi import mlab
+
+"""
+    Create an animation using mayavi, will create a series of images. use makemp4.py to 
+    create a video
+"""
 # Create a new mayavi scene.
-threshold = np.load(input("enter a path to thresholded volume"))
-skeleton = np.load(input("enter a path to skeleton you want to superimpose over"))
+
+totalTime = 4  # total duration of animation in seconds
+framesPerSecond = 24  # the sampling rate of the images we make. Higher is smoother, max at 24
+totalDegree = 360  # total degrees rotation, default clockwise
+totalFrameCount = framesPerSecond * totalTime
+degreePerFrame = totalDegree / totalFrameCount
+
+threshold = np.load("./figECCB.npy")
+skeleton = np.load("./figECCB_pruned.npy")
 e = Engine()
 e.start()
 s = e.new_scene()
-mlab.contour3d(np.uint8(threshold), contours=[108.50]).actor.property.representation = 'points'
-mlab.contour3d(np.uint8(skeleton), colormap='gray')
+s.scene.background = (1, 1, 1)
+g = mlab.contour3d(np.uint8(threshold), colormap='gray', contours=[0.7525])
+g.actor.property.opacity = 0.3025
+f = mlab.contour3d(np.uint8(skeleton), contours=[0.9901])
+f.actor.property.representation = 'points'
+f.actor.property.point_size = 6.448
 mlab.options.offscreen = True
-mlab.outline(s)
+mlab.outline(f).actor.property.color = (0,0,0)
 # Make an animation:
-for i in range(36):
+for i in range(totalFrameCount):
     # Rotate the camera by 10 degrees.
-    s.scene.camera.azimuth(10)
+    s.scene.camera.azimuth(degreePerFrame)
+    s.scene.camera.elevation(102.04192512233053)
     # Resets the camera clipping plane so everything fits and then
     # renders.
     s.scene.reset_zoom()
     # Save the scene. magnification=2 gives saves as an image when seen in fullscreen
-    mlab.savefig("anim%d.png" % i, magnification=2)
+    s.scene.magnification = 4
+    s.scene.save("anim%d.png" % i)
 
 # use imagemagick to create video from this frames
 # convert -set delay 20 -loop 0 -quality 1000 -scale 100% *.png /home/pranathi/animExp.mpg
