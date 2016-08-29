@@ -139,30 +139,6 @@ def plotKde(dictionary):
     plt.show()
 
 
-def saveMultiKde(features, path, featureName, minBin=None, maxBin=None, labels=[], bins=None):
-    state = plt.isinteractive()
-    plt.ioff()
-    for i in range(len(labels)):
-        features[i] = np.array(features[i])
-        if minBin is not None and maxBin is not None:
-            features[i] = features[i][(features[i] >= minBin) & (features[i] < maxBin)]
-    if bins is None:
-        bins = _getBins(features)
-    for i in range(len(labels)):
-        clr = sns.color_palette("Set1", n_colors=2, desat=0.5)
-        sns.set_palette(clr)
-        sns.set_style("whitegrid", {"xtick.color": '0'})
-        sns.distplot(features[i], kde=True, label=labels[i], bins=bins)
-        plt.xlabel(featureName, fontsize='12')
-        plt.ylabel("KDE of " + featureName, fontsize='12')
-        plt.title("Frequency distribution of " + featureName, fontsize='15')
-    plt.legend()
-    plt.savefig(path, transparency=True, bbox_inches='tight', pad_inches=1)
-    plt.close("all")
-    if state:
-        plt.ion()
-
-
 def _IQR(data):
     """
     return the interquartile range of the data
@@ -237,6 +213,30 @@ def plotMultiKde(features, featureName, minBin, maxBin, labels, bins=None):
     if state:
         plt.ion()
     return plt
+
+
+def saveMultiKde(features, path, featureName, minBin=None, maxBin=None, labels=[], bins=None):
+    state = plt.isinteractive()
+    plt.ioff()
+    for i in range(len(labels)):
+        features[i] = np.array(features[i])
+        if minBin is not None and maxBin is not None:
+            features[i] = features[i][(features[i] >= minBin) & (features[i] < maxBin)]
+    if bins is None:
+        bins = _getBins(features)
+    for i in range(len(labels)):
+        clr = sns.color_palette("Set1", n_colors=2, desat=0.5)
+        sns.set_palette(clr)
+        sns.set_style("whitegrid", {"xtick.color": '0'})
+        sns.distplot(features[i], kde=True, label=labels[i], bins=bins)
+        plt.xlabel(featureName, fontsize='12')
+        plt.ylabel("KDE of " + featureName, fontsize='12')
+        plt.title("Frequency distribution of " + featureName, fontsize='15')
+    plt.legend()
+    plt.savefig(path, transparency=True, bbox_inches='tight', pad_inches=1)
+    plt.close("all")
+    if state:
+        plt.ion()
 
 
 def plot3Dfigure(inrerpolatedImage):

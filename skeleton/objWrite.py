@@ -257,7 +257,7 @@ def getObjWriteWithradius(imArray, pathTosave, dictOfNodesAndRadius, aspectRatio
     objFile.close()
 
 
-def getObjBrancPointsWrite(imArray, pathTosave):
+def getObjBranchPointsWrite(imArray, pathTosave):
     """
        takes in a numpy array and converts it to a obj file and writes it to pathTosave
     """
@@ -272,6 +272,24 @@ def getObjBrancPointsWrite(imArray, pathTosave):
     #  for each of the sorted vertices
     strsVertices = []
     for index, vertex in enumerate(branchpoints):
+        strsVertices.append("v " + " ".join(str(vertex[i]) for i in [1, 0, 2]) + "\n")  # add strings of vertices to obj file
+    objFile.writelines(strsVertices)  # write strings to obj file
+    objFile.close()
+
+
+def getObjPointsWrite(imArray, pathTosave):
+    """
+       takes in a numpy array and converts it to a obj file and writes it to pathTosave
+    """
+    if type(imArray) == np.ndarray:
+        networkxGraph = getNetworkxGraphFromarray(imArray)  # converts array to a networkx graph(based on non zero coordinates and the adjacent nonzeros)
+        networkxGraph = removeCliqueEdges(networkxGraph)  # remove cliques in the graph
+    else:
+        networkxGraph = imArray
+    objFile = open(pathTosave, "w")  # open a obj file in the given path
+    nodes = nx.nodes(networkxGraph)
+    strsVertices = []
+    for index, vertex in enumerate(nodes):
         strsVertices.append("v " + " ".join(str(vertex[i]) for i in [1, 0, 2]) + "\n")  # add strings of vertices to obj file
     objFile.writelines(strsVertices)  # write strings to obj file
     objFile.close()

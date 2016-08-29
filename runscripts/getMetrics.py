@@ -70,13 +70,13 @@ getImportantMetrics(outputDict, binaryVol, skeletonVol)
 
 graphs = ['segmentLengthdict', 'segmentHausdorffDimensiondict', 'segmentContractiondict']
 FeatureName = ['Segment Length(um)', 'Segment Hausdorff Dimension', 'Segment Contraction']
-dictforebrain = cPickle.load(open("/home/pranathi/MTR/metrics_forebrain.p", "rb"))
-dictcerebellum = cPickle.load(open("/home/pranathi/MTR/metrics_cerebellum.p", "rb"))
+dictforebrain = cPickle.load(open("/home/pranathi/metrics_Forebrain.p", "rb"))
+dictcerebellum = cPickle.load(open("/home/pranathi/metrics_Cerebellum.p", "rb"))
 binsmin = [0, 0.7, 0.2]
 binsmax = [200, 1.25, 1]
 for i, graph in enumerate(graphs):
-    saveMultiKde([list(dictcerebellum[graph].values()), list(dictforebrain[graph].values())], "/home/pranathi/MTR/new_graphs/" + "Segment Tortuosity" +
-                 "Histogram.png", "Segment Tortuosity", minBin=1.01, maxBin=1.8, labels=["cerebellum", "forebrain"])
+    saveMultiKde([list(dictcerebellum[graph].values()), list(dictforebrain[graph].values())], "/home/pranathi/MTR/" + "Segment Length" +
+                 "Histogram.svg", "Segment Length(um)", minBin=0, maxBin=200, labels=["cerebellum", "forebrain"])
     plotKDEAndHistogram(list(dictforebrain[graph].values()), "/home/pranathi/MTR/" + FeatureName[i] + "Histogram_Forebrain.png", FeatureName[i])
     plotKDEAndHistogram(list(dictcerebellum[graph].values()), "/home/pranathi/MTR/" + FeatureName[i] + "Histogram_Cerebellum.png", FeatureName[i])
     getStatistics(dictforebrain[graph], FeatureName[i] + "Histogram_Forebrain")
