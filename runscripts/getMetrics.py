@@ -1,18 +1,19 @@
-import numpy as np
+import pickle
+
 import matplotlib.pyplot as plt
+import numpy as np
 
 from scipy import ndimage
-from six.moves import cPickle
 
 from KESMAnalysis.imgtools import loadStack, saveStack
 from KESMAnalysis.pipeline.pipelineComponents import watershedMarker
+from runscripts.segmentStatsLRwhitecutoffs import getSegmentStats
 
+from skeleton.metrics.plotStats import (getStatistics, plotKDEAndHistogram, saveDictAsJson, nonParametricRanksums,
+                                        getImportantMetrics, plotMultiKde, saveMultiKde, welchsTtest)
+from skeleton.pruning import getPrunedSkeleton
 from skeleton.thin3DVolume import getThinned3D
 from skeleton.unitwidthcurveskeleton import getShortestPathSkeleton
-from skeleton.plotStats import getStatistics, plotKDEAndHistogram, saveDictAsJson, nonParametricRanksums
-from skeleton.plotStats import getImportantMetrics, plotMultiKde, saveMultiKde, welchsTtest
-from runscripts.segmentStatsLRwhitecutoffs import getSegmentStats
-from skeleton.pruning import getPrunedSkeleton
 
 # load 2D facelets median filtered to be vectorized
 filePath = input("please enter a path to directory with 2D grey scale slices to be skeletonized")
@@ -60,7 +61,7 @@ varList = ['segmentCountdict', 'segmentLengthdict', 'segmentTortuositydict', 'to
 outputDict = {}
 for var, op in zip(varList, outputList):
     outputDict[var] = op
-cPickle.dump(outputDict, open("/home/pranathi/MTR/metrics_cerebellum.p", "wb"))
+pickle.dump(outputDict, open("/home/pranathi/MTR/metrics_cerebellum.p", "wb"))
 
 # to load the statistics
 # outputDict = cPickle.load(open("/home/3scan-data/exports/78c507c6e37294470/block-00000000/region-00023120-00023632-00023124-00023636-00000282-00000354/median/skeleton/skeletonregion-00023120-00023632-00023124-00023636-00000282-00000354.npymetrics.p", "rb"))
@@ -70,8 +71,8 @@ getImportantMetrics(outputDict, binaryVol, skeletonVol)
 
 graphs = ['segmentLengthdict', 'segmentHausdorffDimensiondict', 'segmentContractiondict']
 FeatureName = ['Segment Length(um)', 'Segment Hausdorff Dimension', 'Segment Contraction']
-dictforebrain = cPickle.load(open("/home/pranathi/metrics_Forebrain.p", "rb"))
-dictcerebellum = cPickle.load(open("/home/pranathi/metrics_Cerebellum.p", "rb"))
+dictforebrain = pickle.load(open("/home/pranathi/metrics_Forebrain.p", "rb"))
+dictcerebellum = pickle.load(open("/home/pranathi/metrics_Cerebellum.p", "rb"))
 binsmin = [0, 0.7, 0.2]
 binsmax = [200, 1.25, 1]
 for i, graph in enumerate(graphs):
@@ -103,7 +104,7 @@ for i in range(4):
     plotMultiKde([list(dictforebrain[graph].values()), list(dictcerebellum[graph].values())], plotName[i], minBin=binsmin[i], maxBin=binsmax[i],
                  labels=["Forebrain", "Cerebellum"])
 
-cPickle.dump(fig_object, open("fig_picke", "wb"))
+pickle.dump(fig_object, open("fig_picke", "wb"))
 plotName = ['Branching Index', 'Segment Length(um)', 'Segment Contraction', 'Segment Hausdorff Dimension']
 plotGraphs = ['segmentCountdict', 'segmentLengthdict', 'segmentContractiondict', 'segmentHausdorffDimensiondict']
 tstats = {}

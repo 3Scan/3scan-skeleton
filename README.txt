@@ -18,16 +18,16 @@ Thinning is cythonized for fast execution and pyximport is used to automatically
 (reference - http://docs.cython.org/src/reference/compilation.html)
 
 This repository contains programs needed to obtain a 3D skeleton using python 3 and quantify the 
-skeleotnized array to statistics with the help of function present in skeleton.segmentStats
+skeleotnized array to statistics with the help of function present in metrics.segmentStats
 
 To use import functions of this repo follow runscripts.getMetrics program
 
 To view the 3D volume (input or skeleton output) and save
 use Mayavi with python 2.6 (conda create -n mayavi python=2.6)
 with insturctions executed in a virtual environment with python 2.6 as below  
-*mlab.contour3d(anynpyarray)
+*mlab.contour3d(anynpynonbooleanarray)
 *mlab.options.offscreen = True
-*mlab.savefig("arrayName.obj")
+*mlab.savefig("arrayName.png")
 
 
 Install nosetests to execute programs in this folder

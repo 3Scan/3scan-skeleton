@@ -82,28 +82,18 @@ def _setAdjacencylistarray(arr):
     return dictOfIndicesAndAdjacentcoordinates
 
 
-def getNetworkxGraphFromarray(arr, skeletonIm=True):
+def getNetworkxGraphFromarray(arr):
     """
-
-        if skeletonIm = True input is already skeletonized
-        takes in a binary array of skeleton converts it to adictionary of lists
+        takes in a binary array of skeleton converts
+        it to adictionary of lists
         of existing adjacent coordinates and forms a
         networkx graph from the dictionary
 
     """
-    from skeleton.thin3DVolume import getThinned3D
-    from skeleton.unitwidthcurveskeleton import getShortestPathSkeleton
-    from skimage.morphology import skeletonize as getSkeletonize2D
     assert arr.max() == 1
     assert arr.min() in [0, 1]
     startt = time.time()
-    if arr.ndim == 3 and skeletonIm == 0:
-        skeleton = getShortestPathSkeleton(getThinned3D(arr))
-    elif arr.ndim == 2 and skeletonIm == 0:
-        skeleton = getSkeletonize2D(arr)
-    else:
-        skeleton = arr
-    dictOfIndicesAndAdjacentcoordinates = _setAdjacencylistarray(skeleton)
+    dictOfIndicesAndAdjacentcoordinates = _setAdjacencylistarray(arr)
     G = nx.from_dict_of_lists(dictOfIndicesAndAdjacentcoordinates)
 
     # asserting no extra nodes other than nonzero coordinates on skeleton

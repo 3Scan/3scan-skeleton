@@ -77,65 +77,68 @@ def _getAllLabelledarray(skeletonIm, valencearray):
 
 
 def getShortestPathSkeleton(skeletonIm):
-    startt = time.time()
-    se = np.ones([3] * 3, dtype=np.uint8)
-    skeletonImNew = np.zeros_like(skeletonIm, dtype=bool)
-    valencearray = convolve(np.uint8(skeletonIm), template, mode='constant', cval=0)
-    valencearray[skeletonIm == 0] = 0
-    skeletonLabelled = _getAllLabelledarray(skeletonIm, valencearray)
-    crowdedRegion = np.zeros_like(skeletonLabelled)
-    crowdedRegion[skeletonLabelled == 4] = 1
-    label, noOfCrowdedregions = ndimage.measurements.label(crowdedRegion, structure=se)
-    if np.max(skeletonLabelled) < 4:
+    if len(skeletonIm.shape) == 3:
         return skeletonIm
     else:
-        objectify = ndimage.find_objects(label)
-        exits = np.logical_or(skeletonLabelled == 1, skeletonLabelled == 2)
-        for i in range(0, noOfCrowdedregions):
-            print("cleaning crowded region # {} / {}".format(i, noOfCrowdedregions))
-            loc = objectify[i]
-            zcoords = loc[0]
-            ycoords = loc[1]
-            xcoords = loc[2]
-            regionLowerBoundZ = zcoords.start - 1
-            regionLowerBoundY = ycoords.start - 1
-            regionLowerBoundX = xcoords.start - 1
-            regionUpperBoundZ = zcoords.stop + 1
-            regionUpperBoundY = ycoords.stop + 1
-            regionUpperBoundX = xcoords.stop + 1
-            bounds = [regionLowerBoundZ, regionLowerBoundY, regionLowerBoundX, regionUpperBoundZ, regionUpperBoundY, regionUpperBoundX]
-            bounds = [0 if i < 0 else i for i in bounds]
-            dilatedValenceObjectLoc = valencearray[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]]
-            dilatedRegionExits = exits[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]]
-            dilatedLabelledObjectLoc = skeletonLabelled[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]]
-            listSourceIndices = list(np.transpose(np.array(np.where(dilatedLabelledObjectLoc == 4))))
-            listExitIndices = list(np.transpose(np.array(np.where(dilatedRegionExits != 0))))
-            listOfExits = []
-            for items in listExitIndices:
-                for item in listSourceIndices:
-                    dist = np.sum(np.square(items - item))
-                    if dist > 3:
-                        continue
-                    listOfExits.append(tuple(items))
-            dests = list(set(listOfExits))
-            listIndex = [(coord, dilatedValenceObjectLoc[tuple(coord)]) for coord in listSourceIndices]
-            if len(listSourceIndices) == 1:
-                srcs = listSourceIndices[0]
-            else:
-                summationList = [sum([np.sum(np.square(value - pt)) for pt in listSourceIndices]) / valence for value, valence in listIndex]
-            srcs = [tuple(item2) for item1, item2 in zip(summationList, listSourceIndices) if item1 == min(summationList)]
-            dilatedLabelledObjectLoc[dilatedLabelledObjectLoc == 0] = 255
-            for src, dest in itertools.product(srcs, dests):
-                indices, weight = route_through_array(dilatedLabelledObjectLoc, src, dest, fully_connected=True)
-                indices = np.array(indices).T
-                dilatedLabelledObjectLoc1 = np.zeros_like(dilatedLabelledObjectLoc)
-                dilatedLabelledObjectLoc1[indices[0], indices[1], indices[2]] = 1
-                skeletonImNew[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]] = np.logical_or(skeletonImNew[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]], dilatedLabelledObjectLoc1)
-        skeletonImNew[skeletonLabelled < 4] = True
-        skeletonImNew[skeletonLabelled == 0] = False
-        skeletonImNew[np.logical_and(valencearray == 0, skeletonIm == 1)] = 0  # see if isolated voxels can be removed (answer: yes)
-        print("time taken is %0.3f seconds" % (time.time() - startt))
-        return skeletonImNew
+        startt = time.time()
+        se = np.ones([3] * 3, dtype=np.uint8)
+        skeletonImNew = np.zeros_like(skeletonIm, dtype=bool)
+        valencearray = convolve(np.uint8(skeletonIm), template, mode='constant', cval=0)
+        valencearray[skeletonIm == 0] = 0
+        skeletonLabelled = _getAllLabelledarray(skeletonIm, valencearray)
+        crowdedRegion = np.zeros_like(skeletonLabelled)
+        crowdedRegion[skeletonLabelled == 4] = 1
+        label, noOfCrowdedregions = ndimage.measurements.label(crowdedRegion, structure=se)
+        if np.max(skeletonLabelled) < 4:
+            return skeletonIm
+        else:
+            objectify = ndimage.find_objects(label)
+            exits = np.logical_or(skeletonLabelled == 1, skeletonLabelled == 2)
+            for i in range(0, noOfCrowdedregions):
+                print("cleaning crowded region # {} / {}".format(i, noOfCrowdedregions))
+                loc = objectify[i]
+                zcoords = loc[0]
+                ycoords = loc[1]
+                xcoords = loc[2]
+                regionLowerBoundZ = zcoords.start - 1
+                regionLowerBoundY = ycoords.start - 1
+                regionLowerBoundX = xcoords.start - 1
+                regionUpperBoundZ = zcoords.stop + 1
+                regionUpperBoundY = ycoords.stop + 1
+                regionUpperBoundX = xcoords.stop + 1
+                bounds = [regionLowerBoundZ, regionLowerBoundY, regionLowerBoundX, regionUpperBoundZ, regionUpperBoundY, regionUpperBoundX]
+                bounds = [0 if i < 0 else i for i in bounds]
+                dilatedValenceObjectLoc = valencearray[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]]
+                dilatedRegionExits = exits[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]]
+                dilatedLabelledObjectLoc = skeletonLabelled[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]]
+                listSourceIndices = list(np.transpose(np.array(np.where(dilatedLabelledObjectLoc == 4))))
+                listExitIndices = list(np.transpose(np.array(np.where(dilatedRegionExits != 0))))
+                listOfExits = []
+                for items in listExitIndices:
+                    for item in listSourceIndices:
+                        dist = np.sum(np.square(items - item))
+                        if dist > 3:
+                            continue
+                        listOfExits.append(tuple(items))
+                dests = list(set(listOfExits))
+                listIndex = [(coord, dilatedValenceObjectLoc[tuple(coord)]) for coord in listSourceIndices]
+                if len(listSourceIndices) == 1:
+                    srcs = listSourceIndices[0]
+                else:
+                    summationList = [sum([np.sum(np.square(value - pt)) for pt in listSourceIndices]) / valence for value, valence in listIndex]
+                srcs = [tuple(item2) for item1, item2 in zip(summationList, listSourceIndices) if item1 == min(summationList)]
+                dilatedLabelledObjectLoc[dilatedLabelledObjectLoc == 0] = 255
+                for src, dest in itertools.product(srcs, dests):
+                    indices, weight = route_through_array(dilatedLabelledObjectLoc, src, dest, fully_connected=True)
+                    indices = np.array(indices).T
+                    dilatedLabelledObjectLoc1 = np.zeros_like(dilatedLabelledObjectLoc)
+                    dilatedLabelledObjectLoc1[indices[0], indices[1], indices[2]] = 1
+                    skeletonImNew[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]] = np.logical_or(skeletonImNew[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]], dilatedLabelledObjectLoc1)
+            skeletonImNew[skeletonLabelled < 4] = True
+            skeletonImNew[skeletonLabelled == 0] = False
+            skeletonImNew[np.logical_and(valencearray == 0, skeletonIm == 1)] = 0  # see if isolated voxels can be removed (answer: yes)
+            print("time taken is %0.3f seconds" % (time.time() - startt))
+            return skeletonImNew
 
 if __name__ == '__main__':
     skeletonIm = np.load(input("enter a path to your skeleton volume with crowded regions------"))

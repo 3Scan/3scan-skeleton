@@ -1,9 +1,6 @@
 import numpy as np
 cimport cython  # NOQA
 
-import os
-lookUparray = np.load(os.path.join(os.path.dirname("__file__"), 'lookuparray.npy'))
-
 @cython.boundscheck(False)
 def cy_convolve(unsigned long long int[:, :, :] im, unsigned long long int[:, :, :] kernel, Py_ssize_t[:, ::1] points):
     cdef Py_ssize_t i, j, y, z, x, n, ks = kernel.shape[0]
@@ -22,11 +19,12 @@ def cy_convolve(unsigned long long int[:, :, :] im, unsigned long long int[:, :,
 
 
 @cython.boundscheck(False)
-def cy_getThinned3D(unsigned long long int[:, :, :] image, unsigned long long int[:, :, :, ::1] directionList):
+def cy_getThinned3D(unsigned long long int[:, :, :] image, unsigned long long int[:, :, :, ::1] directionList, str lupath):
     """
     function to skeletonize a 3D binary image with object in brighter contrast than background.
     In other words, 1 = object, 0 = background
     """
+    lookUparray = np.load(lupath)
     assert np.max(image) in [0, 1], "image must be boolean"
     cdef Py_ssize_t numPixelsremoved = 1
     cdef Py_ssize_t x, y, z
