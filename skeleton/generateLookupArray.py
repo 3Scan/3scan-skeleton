@@ -1,31 +1,58 @@
 import numpy as np
-from rotationalOperators import firstSubIter, secondSubIter, thirdSubIter, fourthSubIter, fifthSubIter, sixthSubIter
-from rotationalOperators import seventhSubIter, eighthSubIter, ninthSubIter, tenthSubIter, eleventhSubIter, twelvethSubIter
+
+from skeleton.rotationalOperators import DIRECTIONLIST
 
 """
-   reference paper
-   http://web.inf.u-szeged.hu/ipcg/publications/papers/PalagyiKuba_GMIP1999.pdf
+Lookuptable is 3Scan's idea of pre-generating a look up array of length (2 ** 26)
+that has all possible configurations of binary strings of length 26 representing
+26 voxels around a voxel at origin in a cube as indices and values at these
+indices saying if the voxel can be removed or not (as it belongs to the boundary
+not the skeleton) as in reference paper
+A Parallel 3D 12-Subiteration Thinning Algorithm Kálmán Palágyi,Graphical Models and Image Processing
+Volume 61, Issue 4, July 1999, Pages 199-221 Attila Kuba, 1999
 """
 
 
-def generateLookuparray(stop, iterationNumber):
+def generateLookupArray(stop, direction):
     """
-       to generate a look up aray the all the 2 ** 26 possible configurations are
-       checked if they satisy one of the 14 templates
-       iterationNumber is the rotation of the cube into one of the directions
-       refer to the paper Parallel 3D thinning algorithm with 12 directions for more details
+    Returns lookuparray
+
+    Parameters
+    ----------
+    stop : int
+    integer describing the length of array
+
+    direction : function
+       function that describes rotation of cube to remove boundary voxels in a different direction
+
+    Returns
+    -------
+    lookuparray : array
+        value at an index of the array = 0 => should not be deleted
+        value at an index of the array = 1 => should be deleted
+
+    Notes
+    ------
+    This program is run once, and the array is saved as lookuparray.npy in
+    the same folder in main function. It doesn't have to be run again unless if templates are changed
+
     """
-    lookuparray = np.zeros(stop, dtype=bool)
-    print(iterationNumber)
+    lookUparray = np.zeros(stop, dtype=bool)
     for item in range(0, stop):
+        # convert the decimal number to a binary string
         neighborValues = [(item >> digit) & 0x01 for digit in range(26)]
+        # voxel at origin/center of the cube should be nonzero, so insert
         neighborValues.insert(13, 1)
+        # 3 x 3 x 3 cube
         neighborMatrix = np.reshape(neighborValues, (3, 3, 3))
+        # if it's a single non zero voxel in the cube
         if np.sum(neighborValues) == 1:
-            lookuparray[item] = 0
+            lookUparray[item] = 0
         else:
-            neighborValues = iterationNumber(neighborMatrix)
+            neighborValues = direction(neighborMatrix)
+            # assign 26 voxels in a 2nd ordered neighborhood of a 3D voxels as 26 alphabet variables
             a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z = tuple(neighborValues)
+            # insert aplhabetical variables into equations of templates for deleting the boundary voxel
             shouldVoxelBedeleted = (~(a) & ~(b) & ~(c) & ~(j) & ~(k) & ~(l) & ~(r) & ~(s) & ~(t) & p & (d | e | f | m | n | u | v | w | g | h | i | o | q | x | y | z)) | \
                                    (~(a) & ~(b) & ~(c) & ~(d) & ~(e) & ~(f) & ~(g) & ~(h) & ~(i) & v & (r | s | t | j | k | l | m | n | u | w | o | p | q | x | y | z)) | \
                                    (~(a) & ~(b) & ~(c) & ~(j) & ~(k) & ~(l) & ~(r) & ~(s) & ~(t) & ~(d) & ~(e) & ~(f) & ~(g) & ~(h) & ~(i) & y & (m | n | u | w | o | q | x | z)) | \
@@ -40,15 +67,11 @@ def generateLookuparray(stop, iterationNumber):
                                    (~(a) & ~(b) & ~(c) & ~(j) & ~(k) & ~(l) & ~(r) & ~(s) & ~(t) & ~(e) & ~(f) & ~(h) & ~(i) & o & y) | \
                                    (~(a) & ~(b) & ~(c) & ~(j) & ~(k) & ~(r) & ~(s) & ~(d) & ~(e) & ~(f) & ~(g) & ~(h) & ~(i) & w & y) | \
                                    (~(a) & ~(b) & ~(c) & ~(d) & ~(e) & ~(f) & ~(g) & ~(h) & ~(i) & ~(k) & ~(l) & ~(s) & ~(t) & u & y)
-            lookuparray[item] = shouldVoxelBedeleted
-    return lookuparray
-
-
-directionList = [firstSubIter, secondSubIter, thirdSubIter, fourthSubIter,
-                 fifthSubIter, sixthSubIter, seventhSubIter, eighthSubIter,
-                 ninthSubIter, tenthSubIter, eleventhSubIter, twelvethSubIter]
+            lookUparray[item] = shouldVoxelBedeleted
+    return lookUparray
 
 if __name__ == '__main__':
-    for i, item in enumerate(directionList):
-        lookuparray = generateLookuparray(2 ** 26, item)
-        np.save("lookuparray%i.npy" % (i + 1), lookuparray)
+    # generating and saving all the 12 lookuparrays
+    for index, direction in enumerate(DIRECTIONLIST):
+        lookUparray = generateLookupArray(2 ** 26, direction)
+        np.save("lookuparray%i.npy" % (index + 1), lookUparray)

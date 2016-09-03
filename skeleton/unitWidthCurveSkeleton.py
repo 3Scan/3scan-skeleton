@@ -1,101 +1,155 @@
 import itertools
 import time
+
 import numpy as np
 
 from scipy import ndimage
 from scipy.ndimage.filters import convolve
 from skimage.graph import route_through_array
+from skeleton.networkxGraphFromArray import LISTSTEPDIRECTIONS3D
 
 """
-   The goal of this algorithm is to generate a topologically and geometrically preserved
-   unit voxel width skeleton. The skeleton/ centerline
-   of an image obtained by using various structuring elements does not
-   necessarily be a 1 voxel wide although it ensures topological connectedness.
-   end point = 1 middle point = 2 joint point = 3 crowded point = 4 crowded region = 5
-   implemented according to the paper in this link
-   https://drive.google.com/a/3scan.com/file/d/0BwQueSW2_nsOWGRzb2s4dlZmRlE/view?usp=sharing
+The goal of this algorithm is to generate a topologically and geometrically preserved
+unit voxel width skeleton implemented according to the paper
+Generation of Unit-Width Curve Skeletons Based on Valence Driven Spatial Median (VDSM)
+Tao Wang, Irene Cheng
+Advances in Visual Computing
+Volume 5358 of the series Lecture Notes in Computer Science pp 1051-1060
 """
 
-template = np.ones((3, 3, 3), dtype=np.uint8)
-template[1, 1, 1] = 0
+TEMPLATE = np.ones((3, 3, 3), dtype=np.uint8)
+TEMPLATE[1, 1, 1] = 0
+LISTSTEPDIRECTIONS3D = np.array(LISTSTEPDIRECTIONS3D).copy(order='C')
 
 
 def outOfPixBounds(nearByCoordinate, aShape):
-    onbound = 0
+    """
+    Return a boolean saying if any of x, y, z of nearByCoordinate is outside of aShape
+    Parameters
+    ----------
+    nearByCoordinate : tuple
+        tuple of shape 2D or 3D
+
+    aShape : tuple
+        tuple of shape 2D or 3D
+
+    Returns
+    -------
+    onBound : Bpolean
+        1 if its on boundary, 0 if not
+    """
+    onBound = 0
     for index, maxVal in enumerate(aShape):
         isAtBoundary = nearByCoordinate[index] >= maxVal or nearByCoordinate[index] < 0
         if isAtBoundary:
-            onbound = 1
+            onBound = 1
             break
-        else:
-            continue
-    return onbound
-
-stepDirect = itertools.product((-1, 0, 1), repeat=3)
-listStepDirect = list(stepDirect)
-listStepDirect.remove((0, 0, 0))
-listStepDirect = list(map(np.array, listStepDirect))
+    return onBound
 
 
-def _getAllLabelledarray(skeletonIm, valencearray):
+def _getAllLabelledArray(skeletonIm, valenceArray):
     """
-       label end, middle, joint, crowded points and a
-       crowded region as 1, 2, 3, 4 and 5 respectively
+    Return labelled array
+    Parameters
+    ----------
+    skeletonIm : Numpy array
+        3D binary numpy array
+
+    valenceArray : Numpy array
+        3D binary numpy array
+
+    Returns
+    -------
+    skeletonImLabel : Numpy array
+        3D labeled array of same shape and type uint8
+
+    Notes
+    -----
+    Labels are as follows
+    end point = 1 middle point = 2 joint point = 3 crowded point = 4 crowded region = 5
+    Definitions of this points are in the reference paper
     """
+    # allocate an array of same shape for the labels
     skeletonImLabel = np.zeros(skeletonIm.shape, dtype=np.uint8)
-    skeletonImLabel[valencearray == 1] = 1
-    aShape = np.shape(valencearray)
-
-    listIterateMiddle = list(np.transpose(np.array(np.where(valencearray == 2))))
+    # label end points: degree = 1
+    skeletonImLabel[valenceArray == 1] = 1
+    aShape = np.shape(valenceArray)
+    # label middle points: degree = 2
+    listIterateMiddle = list(np.transpose(np.array(np.where(valenceArray == 2))))
     for k in listIterateMiddle:
         connNeighborsIndices = []
-        for d in listStepDirect:
+        for d in LISTSTEPDIRECTIONS3D:
             nearByCoordinate = tuple(k + d)
             if outOfPixBounds(nearByCoordinate, aShape) or skeletonIm[nearByCoordinate] == 0:
                 continue
             connNeighbors = skeletonIm[nearByCoordinate]
             connNeighborsIndices.append(np.array(nearByCoordinate))
+        # middle point only if squared distance between their coordinates is greater than 3
+        # i.e they are not 26 connected
         if np.sum((connNeighborsIndices[0] - connNeighborsIndices[1]) ** 2) > 3:
             skeletonImLabel[tuple(k)] = 2
         else:
             skeletonImLabel[tuple(k)] = 4
-
-    listJointAndcrowded = list(np.transpose(np.array(np.where(valencearray > 2))))
+    # label joint and crowded points
+    listJointAndcrowded = list(np.transpose(np.array(np.where(valenceArray > 2))))
     for k in listJointAndcrowded:
         connNeighborsList = []
-        for d in listStepDirect:
+        for d in LISTSTEPDIRECTIONS3D:
             nearByCoordinate = tuple(k + d)
             if outOfPixBounds(nearByCoordinate, aShape) or skeletonIm[nearByCoordinate] == 0:
                 continue
             connNeighbors = skeletonImLabel[nearByCoordinate]
             connNeighborsList.append(connNeighbors)
+        # joint point degree > 2 1nd order neighbors are either end points or middle points
         if set((1, 2)) == set(connNeighborsList) or {1} == set(connNeighborsList) or {2} == set(connNeighborsList):
             skeletonImLabel[tuple(k)] = 3
-        else:
+        else:  # crowded points
             skeletonImLabel[tuple(k)] = 4
     return skeletonImLabel
 
 
 def getShortestPathSkeleton(skeletonIm):
-    if len(skeletonIm.shape) == 3:
+    """
+    Return unit width curve/shortest path skeleton
+    Parameters
+    ----------
+    skeletonIm : Numpy array
+        3D binary numpy array of boolean dtype
+
+    Returns
+    -------
+    Numpy array
+        3D binary crowded region removed numpy array of the same shape and dtype
+    """
+    assert (skeletonIm.dtype is bool or np.unique(skeletonIm).tolist() == [0, 1] or
+            np.unique(skeletonIm).tolist() == [0] or
+            np.unique(skeletonIm).tolist() == [1]), "skeletonIm is not boolean it is {}".format(skeletonIm.dtype)
+    if len(skeletonIm.shape) == 2:
         return skeletonIm
     else:
-        startt = time.time()
+        # initialize
+        start = time.time()
         se = np.ones([3] * 3, dtype=np.uint8)
         skeletonImNew = np.zeros_like(skeletonIm, dtype=bool)
-        valencearray = convolve(np.uint8(skeletonIm), template, mode='constant', cval=0)
+        # compute degrees
+        valencearray = convolve(np.uint8(skeletonIm), TEMPLATE, mode='constant', cval=0)
         valencearray[skeletonIm == 0] = 0
-        skeletonLabelled = _getAllLabelledarray(skeletonIm, valencearray)
+        skeletonLabelled = _getAllLabelledArray(skeletonIm, valencearray)
+        # find and locate crowded regions exist
+        # crowded region - 26 connected crowded joint point
         crowdedRegion = np.zeros_like(skeletonLabelled)
         crowdedRegion[skeletonLabelled == 4] = 1
         label, noOfCrowdedregions = ndimage.measurements.label(crowdedRegion, structure=se)
-        if np.max(skeletonLabelled) < 4:
+        if np.max(skeletonLabelled) < 4:  # no crowded regions
+            print("no crowded regions")
             return skeletonIm
         else:
             objectify = ndimage.find_objects(label)
+            # detect exits
             exits = np.logical_or(skeletonLabelled == 1, skeletonLabelled == 2)
-            for i in range(0, noOfCrowdedregions):
-                print("cleaning crowded region # {} / {}".format(i, noOfCrowdedregions))
+            for i in range(noOfCrowdedregions):
+                progress = int((100 * i) / noOfCrowdedregions)
+                print("cleaning crowded regions in progress {}% \r".format(progress), end="", flush=True)
                 loc = objectify[i]
                 zcoords = loc[0]
                 ycoords = loc[1]
@@ -114,6 +168,7 @@ def getShortestPathSkeleton(skeletonIm):
                 listSourceIndices = list(np.transpose(np.array(np.where(dilatedLabelledObjectLoc == 4))))
                 listExitIndices = list(np.transpose(np.array(np.where(dilatedRegionExits != 0))))
                 listOfExits = []
+                # detect exits in the subregion
                 for items in listExitIndices:
                     for item in listSourceIndices:
                         dist = np.sum(np.square(items - item))
@@ -122,22 +177,25 @@ def getShortestPathSkeleton(skeletonIm):
                         listOfExits.append(tuple(items))
                 dests = list(set(listOfExits))
                 listIndex = [(coord, dilatedValenceObjectLoc[tuple(coord)]) for coord in listSourceIndices]
+                # determiine the centroid of the crowded region
                 if len(listSourceIndices) == 1:
                     srcs = listSourceIndices[0]
                 else:
                     summationList = [sum([np.sum(np.square(value - pt)) for pt in listSourceIndices]) / valence for value, valence in listIndex]
                 srcs = [tuple(item2) for item1, item2 in zip(summationList, listSourceIndices) if item1 == min(summationList)]
                 dilatedLabelledObjectLoc[dilatedLabelledObjectLoc == 0] = 255
+                # find shortest paths from centroid to exits
                 for src, dest in itertools.product(srcs, dests):
                     indices, weight = route_through_array(dilatedLabelledObjectLoc, src, dest, fully_connected=True)
                     indices = np.array(indices).T
                     dilatedLabelledObjectLoc1 = np.zeros_like(dilatedLabelledObjectLoc)
                     dilatedLabelledObjectLoc1[indices[0], indices[1], indices[2]] = 1
                     skeletonImNew[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]] = np.logical_or(skeletonImNew[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]], dilatedLabelledObjectLoc1)
+            # output the unit width curve skeleton
             skeletonImNew[skeletonLabelled < 4] = True
             skeletonImNew[skeletonLabelled == 0] = False
             skeletonImNew[np.logical_and(valencearray == 0, skeletonIm == 1)] = 0  # see if isolated voxels can be removed (answer: yes)
-            print("time taken is %0.3f seconds" % (time.time() - startt))
+            print("time taken is %0.3f seconds" % (time.time() - start))
             return skeletonImNew
 
 if __name__ == '__main__':

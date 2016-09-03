@@ -14,9 +14,9 @@ from statistics import median, pvariance, mean
 
 
 """
-   The follwing program quantifies a skeletonized structure to meaningful
-   statistics like radius, orienation at each node, mean radiuses of the
-   nodes in a volume and other statistically significant values
+The follwing program quantifies a skeletonized structure to meaningful
+statistics like radius, orienation at each node, mean radiuses of the
+nodes in a volume and other statistically significant values
 """
 
 

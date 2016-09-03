@@ -1,29 +1,27 @@
 import itertools
 
 import numpy as np
+
 from numpy import random
-
 from scipy import ndimage
-
 from skeleton.thinVolume import getThinned
 from skimage.morphology import skeletonize as getskeletonize2d
+from tests.test_3DThinning import getRing
 
 """
-   2D skeletonization using inbuilt python as in the below link
-   http://scikit-image.org/docs/dev/api/skimage.morphology.html#skimage.morphology.skeletonize
-   3D Thinning using parallel 12 subiteration curve thinning by Palagyi
-   http://web.inf.u-szeged.hu/ipcg/publications/papers/PalagyiKuba_GMIP1999.pdf
+Tests for 2D and 3D thinning algorithms testing strictly with change in directions, axis
+2D thinning using inbuilt python as in the below link
+http://scikit-image.org/docs/dev/api/skimage.morphology.html#skimage.morphology.skeletonize
+3D Thinning implemented using
+A Parallel 3D 12-Subiteration Thinning Algorithm Kálmán Palágyi,Graphical Models and Image Processing
+Volume 61, Issue 4, July 1999, Pages 199-221 Attila Kuba, 1999
 """
 
 
 def embed2in3(arr):
-    """
-       Embed a 2d shape in a 3d array,
-       along all possible testing directions.
-    """
-
-    assert arr.dtype == bool
-    assert arr.ndim == 2
+    # Embed a 2D shape in a 3D array, along all possible testing directions.
+    assert arr.dtype == bool, "input array type {} is not boolean".format(arr.dtype)
+    assert arr.ndim == 2, "number of dimensions {} in input array is not 2".fomrat(arr.ndim)
 
     m, n = arr.shape
     embeddedInX = np.zeros((3, m, n), dtype=bool)
@@ -39,33 +37,36 @@ def embed2in3(arr):
 
 
 def reorders(arr):
+    # reorder the slices, rows, columns of 3D stack
     for xf, yf, zf in itertools.combinations_with_replacement([1, -1], 3):
         yield arr[::xf, ::yf, ::zf]
 
 
 def doEmbeddedTest(arr, expectedResult=None):
-    twoResult = checkCycles(arr)
+    # number of objects at different embeddings of the array
+    # should return a result as in expectedResult
+    twoResult = _getCountObjects(arr)
 
     if expectedResult is not None:
-        assert twoResult == expectedResult
+        assert twoResult == expectedResult, "twoResult {} is not same as expectedResult {}".format(twoResult, expectedResult)
     else:
         expectedResult = twoResult
 
     for embedding in embed2in3(arr):
-        allOrientationsTest(embedding, expectedResult)
+        _allOrientationsTest(embedding, expectedResult)
     return twoResult
 
 
-def allOrientationsTest(arr, expectedResult=None):
-    assert arr.ndim == 3
+def _allOrientationsTest(arr, expectedResult=None):
+    assert arr.ndim == 3, "number of dimensions {} in input array is not 3".fomrat(arr.ndim)
     i = 0
     for reoriented in reorders(arr):
         i += 1
-        result = checkCycles(reoriented)
+        result = _getCountObjects(reoriented)
         assert result == expectedResult
 
 
-def checkCycles(image):
+def _getCountObjects(image):
     # count number of 26 or 8 connected objects in the skeletonized image
     if image.ndim == 2:
         skel = getskeletonize2d(image)
@@ -75,112 +76,71 @@ def checkCycles(image):
         label_skel, countObjects = ndimage.measurements.label(skel, structure=np.ones((3, 3, 3), dtype=bool))
     return countObjects
 
-
 # One single tiny loop
 tinyLoop = np.array([[1, 1, 1],
                      [1, 0, 1],
                      [1, 1, 1]], dtype=bool)
 
-# This is a simple suite of test cases for the
-# Algo which takes in skeletonized images, and emits
-# networkx graphs
-# Some quick and dumb tests against the core algorithim
-
-
-def test_simpleLoopEmbedded():
-    doEmbeddedTest(tinyLoop, 1)
-
-
-# Three independant loops
-multiLoop = np.zeros((25, 25), dtype=bool)
-multiLoop[2:5, 2:5] = tinyLoop
-multiLoop[7:10, 7:10] = tinyLoop
-
-
-def test_multiLoopEmbedded():
-    doEmbeddedTest(multiLoop, 2)
-
-cros = np.zeros((25, 25), dtype=bool)
-cros[:, 12] = 1
-cros[12, :] = 1
-
-
-def test_crossEmbedded():
-    doEmbeddedTest(cros, 1)
-
-
-hillbert = np.array([[[1, 1, 1],
-                      [1, 0, 1],
-                      [1, 0, 1]],
-                     [[0, 0, 0],
-                      [0, 0, 0],
-                      [1, 0, 1]],
-                     [[1, 1, 1],
-                      [1, 0, 1],
-                      [1, 0, 1]]], dtype=bool)
-
-
-def test_hillbert():
-    allOrientationsTest(hillbert, expectedResult=1)
-
-loopPair = np.array([[1, 1, 1],
-                     [1, 0, 1],
-                     [1, 1, 1],
-                     [1, 0, 1],
-                     [1, 1, 1]], dtype=bool)
-
-
-def test_loop():
-    doEmbeddedTest(loopPair, 1)
-
-
-squae = np.zeros((20, 20), dtype=bool)
-squae[2:-2, 2:-2] = 1
-
-
-def test_square():
-    doEmbeddedTest(squae, 1)
-
-
-parallelepiped = np.zeros((10, 10, 10), dtype=bool)
-parallelepiped[2:-2, 2:-2, 2:-2] = 1
-
-
-def test_parallelepiped():
-    allOrientationsTest(parallelepiped, expectedResult=1)
-
+# Frame
 frame = np.zeros((20, 20), dtype=bool)
-
 frame[2:-2, 2:-2] = 1
 frame[4:-4, 4:-4] = 0
 
-frame3d = np.zeros((10, 10, 10), dtype=bool)
-frame3d[2:-2, 2:-2, 2:-2] = 1
-frame3d[4:-4, 4:-4, 4:-4] = 0
+
+def test_simpleLoopEmbedded():
+    # Test 1 a single loop embedded in different axis locations
+    doEmbeddedTest(tinyLoop, 1)
 
 
-def test_frame3d():
-    allOrientationsTest(frame3d, 1)
+def test_multiLoopEmbedded():
+    # Test 2 Three independent loops embedded in different axis locations
+    multiLoop = np.zeros((25, 25), dtype=bool)
+    multiLoop[2:5, 2:5] = tinyLoop
+    multiLoop[7:10, 7:10] = tinyLoop
+    doEmbeddedTest(multiLoop, 2)
+
+
+def test_crossEmbedded():
+    # Test 3 cross embedded in different axis locations
+    cros = np.zeros((25, 25), dtype=bool)
+    cros[:, 12] = 1
+    cros[12, :] = 1
+    doEmbeddedTest(cros, 1)
+
+
+def test_loop():
+    # Test 4 Two joint loops embedded in different axis locations
+    loopPair = np.array([[1, 1, 1],
+                         [1, 0, 1],
+                         [1, 1, 1],
+                         [1, 0, 1],
+                         [1, 1, 1]], dtype=bool)
+    doEmbeddedTest(loopPair, 1)
+
+
+def test_square():
+    # Test 5 Square embedded in different axis locations
+    squae = np.zeros((20, 20), dtype=bool)
+    squae[2:-2, 2:-2] = 1
+    doEmbeddedTest(squae, 1)
 
 
 def test_frame():
+    # Test 6 Frame (hollow square) embedded in different axis locations
     c = doEmbeddedTest(frame)
-    assert c == 1
-
-framedSquare = frame.copy()
-framedSquare[6:-6, 6:-6] = 1
+    assert c == 1, "number of objects in the frame should be 1, but it is {}".format(c)
 
 
 def test_framedSquare():
+    # Test 7 Square inside a Frame (hollow square) embedded in different axis locations
+    framedSquare = frame.copy()
+    framedSquare[6:-6, 6:-6] = 1
     d = doEmbeddedTest(framedSquare)
-    assert d == 2
-
-
-hevi = np.zeros((20, 20), dtype=bool)
-hevi[10:, :] = 1
+    assert d == 2, "number of objects in the framed square should be 2, but it is {}".format(d)
 
 
 def test_circle():
+    # Test 8 Circle embedded in different axis locations
     i = np.zeros((25, 25), dtype=bool)
     xs, ys = np.mgrid[-1:1:25j, -1:1:25j]
 
@@ -191,32 +151,19 @@ def test_circle():
         mask = ((xs ** 2) + (ys ** 2)) < r ** 2
         i[mask] = 1
 
-        d = doEmbeddedTest(i)
-        assert d == 1
+        c = doEmbeddedTest(i)
+        assert c == 1, "number of objects in the circle should be 1, but it is {}".format(c)
 
 
-def test_Heaviside():
-    doEmbeddedTest(hevi, 1)
-
-
-def getRing(ri, ro, size=(25, 25)):
-    """
-    Make a annular ring in 2d.
-    The inner and outer radius are given as a
-    percentage of the overall size.
-    """
-    n, m = size
-    xs, ys = np.mgrid[-1:1:n * 1j, -1:1:m * 1j]
-    r = np.sqrt(xs ** 2 + ys ** 2)
-
-    torus = np.zeros(size, dtype=bool)
-    torus[(r < ro) & (r > ri)] = 1
-    return torus
-
-concentricCircles = getRing(0.1, 0.2) + getRing(0.4, 0.5) + getRing(0.7, 0.9)
+def test_heaviside():
+    # Test 9 Heaviside(comb) embedded in different axis locations
+    heavi = np.zeros((20, 20), dtype=bool)
+    heavi[10:, :] = 1
+    doEmbeddedTest(heavi, 1)
 
 
 def test_ellipse():
+    # Test 10 Ellipse embedded in different axis locations
     i = np.zeros((25, 25), dtype=bool)
     xs, ys = np.mgrid[-1:1:25j, -1:1:25j]
 
@@ -229,9 +176,40 @@ def test_ellipse():
         i[mask] = 1
         i = i.astype(bool)
         c = doEmbeddedTest(i)
-        assert c == 1
+        assert c == 1, "number of objects in the ellipse should be 1, but it is {}".format(c)
 
 
 def test_concentric():
+    # Test 11 Concentric circles embedded in different axis locations
+    concentricCircles = getRing(0.1, 0.2) + getRing(0.4, 0.5) + getRing(0.7, 0.9)
     c = doEmbeddedTest(concentricCircles)
-    assert c == 3
+    assert c == 3, "number of objects in the concentric circles should be 3, but it is {}".format(c)
+
+
+def test_hillbert():
+    # Test 12 Hillbert flipped in different orientations
+    hillbert = np.array([[[1, 1, 1],
+                          [1, 0, 1],
+                          [1, 0, 1]],
+                         [[0, 0, 0],
+                          [0, 0, 0],
+                          [1, 0, 1]],
+                         [[1, 1, 1],
+                          [1, 0, 1],
+                          [1, 0, 1]]], dtype=bool)
+    _allOrientationsTest(hillbert, expectedResult=1)
+
+
+def test_parallelepiped():
+    # Test 13 Parallelepiped flipped in different orientations
+    parallelepiped = np.zeros((10, 10, 10), dtype=bool)
+    parallelepiped[2:-2, 2:-2, 2:-2] = 1
+    _allOrientationsTest(parallelepiped, expectedResult=1)
+
+
+def test_frame3d():
+    # Test 14 3D frame flipped in different orientations
+    frame3d = np.zeros((10, 10, 10), dtype=bool)
+    frame3d[2:-2, 2:-2, 2:-2] = 1
+    frame3d[4:-4, 4:-4, 4:-4] = 0
+    _allOrientationsTest(frame3d, 1)

@@ -1,69 +1,140 @@
+import os
 import numpy as np
 
 
 """
-has functions of operators to flip and rotate a cube in all possible ways
-
+has functions of operators to flip and rotate a cube in 12 possible ways
+as in reference paper
+A Parallel 3D 12-Subiteration Thinning Algorithm Kálmán Palágyi,Graphical Models and Image Processing
+Volume 61, Issue 4, July 1999, Pages 199-221 Attila Kuba, 1999
+cube is of equal dimensions in x, y and z in this program
 """
-referenceArray = np.array([[[2 ** 0, 2 ** 1, 2 ** 2], [2 ** 3, 2 ** 4, 2 ** 5], [2 ** 6, 2 ** 7, 2 ** 8]],
+REFERENCEARRAY = np.array([[[2 ** 0, 2 ** 1, 2 ** 2], [2 ** 3, 2 ** 4, 2 ** 5], [2 ** 6, 2 ** 7, 2 ** 8]],
                           [[2 ** 9, 2 ** 10, 2 ** 11], [2 ** 12, 0, 2 ** 13], [2 ** 14, 2 ** 15, 2 ** 16]],
                           [[2 ** 17, 2 ** 18, 2 ** 19], [2 ** 20, 2 ** 21, 2 ** 22], [2 ** 23, 2 ** 24, 2 ** 25]]], dtype=np.uint64)
 
 
 def column(matrix, i):
+    """
+    Returns ith column of the matrix in a list
+    Parameters
+    ----------
+    matrix : numpy array
+        2D or 3D numpy array
+
+    i : integer
+        ith column of the matrix
+
+    Returns
+    -------
+    list of ith column of the matrix
+
+    """
     return [row[i] for row in matrix]
 
 
-def flipLrInx(cubeArray):
-    cubeArrayFlippedLrInx = np.copy(cubeArray)
-    cubeArrayFlippedLrInx[:] = cubeArray[:, :, ::-1]
-    return cubeArrayFlippedLrInx
+def flipLrInX(cubeArray):
+    """
+    Returns an array flipped left to right
+    Parameters
+    ----------
+    cubeArray : numpy array
+        3D numpy array
+
+    Returns
+    -------
+    flip a 3D cube array in X with respect to element at origin, center of the cube
+
+    """
+    cubeArrayFlippedLrInX = np.copy(cubeArray)
+    cubeArrayFlippedLrInX[:] = cubeArray[:, :, ::-1]
+    return cubeArrayFlippedLrInX
 
 
-def flipUdIny(cubeArray):
-    cubeArrayFlippedLrIny = np.copy(cubeArray)
-    cubeArrayFlippedLrIny[:] = cubeArray[:, ::-1, :]
-    return cubeArrayFlippedLrIny
+def flipUdInY(cubeArray):
+    """
+    Returns an array flipped up to down
+    Parameters
+    ----------
+    cubeArray : numpy array
+        3D numpy array
+
+    Returns
+    -------
+    flip a 3D cube array in Y with respect to element at origin, center of the cube
+
+    """
+    cubeArrayFlippedUdInY = np.copy(cubeArray)
+    cubeArrayFlippedUdInY[:] = cubeArray[:, ::-1, :]
+    return cubeArrayFlippedUdInY
 
 
-def flipFbInz(cubeArray):
-    cubeArrayFlippedLrInz = np.copy(cubeArray)
-    cubeArrayFlippedLrInz[:] = cubeArray[::-1, :, :]
-    return cubeArrayFlippedLrInz
+def flipFbInZ(cubeArray):
+    """
+    Returns an array flipped front to back
+    Parameters
+    ----------
+    cubeArray : numpy array
+        3D numpy array
 
-referenceArray = flipLrInx(flipUdIny(flipFbInz(referenceArray)))
+    Returns
+    -------
+    flip a 3D cube array in Z with respect to element at origin, center of the cube
+
+    """
+    cubeArrayFlippedFbInZ = np.copy(cubeArray)
+    cubeArrayFlippedFbInZ[:] = cubeArray[::-1, :, :]
+    return cubeArrayFlippedFbInZ
+
+REFERENCEARRAY = flipLrInX(flipUdInY(flipFbInZ(REFERENCEARRAY)))
 
 
-def _rot3D90(cubeArray=referenceArray, rotAxis='z', k=0):
-    m = np.array(cubeArray)
-    k = k % 4
+def _rot3D90(cubeArray=REFERENCEARRAY, rotAxis='z', k=0):
+    """
+    Returns a 3D array after rotating 90 degrees anticlockwise k times around rotAxis
+    Parameters
+    ----------
+    cubeArray : numpy array
+        3D numpy array, by default REFERENCEARRAY
+
+    rotAxis : string
+        can be z, y or x specifies which axis should the array be rotated around, by default 'z'
+
+    k : integer
+        indicates how many times to rotate, by default '0' (doesn't rotate)
+
+    Returns
+    -------
+    rotMatrix : array
+        roated Matrix of the cubeArray
+
+    """
+    k = k % 4  # modulus of k, since rotating 5 times is same as rotating once (360 degrees rotation)
     if rotAxis == 'z':
-        if k == 0:
-            return m
-        elif k == 1:
-            return flipFbInz(m).swapaxes(0, 1)
-        elif k == 2:
-            return flipFbInz(m)
-        else:
-            # k == 3
-            return flipFbInz(m.swapaxes(0, 1))
+        if k == 0:  # doesn't rotate
+            return cubeArray
+        elif k == 1:  # rotate 90 degrees around z
+            return flipFbInZ(cubeArray).swapaxes(0, 1)
+        elif k == 2:  # rotate 180 degrees around z
+            return flipFbInZ(cubeArray)
+        elif k == 3:  # rotate 270 degrees around z
+            return flipFbInZ(cubeArray.swapaxes(0, 1))
     elif rotAxis == 'x':
-        if k == 0:
-            return m
-        elif k == 1:
-            return flipLrInx(m).swapaxes(1, 2)
-        elif k == 2:
-            return flipUdIny(flipLrInx(m))
-        else:
-            # k == 3
-            return flipLrInx(m.swapaxes(1, 2))
+        if k == 0:  # doesn't rotate
+            return cubeArray
+        elif k == 1:  # rotate 90 degrees around x
+            return flipLrInX(cubeArray).swapaxes(1, 2)
+        elif k == 2:  # rotate 180 degrees around x
+            return flipUdInY(flipLrInX(cubeArray))
+        elif k == 3:  # rotate 270 degrees around x
+            return flipLrInX(cubeArray.swapaxes(1, 2))
     elif rotAxis == 'y':
-        if k == 0:
-            return m
-        elif k == 1:
-            slice0 = m[0]
-            slice1 = m[1]
-            slice2 = m[2]
+        if k == 0:  # doesn't rotate
+            return cubeArray
+        elif k == 1:  # rotate 90 degrees around y
+            slice0 = cubeArray[0]
+            slice1 = cubeArray[1]
+            slice2 = cubeArray[2]
             a = np.array(column(slice2, 0))
             b = np.array(column(slice1, 0))
             c = np.array(column(slice0, 0))
@@ -78,12 +149,12 @@ def _rot3D90(cubeArray=referenceArray, rotAxis='z', k=0):
             rotSlice2 = np.column_stack((a2, b2, c2))
             rotMatrix = np.array((rotSlice0, rotSlice1, rotSlice2))
             return rotMatrix
-        elif k == 2:
-            return flipLrInx(flipFbInz(m))
-        else:
-            slice0 = m[0]
-            slice1 = m[1]
-            slice2 = m[2]
+        elif k == 2:  # rotate 270 degrees around y
+            return flipLrInX(flipFbInZ(cubeArray))
+        elif k == 3:  # rotate 270 degrees around y
+            slice0 = cubeArray[0]
+            slice1 = cubeArray[1]
+            slice2 = cubeArray[2]
             a = np.array(column(slice0, 2))
             b = np.array(column(slice1, 2))
             c = np.array(column(slice2, 2))
@@ -99,163 +170,23 @@ def _rot3D90(cubeArray=referenceArray, rotAxis='z', k=0):
             rotMatrix = np.array((rotSlice0, rotSlice1, rotSlice2))
             return rotMatrix
 
+firstSubiteration = REFERENCEARRAY.copy(order='C')  # mask outs border voxels in US
+secondSubiteration = _rot3D90(_rot3D90(REFERENCEARRAY, 'y', 2), 'x', 3).copy(order='C')  # mask outs border voxels in NE
+thirdSubiteration = _rot3D90(_rot3D90(REFERENCEARRAY, 'x', 1), 'z', 1).copy(order='C')  # mask outs border voxels in WD
+fourthSubiteration = _rot3D90(REFERENCEARRAY, 'x', 3).copy(order='C')  # mask outs border voxels in ES
+fifthSubiteration = _rot3D90(REFERENCEARRAY, 'y', 3).copy(order='C')  # mask outs border voxels in UW
+sixthSubiteration = _rot3D90(_rot3D90(_rot3D90(REFERENCEARRAY, 'x', 3), 'z', 1), 'y', 1).copy(order='C')  # mask outs border voxels in ND
+seventhSubiteration = _rot3D90(REFERENCEARRAY, 'x', 1).copy(order='C')  # mask outs border voxels in SW
+eighthSubiteration = _rot3D90(REFERENCEARRAY, 'y', 2).copy(order='C')  # mask outs border voxels in UN
+ninthSubiteration = _rot3D90(_rot3D90(REFERENCEARRAY, 'x', 3), 'z', 1).copy(order='C')  # mask outs border voxels in ED
+tenthSubiteration = _rot3D90(_rot3D90(REFERENCEARRAY, 'y', 2), 'x', 1).copy(order='C')  # mask outs border voxels in NW
+eleventhSubiteration = _rot3D90(REFERENCEARRAY, 'y', 1).copy(order='C')  # mask outs border voxels in UE
+twelvethSubiteration = _rot3D90(REFERENCEARRAY, 'x', 2).copy(order='C')  # mask outs border voxels in SD
 
-def firstSubIter(validateMatrix):
-    """
-    returns a decision if there is a valid borders voxels
-    that can be removed in up or south
-    """
-    assert np.ndim(validateMatrix) == 3
-    listedMatrix = list(np.reshape(validateMatrix, 27))
-    del(listedMatrix[13])
-    return listedMatrix
+# List of 12 directions
+DIRECTIONLIST = [firstSubiteration, secondSubiteration, thirdSubiteration, fourthSubiteration,
+                 fifthSubiteration, sixthSubiteration, seventhSubiteration, eighthSubiteration,
+                 ninthSubiteration, tenthSubiteration, eleventhSubiteration, twelvethSubiteration]
 
-
-def secondSubIter(validateMatrix):
-    """
-    returns a decision if there is a valid borders voxels
-    that can be removed in north or east
-    """
-    assert np.ndim(validateMatrix) == 3
-    firstTransition = _rot3D90(_rot3D90(validateMatrix, 'y', 2), 'x', 3)
-    listedMatrix = list(np.reshape(firstTransition, 27))
-    del(listedMatrix[13])
-    return listedMatrix
-
-
-def thirdSubIter(validateMatrix):
-    """
-    returns a decision if there is a valid borders voxels
-    that can be removed in west or down
-    """
-    assert np.ndim(validateMatrix) == 3
-    secondTransition = _rot3D90(_rot3D90(validateMatrix, 'x', 1), 'z', 1)
-    listedMatrix = list(np.reshape(secondTransition, 27))
-    del(listedMatrix[13])
-    return listedMatrix
-
-
-def fourthSubIter(validateMatrix):
-    """
-    returns a decision if there is a valid borders voxels
-    that can be removed in east or south
-    """
-    assert np.ndim(validateMatrix) == 3
-    thirdTransition = _rot3D90(validateMatrix, 'x', 3)
-    listedMatrix = list(np.reshape(thirdTransition, 27))
-    del(listedMatrix[13])
-    return listedMatrix
-
-
-def fifthSubIter(validateMatrix):
-    """
-    returns a decision if there is a valid borders voxels
-    that can be removed in up or west
-    """
-    assert np.ndim(validateMatrix) == 3
-    fourthTransition = _rot3D90(validateMatrix, 'y', 3)
-    listedMatrix = list(np.reshape(fourthTransition, 27))
-    del(listedMatrix[13])
-    return listedMatrix
-
-
-def sixthSubIter(validateMatrix):
-    """
-    returns a decision if there is a valid borders voxels
-    that can be removed in north or down
-    """
-    assert np.ndim(validateMatrix) == 3
-    fifthTransition = _rot3D90(_rot3D90(_rot3D90(validateMatrix, 'x', 3), 'z', 1), 'y', 1)
-    listedMatrix = list(np.reshape(fifthTransition, 27))
-    del(listedMatrix[13])
-    return listedMatrix
-
-
-def seventhSubIter(validateMatrix):
-    """
-    returns a decision if there is a valid borders voxels
-    that can be removed in south or west
-    """
-    assert np.ndim(validateMatrix) == 3
-    sixthTransition = _rot3D90(validateMatrix, 'x', 1)
-    listedMatrix = list(np.reshape(sixthTransition, 27))
-    del(listedMatrix[13])
-    return listedMatrix
-
-
-def eighthSubIter(validateMatrix):
-    """
-    returns a decision if there is a valid borders voxels
-    that can be removed in up or north
-    """
-    assert np.ndim(validateMatrix) == 3
-    seventhTransition = _rot3D90(validateMatrix, 'y', 2)
-    listedMatrix = list(np.reshape(seventhTransition, 27))
-    del(listedMatrix[13])
-    return listedMatrix
-
-
-def ninthSubIter(validateMatrix):
-    """
-    returns a decision if there is a valid borders voxels
-    that can be removed in east or down
-    """
-    assert np.ndim(validateMatrix) == 3
-    eighthTransition = _rot3D90(_rot3D90(validateMatrix, 'x', 3), 'z', 1)
-    listedMatrix = list(np.reshape(eighthTransition, 27))
-    del(listedMatrix[13])
-    return listedMatrix
-
-
-def tenthSubIter(validateMatrix):
-    """
-    returns a decision if there is a valid borders voxels
-    that can be removed in north or west
-    """
-    assert np.ndim(validateMatrix) == 3
-    ninthTransition = _rot3D90(_rot3D90(validateMatrix, 'y', 2), 'x', 1)
-    listedMatrix = list(np.reshape(ninthTransition, 27))
-    del(listedMatrix[13])
-    return listedMatrix
-
-
-def eleventhSubIter(validateMatrix):
-    """
-    returns a decision if there is a valid borders voxels
-    that can be removed in up or east
-    """
-    assert np.ndim(validateMatrix) == 3
-    tenthTransition = _rot3D90(validateMatrix, 'y', 1)
-    listedMatrix = list(np.reshape(tenthTransition, 27))
-    del(listedMatrix[13])
-    return listedMatrix
-
-
-def twelvethSubIter(validateMatrix):
-    """
-    returns a decision if there is a valid borders voxels
-    that can be removed in south or down
-    """
-    assert np.ndim(validateMatrix) == 3
-    eleventhTransition = _rot3D90(validateMatrix, 'x', 2)
-    listedMatrix = list(np.reshape(eleventhTransition, 27))
-    del(listedMatrix[13])
-    return listedMatrix
-
-
-firstSubiteration = referenceArray.copy(order='C')
-secondSubiteration = _rot3D90(_rot3D90(referenceArray, 'y', 2), 'x', 3).copy(order='C')
-thirdSubiteration = _rot3D90(_rot3D90(referenceArray, 'x', 1), 'z', 1).copy(order='C')
-fourthSubiteration = _rot3D90(referenceArray, 'x', 3).copy(order='C')
-fifthSubiteration = _rot3D90(referenceArray, 'y', 3).copy(order='C')
-sixthSubiteration = _rot3D90(_rot3D90(_rot3D90(referenceArray, 'x', 3), 'z', 1), 'y', 1).copy(order='C')
-seventhSubiteration = _rot3D90(referenceArray, 'x', 1).copy(order='C')
-eighthSubiteration = _rot3D90(referenceArray, 'y', 2).copy(order='C')
-ninthSubiteration = _rot3D90(_rot3D90(referenceArray, 'x', 3), 'z', 1).copy(order='C')
-tenthSubiteration = _rot3D90(_rot3D90(referenceArray, 'y', 2), 'x', 1).copy(order='C')
-eleventhSubiteration = _rot3D90(referenceArray, 'y', 1).copy(order='C')
-twelvethSubiteration = _rot3D90(referenceArray, 'x', 2).copy(order='C')
-
-directionList = np.array([firstSubiteration, secondSubiteration, thirdSubiteration, fourthSubiteration,
-                          fifthSubiteration, sixthSubiteration, seventhSubiteration, eighthSubiteration,
-                          ninthSubiteration, tenthSubiteration, eleventhSubiteration, twelvethSubiteration]).copy(order='C')
+# Path of pre-generated lookuparray.npy
+LOOKUPARRAYPATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lookuparray.npy')

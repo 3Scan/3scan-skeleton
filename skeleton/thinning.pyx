@@ -1,9 +1,31 @@
 import numpy as np
 cimport cython  # NOQA
+from rotationalOperators import DIRECTIONLIST, LOOKUPARRAYPATH
+"""
+cython convolve to speed up thinning
+"""
+lookUparray = np.load(LOOKUPARRAYPATH)
 
-@cython.boundscheck(False)
-def cy_convolve(unsigned long long int[:, :, :] im, unsigned long long int[:, :, :] kernel, Py_ssize_t[:, ::1] points):
-    cdef Py_ssize_t i, j, y, z, x, n, ks = kernel.shape[0]
+def cy_convolve(unsigned long long int[:, :, :] binaryArr, unsigned long long int[:, :, :] kernel, Py_ssize_t[:, ::1]  points):
+    """
+    Returns convolved output only at points
+    Parameters
+    ----------
+    binaryArr : Numpy array
+        3D binary numpy array
+
+    kernel : Numpy array
+        3D array template of type uint64
+
+    points : array
+        array of 3D coordinates to find convolution at
+    Returns
+    -------
+    responses : Numpy array
+        3D convolved numpy array only at "points"
+    """
+    cdef Py_ssize_t i, j, y, z, x, n
+    cdef Py_ssize_t ks = kernel.shape[0]
     cdef Py_ssize_t npoints = points.shape[0]
     cdef unsigned long long int[::1] responses = np.zeros(npoints, dtype='u8')
     for n in range(npoints):
@@ -13,30 +35,38 @@ def cy_convolve(unsigned long long int[:, :, :] im, unsigned long long int[:, :,
         for k in range(ks):
             for i in range(ks):
                 for j in range(ks):
-                    responses[n] += im[z + k - 1, y + i - 1, x + j - 1] * kernel[k, i, j]
+                    responses[n] += binaryArr[z + k - 1, y + i - 1, x + j - 1] * kernel[k, i, j]
 
-    return np.asarray(responses)
+    return np.asarray(responses, order='C')
 
 
-@cython.boundscheck(False)
-def cy_getThinned3D(unsigned long long int[:, :, :] image, unsigned long long int[:, :, :, ::1] directionList, str lupath):
+def cy_getThinned3D(unsigned long long int[:, :, :] arr):
     """
-    function to skeletonize a 3D binary image with object in brighter contrast than background.
-    In other words, 1 = object, 0 = background
+    Return thinned output
+    Parameters
+    ----------
+    binaryArr : Numpy array
+        2D or 3D binary numpy array
+
+    Returns
+    -------
+    Numpy array
+        2D or 3D binary thinned numpy array of the same shape
     """
-    lookUparray = np.load(lupath)
-    assert np.max(image) in [0, 1], "image must be boolean"
+    assert np.max(arr) in [0, 1], "arr must be boolean"
     cdef Py_ssize_t numPixelsremoved = 1
     cdef Py_ssize_t x, y, z
-    cdef unsigned long long int[:, :, :] orig = image
+    # Loop until array doesn't change equivalent to you cant remove any pixels 
+    # => numPixelsremoved = 0
     while numPixelsremoved > 0:
-        pixBefore = np.sum(image)
+        pixBefore = np.sum(arr)
+        # loop through all 12 subiterations
         for i in range(12):
-            points = np.asarray(np.transpose(np.nonzero(image)), order='C')
-            convImage = cy_convolve(image, kernel=directionList[i], points=points)
-            indices = [index for value, index in zip(convImage.tolist(), points.tolist()) if lookUparray[value] == 1]
-            for x, y, z in indices:
-                image[x, y, z] = 0
-            image = np.multiply(image, orig)
-        numPixelsremoved = pixBefore - np.sum(image)
-    return np.asarray(image)
+            nonzeroCoordinates = np.asarray(np.transpose(np.nonzero(arr)), order='C')
+            # convolve to find config number and convolve only at points in the array "nonzeroCoordinates"
+            convImage = cy_convolve(arr, kernel=DIRECTIONLIST[i], points=nonzeroCoordinates)
+            removableIndices = (index for value, index in zip(convImage, nonzeroCoordinates) if lookUparray[value] == 1)
+            for x, y, z in removableIndices:
+                arr[x, y, z] = 0
+        numPixelsremoved = pixBefore - np.sum(arr)
+    return np.asarray(arr)

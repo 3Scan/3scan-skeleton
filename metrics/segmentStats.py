@@ -70,7 +70,6 @@ class SegmentStats:
     """
     def __init__(self, networkxGraph):
         self.networkxGraph = networkxGraph
-        assert self.networkxGraph.number_of_selfloops() == 0
         # intitialize all the instance variables of SegmentStats class
         self.contractionDict = {}
         self.countDict = {}
@@ -421,25 +420,25 @@ class SegmentStats:
                                 self.hausdorffDimensionDict[self.countDict[sourceOnTree], sourceOnTree, item] = np.log(curveLength) / np.log(curveDisplacement)
 
     def setStats(self):
-        startt = time.time()
+        start = time.time()
         self.totalSegmentLength = sum([np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2)) for item, item2 in self.networkxGraph.edges()])
-        for ithDisjointgraph, subGraphskeleton in enumerate(self.disjointGraphs):
-            startDis = time.time()
+        for ithDisjointGraph, subGraphskeleton in enumerate(self.disjointGraphs):
+            startDisjoint = time.time()
             numNodes = subGraphskeleton.number_of_nodes()
-            print("processing {}th disjoint graph with {} nodes".format(ithDisjointgraph, numNodes))
+            print("     processing {}th disjoint graph with {} nodes".format(ithDisjointGraph, numNodes))
             nodes = subGraphskeleton.nodes()
             if len(nodes) == 1:
                 # if it is a single node
-                self.typeGraphdict[ithDisjointgraph] = 0
+                self.typeGraphdict[ithDisjointGraph] = 0
             else:
                 # if there are more than one nodes decide what kind of subgraph it is
                 # if it has cycles alone, or a straight line or a undirected cyclic/acyclic graph
                 cycleList = nx.cycle_basis(subGraphskeleton)
                 cycleCount = len(cycleList)
                 if cycleCount != 0:
-                    self.typeGraphdict[ithDisjointgraph] = 3
+                    self.typeGraphdict[ithDisjointGraph] = 3
                 else:
-                    self.typeGraphdict[ithDisjointgraph] = 4
+                    self.typeGraphdict[ithDisjointGraph] = 4
                 self.nodeDegreedict = nx.degree(subGraphskeleton)
                 degreeList = list(self.nodeDegreedict.values())
                 endPointdegree = min(degreeList)
@@ -447,7 +446,7 @@ class SegmentStats:
                 if endPointdegree == branchPointdegree and nx.is_biconnected(subGraphskeleton) and cycleCount == 1:
                     # if the maximum degree is equal to minimum degree it is a circle, set
                     # tortuosity to infinity (NaN) set to zero here
-                    self.typeGraphdict[ithDisjointgraph] = 1
+                    self.typeGraphdict[ithDisjointGraph] = 1
                     cycle = cycleList[0]
                     self._singleCycle(subGraphskeleton, cycle)
                     self.cycles = self.cycles + 1
@@ -482,7 +481,7 @@ class SegmentStats:
                         curveLength = self._getLengthAndRemoveTracedPath(subGraphskeleton, simplePath, 0, remove=0)
                         self.isolatedEdgeInfo[sourceOnLine, targetOnLine] = curveLength
                         subGraphskeleton.remove_edges_from(edges)
-                        self.typeGraphdict[ithDisjointgraph] = 2
+                        self.typeGraphdict[ithDisjointGraph] = 2
                 else:
                     # cyclic or acyclic tree
                     if cycleCount != 0:
@@ -495,10 +494,9 @@ class SegmentStats:
                     self._tree(subGraphskeleton)
                     if subGraphskeleton.number_of_edges() != 0:
                         self._branchToBranch(subGraphskeleton)
-                assert subGraphskeleton.number_of_edges() == 0
                 self.edgesUntraced += subGraphskeleton.number_of_edges()
-                print("{}th disjoint graph took {} seconds".format(ithDisjointgraph, time.time() - startDis))
-        print("edges not removed are", self.edgesUntraced)
+                assert subGraphskeleton.number_of_edges() == 0, "edges not removed are %i" % self.edgesUntraced
+                print("     %ith disjoint graph took %0.2f seconds" % (ithDisjointGraph, time.time() - startDisjoint))
         self.totalSegments = len(self.lengthDict)
         listCounts = list(self.countDict.values())
         self.avgBranching = 0
@@ -507,5 +505,5 @@ class SegmentStats:
         ndd = nx.degree(self.networkxGraph)
         self.countEndPoints = sum([1 for key, value in ndd.items() if value == 1])
         self.countBranchPoints = sum([1 for key, value in ndd.items() if value > 2])
-        print("time taken to calculate segments and their lengths is %0.3f seconds" % (time.time() - startt))
+        print("time taken to calculate segments and their lengths is %0.3f seconds" % (time.time() - start))
 

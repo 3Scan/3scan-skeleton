@@ -1,27 +1,62 @@
 import itertools
-import networkx as nx
 import time
+
+import networkx as nx
+"""
+program to prune segments of length less than cutoff in  a 3D/2D Array
+"""
 
 
 def _countBranchPointsOnSimplePath(simplePath, listBranchIndices):
     """
-    given a list of nodes as a simplePath, return how many branch points there are on that path
+    Find number of branch points on a path
+    Parameters
+    ----------
+    simplePath : list
+        list of nodes on the path
+
+    listBranchIndices : list
+        list of branch nodes
+
+    Returns
+    -------
+    integer
+        number of branch nodes on the path
     """
     return sum([1 for point in simplePath if point in listBranchIndices])
 
 
 def _removeNodesOnPath(simplePaths, skel):
     """
-    remove the nodes on simplePath from 3D volume skelD
+    Returns array changed in place after zeroing out the nodes on simplePath
+    Parameters
+    ----------
+    simplePath : list
+        list of list of nodes on simple paths
+
+    skel : numpy array
+        2D or 3D numpy array
+
     """
     for simplePath in simplePaths:
-        for pointsSmallBranches in simplePath[:-1]:
+        for pointsSmallBranches in simplePath[1:]:
             skel[pointsSmallBranches] = 0
 
 
 def getPrunedSkeleton(skeletonStack, networkxGraph, cutoff=9):
     """
-    takes ND-array of skeletonized data and prune branches shorter than length 'cutoff'
+    Returns an array changed in place with segments less than cutoff removed
+    Parameters
+    ----------
+    skeletonStack : numpy array
+        2D or 3D numpy array
+
+    networkxGraph : Networkx graph
+        graph to remove cliques from
+
+    cutoff : integer
+        cutoff of segment length to be removed
+
     """
     start_prune = time.time()
     ndd = nx.degree(networkxGraph)

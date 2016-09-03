@@ -13,7 +13,7 @@ from skeleton.metrics.plotStats import (getStatistics, plotKDEAndHistogram, save
                                         getImportantMetrics, plotMultiKde, saveMultiKde, welchsTtest)
 from skeleton.pruning import getPrunedSkeleton
 from skeleton.thin3DVolume import getThinned3D
-from skeleton.unitwidthcurveskeleton import getShortestPathSkeleton
+from skeleton.unitWidthCurveSkeleton import getShortestPathSkeleton
 
 # load 2D facelets median filtered to be vectorized
 filePath = input("please enter a path to directory with 2D grey scale slices to be skeletonized")
