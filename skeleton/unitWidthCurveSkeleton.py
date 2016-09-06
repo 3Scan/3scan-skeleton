@@ -36,7 +36,7 @@ def outOfPixBounds(nearByCoordinate, aShape):
     Returns
     -------
     onBound : Bpolean
-        1 if its on boundary, 0 if not
+        1 if its on or over boundary, 0 if not
     """
     onBound = 0
     for index, maxVal in enumerate(aShape):
