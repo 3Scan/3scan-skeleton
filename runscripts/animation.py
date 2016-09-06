@@ -1,4 +1,6 @@
 import numpy as np
+import os
+
 from mayavi.api import Engine
 from mayavi import mlab
 
@@ -10,31 +12,46 @@ convert -set delay 20 -loop 0 -quality 1000 -scale 100% *.png /home/pranathi/ani
 """
 
 
-def getFrames(path1, path2, totalTime, fps=24, totalRotation=360):
+def getFrames(pathThresh, pathSkel, totalTime, fps=24, totalRotation=360):
     """
     Return 3 vertex clique removed graph
     Parameters
     ----------
-    networkxGraph : Networkx graph
-        graph to remove cliques from
+    pathThresh : str
+        path of the .npy thresholded 3D Volume
+
+    pathSKel : str
+        path of the .npy skeleton 3D Volume
+
+    totalTime : integer
+        in seconds, duration of the video
+
+    fps : integer
+        frames per second, number of input frames per second
+
+    totalRotation : integer
+        angle in degrees frames should be captured in, integer between 0 and 360
 
     Returns
     -------
-    networkxGraphAfter : Networkx graph
-        graph with 3 vertex clique edges removed
+    frames of png images in the same directory as pathThresh
+        mayavi scenes are saved as png images at different
+        angle of rotations as anim%i.png i is the ith frame
 
     Notes
-    ------
-    Removes the longest edge in a 3 Vertex cliques,
-    Special case edges are the edges with equal
-    lengths that form the 3 vertex clique.
-    Doesn't deal with any other cliques
+    -----
+    threshold and skeletonized volume are overlapped,
+    thresholded volume's isosurface is transparent and
+    in grey and the skeletonized volume can be seen through
+    it and is in red
     """
-
+    # total frames
     totalFrameCount = fps * totalTime
+    # degree of rotation after each frame
     degreePerFrame = totalRotation / totalFrameCount
-    threshold = np.load(path1)
-    skeleton = np.load(path2)
+    # load the threshold and skeleton paths
+    threshold = np.load(pathThresh)
+    skeleton = np.load(pathSkel)
     e = Engine()
     e.start()
     # Create a new mayavi scene.
@@ -49,6 +66,13 @@ def getFrames(path1, path2, totalTime, fps=24, totalRotation=360):
     f.actor.property.point_size = 6.448
     mlab.options.offscreen = True
     mlab.outline(f).actor.property.color = (0, 0, 0)
+    # extract rootDir of pathThresh
+    rootDir = ""
+    separator = os.sep
+    directories = pathThresh.split(separator)[1:-1]
+    for directory in directories:
+        rootDir = rootDir + separator + directory
+    rootDir = rootDir + separator
     # Make an animation:
     for i in range(totalFrameCount):
         # Rotate the camera by 10 degrees.
@@ -59,4 +83,4 @@ def getFrames(path1, path2, totalTime, fps=24, totalRotation=360):
         s.scene.reset_zoom()
         # Save the scene. magnification=4 gives saves as an image when seen in fullscreen
         s.scene.magnification = 4
-        s.scene.save("anim%d.png" % i)
+        s.scene.save(rootDir + "anim%d.png" % i)

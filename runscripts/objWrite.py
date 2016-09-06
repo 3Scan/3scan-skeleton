@@ -1,173 +1,76 @@
 import numpy as np
 import networkx as nx
-import itertools
-
-import time
-
-from skeleton.cliqueRemoving import removeCliqueEdges
-from skeleton.networkxGraphFromArray import getNetworkxGraphFromArray
-
 
 """
-    write an array to a wavefront obj file - time takes upto 3 minutes for a 512 * 512 * 512 array,
-    input array can be either 3D or 2D. Function needs to be called with an array you want to save
-    as a .obj file and the location on obj file - primarily written for netmets (comparison of 2 networks)
-    Link to the software - http://stim.ee.uh.edu/resources/software/netmets/
+write networkxgraph of skeleton to a wavefront obj file - primarily written
+for netmets (comparison of 2 networks)
+Link to the software - http://stim.ee.uh.edu/resources/software/netmets/
+Currently used as an input for visualization team
 """
 
 
-def _removeEdgesInVisitedPath(subGraphskeleton, path, cycle):
+def _removeEdgesInVisitedPath(subGraphSkeleton, path, isCycle):
     """
-       given a visited path in variable path, the edges in the
-       path are removed in the graph
-       if cycle = 1 , the given path belongs to a cycle,
-       so an additional edge is formed between the last and the
-       first node to form a closed cycle/ path and is removed
+    Remove edges belonging to "path" from "subGraphSkeleton"
+    Parameters
+    ----------
+    subGraphSkeleton : Networkx graph
+        input graph to remove edges from
+
+    path : list
+       list of nodes in the path
+
+    isCycle : boolean
+       Specify if path is a cycle or not
+
+    Returns
+    -------
+    subGraphSkeleton : Networkx graph
+        graph changed inplace with visited edges removed
+
+    Notes
+    ------
+    given a visited path in variable path, the edges in the
+    path are removed in the graph "subGraphSkeleton".
+    if isCycle = 1 , the given path belongs to a cycle,
+    so an additional edge is formed between the last and the
+    first node to form a closed cycle/ path and is removed
     """
-    shortestPathedges = []
-    if cycle == 0:
+    shortestPathEdges = []
+    if isCycle == 0:
         for index, item in enumerate(path):
             if index + 1 != len(path):
-                shortestPathedges.append(tuple((item, path[index + 1])))
-        subGraphskeleton.remove_edges_from(shortestPathedges)
+                shortestPathEdges.append(tuple((item, path[index + 1])))
+        subGraphSkeleton.remove_edges_from(shortestPathEdges)
     else:
         for index, item in enumerate(path):
             if index + 1 != len(path):
-                shortestPathedges.append(tuple((item, path[index + 1])))
+                shortestPathEdges.append(tuple((item, path[index + 1])))
             else:
                 item = path[0]
-                shortestPathedges.append(tuple((item, path[-1])))
-        subGraphskeleton.remove_edges_from(shortestPathedges)
+                shortestPathEdges.append(tuple((item, path[-1])))
+        subGraphSkeleton.remove_edges_from(shortestPathEdges)
 
 
-def getObjWrite(imArray, pathTosave, aspectRatio=None):
+def getObjBranchPointsWrite(networkxGraph, pathTosave):
     """
-       takes in a numpy array and converts it to a obj file and writes it to pathTosave
-    """
-    start = time.time()  # for calculating time taken to write to an obj file
-    if type(imArray) == np.ndarray:
-        networkxGraph = getNetworkxGraphFromArray(imArray)  # converts array to a networkx graph(based on non zero coordinates and the adjacent nonzeros)
-        networkxGraph = removeCliqueEdges(networkxGraph)  # remove cliques in the graph
-    else:
-        networkxGraph = imArray
-    objFile = open(pathTosave, "w")  # open a obj file in the given path
-    GraphList = nx.to_dict_of_lists(networkxGraph)  # convert the graph to a dictionary with keys as nodes and list of adjacent nodes as the values
-    verticesSorted = list(GraphList.keys())  # list and sort the keys so they are geometrically in the same order when writing to an obj file as (l_prefix paths)
-    verticesSorted.sort()
-    mapping = {}  # initialize variables for writing string of vertex v followed by x, y, x coordinates in the obj file
-    #  for each of the sorted vertices
-    strsVertices = []
-    for index, vertex in enumerate(verticesSorted):
-        mapping[vertex] = index + 1  # a mapping to transform the vertices (x, y, z) to indexes (beginining with 1)
-        if aspectRatio is not None:
-            originalVertex = list(vertex)
-            newVertex = [0] * len(vertex)
-            newVertex[0] = originalVertex[0] * aspectRatio[0]
-            newVertex[1] = originalVertex[2] * aspectRatio[1]
-            newVertex[2] = originalVertex[1] * aspectRatio[2]
-            vertex = tuple(newVertex)
-        strsVertices.append("v " + " ".join(str(vertex[i - 2]) for i in range(0, len(vertex))) + "\n")  # add strings of vertices to obj file
-    objFile.writelines(strsVertices)  # write strings to obj file
-    networkGraphIntegerNodes = nx.relabel_nodes(networkxGraph, mapping, False)
-    strsSeq = []
-    # line prefixes for the obj file
-    disjointGraphs = list(nx.connected_component_subgraphs(networkGraphIntegerNodes))
-    for ithDisjointGraph, subGraphskeleton in enumerate(disjointGraphs):
-        nodes = subGraphskeleton.nodes()
-        if len(nodes) == 1:
-            continue
-            """ if there are more than one nodes decide what kind of subgraph it is
-                if it has cycles alone, or a straight line or a directed cyclic/acyclic graph"""
-        nodes.sort()
-        cycleList = nx.cycle_basis(subGraphskeleton)
-        cycleCount = len(cycleList)
-        nodeDegreedict = nx.degree(subGraphskeleton)
-        degreeSet = set(list(nodeDegreedict.values()))
-        if degreeSet == {2} and nx.is_biconnected(subGraphskeleton) and cycleCount == 1:
-            cycle = cycleList[0]
-            # branchAngledict[1, sourceOnCycle] = dirVec
-            _removeEdgesInVisitedPath(subGraphskeleton, cycle, 1)
-        elif degreeSet == set((1, 2)) or degreeSet == {1}:
-            """ straight line or dichtonomous tree"""
-            listOfPerms = list(itertools.combinations(nodes, 2))
-            if type(nodes[0]) == int:
-                modulus = [[start - end] for start, end in listOfPerms]
-                dists = [abs(i[0]) for i in modulus]
-            else:
-                modulus = [[start[dim] - end[dim] for dim in range(0, 3)] for start, end in listOfPerms]
-                dists = [sum(modulus[i][dim] * modulus[i][dim] for dim in range(0, 3)) for i in range(0, len(modulus))]
-            if len(list(nx.articulation_points(subGraphskeleton))) == 1 and set(dists) != 1:
-                """ each node is connected to one or two other nodes which are not a distance of 1 implies there is a
-                    one branch point with two end points in a single dichotomous tree"""
-                continue
-            else:
-                endpoints = [k for (k, v) in nodeDegreedict.items() if v == 1]
-                sourceOnLine = endpoints[0]
-                targetOnLine = endpoints[1]
-                simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnLine, target=targetOnLine))
-                simplePath = simplePaths[0]
-                strsSeq.append("l " + " ".join(str(x) for x in simplePath) + "\n")
-                edges = subGraphskeleton.edges()
-                subGraphskeleton.remove_edges_from(edges)
-        else:
-            """ cyclic or acyclic tree """
-            if len(cycleList) != 0:
-                for nthcycle, cycle in enumerate(cycleList):
-                    nodeDegreedictFilt = {key: value for key, value in nodeDegreedict.items() if key in cycle}
-                    branchpoints = [k for (k, v) in nodeDegreedictFilt.items() if v != 2 and v != 1]
-                    branchpoints.sort()
-                    listOfPerms = list(itertools.combinations(branchpoints, 2))
-                    for sourceOnTree, item in listOfPerms:
-                        simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
-                        for simplePath in simplePaths:
-                            if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
-                                if sum([1 for point in simplePath if point in branchpoints]) == 2:
-                                    strsSeq.append("l " + " ".join(str(x) for x in simplePath) + "\n")
-                                    _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
-            branchpoints = [k for (k, v) in nodeDegreedict.items() if v != 2 and v != 1]
-            endpoints = [k for (k, v) in nodeDegreedict.items() if v == 1]
-            branchendpoints = branchpoints + endpoints
-            branchpoints.sort()
-            endpoints.sort()
-            listOfPerms = list(itertools.product(branchpoints, endpoints))
-            for sourceOnTree, item in listOfPerms:
-                if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
-                    simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
-                    simplePath = simplePaths[0]
-                    if sum([1 for point in simplePath if point in branchendpoints]) == 2:
-                        strsSeq.append("l " + " ".join(str(x) for x in simplePath) + "\n")
-                        _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
-            if subGraphskeleton.number_of_edges() != 0:
-                listOfPerms = list(itertools.combinations(branchpoints, 2))
-                for sourceOnTree, item in listOfPerms:
-                    if nx.has_path(subGraphskeleton, sourceOnTree, item) and sourceOnTree != item:
-                        simplePaths = list(nx.all_simple_paths(subGraphskeleton, source=sourceOnTree, target=item))
-                        simplePath = simplePaths[0]
-                        if sum([1 for point in simplePath if point in branchpoints]) == 2:
-                            strsSeq.append("l " + " ".join(str(x) for x in simplePath) + "\n")
-                            _removeEdgesInVisitedPath(subGraphskeleton, simplePath, 0)
-            cycleList = nx.cycle_basis(subGraphskeleton)
-            if subGraphskeleton.number_of_edges() != 0 and len(cycleList) != 0:
-                for cycle in cycleList:
-                    strsSeq.append("l " + " ".join(str(x) for x in cycle) + "\n")
-                    _removeEdgesInVisitedPath(subGraphskeleton, cycle, 1)
-        # assert subGraphskeleton.number_of_edges() == 0
-        assert subGraphskeleton.number_of_edges() == 0
-    objFile.writelines(strsSeq)
-    print("obj file write took %0.3f seconds" % (time.time() - start))
-    # Close opend file
-    objFile.close()
+    Writes a networkx graph's branch points to an obj file
+    Parameters
+    ----------
+    networkxGraph : Networkx graph
+        graph to be converted to obj
 
+    pathTosave : str
+        write the obj file at pathTosave
 
-def getObjBranchPointsWrite(imArray, pathTosave):
+    Returns
+    -------
+    Writes a networkx graph's branch points to an obj file at pathTosave
+
+    Notes
+    -----
+    Expects aspect ratio of array to be pre-adjusted
     """
-       takes in a numpy array and converts it to a obj file and writes it to pathTosave
-    """
-    if type(imArray) == np.ndarray:
-        networkxGraph = getNetworkxGraphFromArray(imArray)  # converts array to a networkx graph(based on non zero coordinates and the adjacent nonzeros)
-        networkxGraph = removeCliqueEdges(networkxGraph)  # remove cliques in the graph
-    else:
-        networkxGraph = imArray
     objFile = open(pathTosave, "w")  # open a obj file in the given path
     nodeDegreedict = nx.degree(networkxGraph)
     branchpoints = [k for (k, v) in nodeDegreedict.items() if v != 2 and v != 1]
@@ -179,15 +82,24 @@ def getObjBranchPointsWrite(imArray, pathTosave):
     objFile.close()
 
 
-def getObjPointsWrite(imArray, pathTosave):
+def getObjPointsWrite(networkxGraph, pathTosave):
     """
-       takes in a numpy array and converts it to a obj file and writes it to pathTosave
+    Writes a networkx graph nodes of a skeleton as vertices to an obj file
+    Parameters
+    ----------
+    networkxGraph : Networkx graph
+        graph to be converted to obj
+
+    pathTosave : str
+        write the obj file at pathTosave
+
+    Returns
+    -------
+    Writes a networkx graph nodes of a skeleton as vertices to an obj file at pathTosave
+    Notes
+    -----
+    Expects aspect ratio of array to be pre-adjusted
     """
-    if type(imArray) == np.ndarray:
-        networkxGraph = getNetworkxGraphFromArray(imArray)  # converts array to a networkx graph(based on non zero coordinates and the adjacent nonzeros)
-        networkxGraph = removeCliqueEdges(networkxGraph)  # remove cliques in the graph
-    else:
-        networkxGraph = imArray
     objFile = open(pathTosave, "w")  # open a obj file in the given path
     nodes = nx.nodes(networkxGraph)
     strsVertices = []
@@ -200,9 +112,7 @@ def getObjPointsWrite(imArray, pathTosave):
 if __name__ == '__main__':
     # read points into array
     skeletonIm = np.load(input("enter a path to shortest path skeleton volume------"))
-    boundaryIm = np.load(input("enter a path to boundary of thresholded volume------"))
     aspectRatio = input("please enter resolution of a voxel in 3D with resolution in z followed by y and x")
     aspectRatio = [float(item) for item in aspectRatio.split(' ')]
     path = input("please enter a path to save resultant obj file with no texture coordinates")
-    path2 = input("please enter a path to save resultant obj file with texture coordinates")
-    getObjWrite(skeletonIm, path, aspectRatio)
+    getObjPointsWrite(skeletonIm, path, aspectRatio)

@@ -69,7 +69,7 @@ def getPrunedSkeleton(skeletonStack, networkxGraph, cutoff=9):
             simplePaths = [simplePath for simplePath in nx.all_simple_paths(networkxGraph, source=endPoint,
                            target=branchPoint, cutoff=cutoff) if _countBranchPointsOnSimplePath(simplePath, listBranchIndices)]
             _removeNodesOnPath(simplePaths, skeletonStack)
-        progress = int((100 * index) / totalSteps)
+        progress = int((100 * (index + 1)) / totalSteps)
         print("pruning in progress {}% \r".format(progress), end="", flush=True)
     print("time taken to prune is %0.3f seconds" % (time.time() - start_prune))
     return skeletonStack

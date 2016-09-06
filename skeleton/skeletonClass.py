@@ -1,3 +1,6 @@
+import numpy as np
+import os
+
 from kesm.projects.KESMAnalysis.imgtools import loadStack, saveStack
 
 from metrics.segmentStats import SegmentStats
@@ -23,10 +26,23 @@ abstract class that encompasses all stages of skeletonization leading to quantif
 class Skeleton:
     def __init__(self, path, **kwargs):
         # initialize input array
+        # path : can be an 3D binary array or series of png images
+        # or a numpy(.npy) array
         if type(path) is str:
-            self.path = path
-            self.inputStack = loadStack(self.path).astype(bool)
+            if path.endswith("npy"):
+                # extract rootDir of path
+                rootDir = ""
+                separator = os.sep
+                directories = path.split(separator)[1:-1]
+                for directory in directories:
+                    rootDir = rootDir + separator + directory
+                self.path = rootDir
+                self.inputStack = np.load(path)
+            else:
+                self.path = path
+                self.inputStack = loadStack(self.path).astype(bool)
         else:
+            self.path = os.getcwd()
             self.inputStack = path
         if kwargs != {}:
             aspectRatio = kwargs["aspectRatio"]
@@ -41,9 +57,11 @@ class Skeleton:
         self.setThinningOutput()
         self.skeletonStack = getShortestPathSkeleton(self.thinnedStack)
 
-    def setNetworkGraph(self, findSkeleton=True):
+    def setNetworkGraph(self, findSkeleton=False):
         # Network graph of the crowded region removed output
-        if findSkeleton:
+        # Generally the function expects a skeleton
+        # and findSkeleton is False by default
+        if findSkeleton is True:
             self.setUnitWidthSkeletonOutput()
         else:
             self.skeletonStack = self.inputStack
@@ -51,7 +69,7 @@ class Skeleton:
 
     def setPrunedSkeletonOutput(self):
         # Prune unnecessary segments in crowded regions removed skeleton
-        self.setNetworkGraph()
+        self.setNetworkGraph(findSkeleton=True)
         self.outputStack = getPrunedSkeleton(self.skeletonStack, self.graph)
 
     def getNetworkGraph(self):
@@ -61,13 +79,18 @@ class Skeleton:
 
     def saveStack(self):
         # Save output skeletonized stack as series of pngs in the path under a subdirectory skeleton
+        # in the input "path"
         self.setPrunedSkeletonOutput()
         saveStack(self.outputStack, self.path + "skeleton/")
 
-    def segmentStatsBeforePruning(self):
+    def getSegmentStatsBeforePruning(self):
+        # stats before pruning the braches
         self.setNetworkGraph()
         self.statsBefore = SegmentStats(self.graph)
+        self.statsBefore.setStats()
 
-    def segmentStatsAfterPruning(self):
+    def setSegmentStatsAfterPruning(self):
+        # stats after pruning the braches
         self.getNetworkGraph()
         self.statsAfter = SegmentStats(self.outputGraph)
+        self.statsAfter.setStats()

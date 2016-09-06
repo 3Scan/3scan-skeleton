@@ -1,5 +1,4 @@
 import numpy as np
-import pickle
 
 from metrics.segmentStats import SegmentStats
 from skeleton.skeletonClass import Skeleton
@@ -18,7 +17,7 @@ PV TODO:Test if lengths of segments and tortuoisty of the curves as expected
 def getCycleNoTree():
     donut = getDonut()
     skel = Skeleton(donut)
-    skel.setNetworkGraph()
+    skel.setNetworkGraph(True)
     return skel.graph
 
 
@@ -33,7 +32,7 @@ def getCyclesWithBranchesProtrude(size=(10, 10)):
     sampleImage = np.zeros((3, 10, 10), dtype=np.uint8)
     sampleImage[1] = frame
     skel = Skeleton(sampleImage)
-    skel.setNetworkGraph(findSkeleton=False)
+    skel.setNetworkGraph(False)
     return skel.graph
 
 
@@ -46,7 +45,7 @@ def getDisjointTreesNoCycle3d(size=(10, 10, 10)):
     crosPair[0, 0:5, 0:5] = cros
     crosPair[5, 5:10, 5:10] = cros
     skel = Skeleton(crosPair)
-    skel.setNetworkGraph()
+    skel.setNetworkGraph(False)
     return skel.graph
 
 
@@ -55,7 +54,7 @@ def getSingleVoxelLineNobranches(size=(5, 5, 5)):
     sampleLine = np.zeros(size, dtype=np.uint8)
     sampleLine[1, :, 4] = 1
     skel = Skeleton(sampleLine)
-    skel.setNetworkGraph()
+    skel.setNetworkGraph(False)
     return skel.graph
 
 
@@ -65,8 +64,11 @@ def test_cycleAndTree():
     sampleGraph = getCyclesWithBranchesProtrude()
     stats = SegmentStats(sampleGraph)
     stats.setStats()
-    assert (stats.totalSegments == 4 and stats.typeGraphdict[0] == 3 and stats.countEndPoints == 2 and
-            stats.countBranchPoints == 2 and stats.cycleInfo[0][0] == 2), pickle.dump(stats, open("unExpectedStats_cycleAndTree.p", "wb"))
+    assert stats.totalSegments == 4, "totalSegments in cycleAndTree sample should be 4, it is {}".format(stats.totalSegments)
+    assert stats.typeGraphdict[0] == 3, "type of graph in cycleAndTree sample should be 3, it is {}".format(stats.typeGraphdict[0])
+    assert stats.countEndPoints == 2, "number of end points in cycleAndTree sample should be 2, it is {}".format(stats.countEndPoints)
+    assert stats.countBranchPoints == 2, "number of branch points in cycleAndTree sample should be 2, it is {}".format(stats.countBranchPoints)
+    assert stats.cycleInfoDict[0][0] == 2, "number of branch points on the cycle must be 2, it is {}".format(stats.cycleInfoDict[0][0])
 
 
 def test_singleSegment():
@@ -75,9 +77,12 @@ def test_singleSegment():
     lineGraph = getSingleVoxelLineNobranches()
     stats = SegmentStats(lineGraph)
     stats.setStats()
-    assert (stats.totalSegments == 0 and stats.typeGraphdict[0] == 2 and
-            stats.countEndPoints == 2 and stats.countBranchPoints == 0 and
-            stats.hausdorffDimensionDict == {} and stats.cycleInfo == {}), pickle.dump(stats, open("unExpectedStats_singleSegment.p", "wb"))
+    assert stats.totalSegments == 0, "totalSegments in singleSegment sample should be 0, it is {}".format(stats.totalSegments)
+    assert stats.typeGraphdict[0] == 2, "type of graph in singleSegment sample should be 2, it is {}".format(stats.typeGraphdict[0])
+    assert stats.countEndPoints == 2, "number of end points in singleSegment sample should be 2, it is {}".format(stats.countEndPoints)
+    assert stats.countBranchPoints == 0, "number of branch points in singleSegment sample should be 0, it is {}".format(stats.countBranchPoints)
+    assert stats.hausdorffDimensionDict == {}, "hausdorffDimensionDict must be empty, it is {}".format(stats.hausdorffDimensionDict)
+    assert stats.cycleInfoDict == {}, "cycleInfoDict must be empty, it is {}".format(stats.cycleInfoDict)
 
 
 def test_singleCycle():
@@ -86,9 +91,12 @@ def test_singleCycle():
     donutGraph = getCycleNoTree()
     stats = SegmentStats(donutGraph)
     stats.setStats()
-    assert (stats.totalSegments == 1 and stats.typeGraphdict[0] == 1 and stats.countEndPoints == 0 and
-            stats.countBranchPoints == 0 and
-            stats.hausdorffDimensionDict == {} and stats.cycleInfo[0][0] == 0), pickle.dump(stats, open("unExpectedStats_singleCycle.p", "wb"))
+    assert stats.totalSegments == 1, "totalSegments in singleCycle sample should be 1, it is {}".format(stats.totalSegments)
+    assert stats.typeGraphdict[0] == 1, "type of graph in singleCycle sample should be 1, it is {}".format(stats.typeGraphdict[0])
+    assert stats.countEndPoints == 0, "number of end points in singleCycle sample should be 2, it is {}".format(stats.countEndPoints)
+    assert stats.countBranchPoints == 0, "number of branch points in singleCycle sample should be 0, it is {}".format(stats.countBranchPoints)
+    assert stats.hausdorffDimensionDict == {}, "hausdorffDimensionDict must be empty, it is {}".format(stats.hausdorffDimensionDict)
+    assert stats.cycleInfoDict[0][0] == 0, "number of branch points on the cycle must be 0, it is {}".format(stats.cycleInfoDict[0][0])
 
 
 def test_treeNoCycle3D():
@@ -97,8 +105,10 @@ def test_treeNoCycle3D():
     crosPairgraph = getDisjointTreesNoCycle3d()
     stats = SegmentStats(crosPairgraph)
     stats.setStats()
-    assert (stats.totalSegments == 8 and stats.typeGraphdict[0] == 4 and stats.countEndPoints == 8 and
-            stats.countBranchPoints == 2 and stats.cycleInfo == {}), pickle.dump(stats, open("unExpectedStats_treeNoCycle3D.p", "wb"))
-
+    assert stats.totalSegments == 8, "totalSegments in treeNoCycle3D sample should be 8, it is {}".format(stats.totalSegments)
+    assert stats.typeGraphdict[0] == 4, "type of graph in treeNoCycle3D sample should be 4, it is {}".format(stats.typeGraphdict[0])
+    assert stats.countEndPoints == 8, "number of end points in treeNoCycle3D sample should be 2, it is {}".format(stats.countEndPoints)
+    assert stats.countBranchPoints == 2, "number of branch points in treeNoCycle3D sample should be 2, it is {}".format(stats.countBranchPoints)
+    assert stats.cycleInfoDict == {}, "cycleInfoDict must be empty, it is {}".format(stats.cycleInfoDict)
 
 

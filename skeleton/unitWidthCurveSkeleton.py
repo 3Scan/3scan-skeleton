@@ -139,7 +139,7 @@ def getShortestPathSkeleton(skeletonIm):
         # crowded region - 26 connected crowded joint point
         crowdedRegion = np.zeros_like(skeletonLabelled)
         crowdedRegion[skeletonLabelled == 4] = 1
-        label, noOfCrowdedregions = ndimage.measurements.label(crowdedRegion, structure=se)
+        label, countCrowdedRegions = ndimage.measurements.label(crowdedRegion, structure=se)
         if np.max(skeletonLabelled) < 4:  # no crowded regions
             print("no crowded regions")
             return skeletonIm
@@ -147,10 +147,9 @@ def getShortestPathSkeleton(skeletonIm):
             objectify = ndimage.find_objects(label)
             # detect exits
             exits = np.logical_or(skeletonLabelled == 1, skeletonLabelled == 2)
-            for i in range(noOfCrowdedregions):
-                progress = int((100 * i) / noOfCrowdedregions)
-                print("cleaning crowded regions in progress {}% \r".format(progress), end="", flush=True)
-                loc = objectify[i]
+            for crowdRegion in range(countCrowdedRegions):
+                loc = objectify[crowdRegion]
+                # find boundaries of the crowded region
                 zcoords = loc[0]
                 ycoords = loc[1]
                 xcoords = loc[2]
@@ -161,7 +160,8 @@ def getShortestPathSkeleton(skeletonIm):
                 regionUpperBoundY = ycoords.stop + 1
                 regionUpperBoundX = xcoords.stop + 1
                 bounds = [regionLowerBoundZ, regionLowerBoundY, regionLowerBoundX, regionUpperBoundZ, regionUpperBoundY, regionUpperBoundX]
-                bounds = [0 if i < 0 else i for i in bounds]
+                # remove negative boundaries
+                bounds = [0 if bound < 0 else bound for bound in bounds]
                 dilatedValenceObjectLoc = valencearray[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]]
                 dilatedRegionExits = exits[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]]
                 dilatedLabelledObjectLoc = skeletonLabelled[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]]
@@ -191,11 +191,13 @@ def getShortestPathSkeleton(skeletonIm):
                     dilatedLabelledObjectLoc1 = np.zeros_like(dilatedLabelledObjectLoc)
                     dilatedLabelledObjectLoc1[indices[0], indices[1], indices[2]] = 1
                     skeletonImNew[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]] = np.logical_or(skeletonImNew[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]], dilatedLabelledObjectLoc1)
+                progress = int((100 * crowdRegion) / countCrowdedRegions)
+                print("cleaning crowded regions in progress {}% \r".format(progress), end="", flush=True)
             # output the unit width curve skeleton
             skeletonImNew[skeletonLabelled < 4] = True
             skeletonImNew[skeletonLabelled == 0] = False
             skeletonImNew[np.logical_and(valencearray == 0, skeletonIm == 1)] = 0  # see if isolated voxels can be removed (answer: yes)
-            print("time taken is %0.3f seconds" % (time.time() - start))
+            print("time taken to find unit width curve skeleton is %0.3f seconds" % (time.time() - start))
             return skeletonImNew
 
 if __name__ == '__main__':
