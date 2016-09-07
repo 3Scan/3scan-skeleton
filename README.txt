@@ -12,9 +12,9 @@ and then use conda to install the following packages
 *skimage
 *matplotlib
 
-Input must be a binary array with z in it's first dimension
+Input must be a binary array with z in its first dimension
 
-Thinning is cythonized for fast execution and pyximport is used to automatically build and use cythoized function
+Thinning is cythonized for fast execution and pyximport is used to automatically build and use cythonized function
 (reference - http://docs.cython.org/src/reference/compilation.html)
 
 This repository contains programs needed to obtain a 3D skeleton using python 3 and quantify the 
@@ -30,19 +30,12 @@ with insturctions executed in a virtual environment with python 2.6 as below
 *mlab.savefig("arrayName.png")
 
 
-Install nosetests to execute programs in this folder
+Install nosetests to run tests in 3scan-skeleton/tests folder
 *conda install nose
 *pip install nose
-Run nose tests from within the directory
-pranathi@pranathi-3Scan:~/src/3scan-skeleton$ nosetests -xs "/home/pranathi/src/3scan-skeleton/tests/"
+nosetests -xs path to + "3scan-skeleton/tests/"
+To run tests with coverage
+*conda install coverage
+nosetests -sxv --with-coverage --cover-package=3scan-skeleton/tests
 
 
-The folder notebook contains ipynb(ipython notebook file)
-created to see how the graph reconstruction and quantification
-of segments is working
-
-*conda install notebook
-to install notebook
-to open up a network based interactive python shell type the following 
-command in terminal
-*ipython notebook
