@@ -186,8 +186,18 @@ def test_concentric():
     assert c == 3, "number of objects in the concentric circles should be 3, but it is {}".format(c)
 
 
+def test_banana():
+    # Test 12 Banana embedded in different axis locations
+    # https://en.wikipedia.org/wiki/Rosenbrock_function
+    xf, yf = np.mgrid[-1.5:3:50j, -1.5:2:50j]
+    f = (1 - xf) ** 2 + 100 * (yf - xf ** 2) ** 2
+    i = 1 * (f > 250)
+    i = i.astype(bool)
+    doEmbeddedTest(i)
+
+
 def test_hillbert():
-    # Test 12 Hillbert flipped in different orientations
+    # Test 13 Hillbert flipped in different orientations
     hillbert = np.array([[[1, 1, 1],
                           [1, 0, 1],
                           [1, 0, 1]],
@@ -201,24 +211,15 @@ def test_hillbert():
 
 
 def test_parallelepiped():
-    # Test 13 Parallelepiped flipped in different orientations
+    # Test 14 Parallelepiped flipped in different orientations
     parallelepiped = np.zeros((10, 10, 10), dtype=bool)
     parallelepiped[2:-2, 2:-2, 2:-2] = 1
     _allOrientationsTest(parallelepiped, expectedResult=1)
 
 
 def test_frame3d():
-    # Test 14 3D frame flipped in different orientations
+    # Test 15 3D frame flipped in different orientations
     frame3d = np.zeros((10, 10, 10), dtype=bool)
     frame3d[2:-2, 2:-2, 2:-2] = 1
     frame3d[4:-4, 4:-4, 4:-4] = 0
     _allOrientationsTest(frame3d, 1)
-
-
-def test_banana():
-    # https://en.wikipedia.org/wiki/Rosenbrock_function
-    xf, yf = np.mgrid[-1.5:3:50j, -1.5:2:50j]
-    f = (1 - xf) ** 2 + 100 * (yf - xf ** 2) ** 2
-    i = 1 * (f > 250)
-    i = i.astype(bool)
-    doEmbeddedTest(i)
