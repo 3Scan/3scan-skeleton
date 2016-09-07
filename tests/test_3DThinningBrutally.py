@@ -20,8 +20,8 @@ Volume 61, Issue 4, July 1999, Pages 199-221 Attila Kuba, 1999
 
 def embed2in3(arr):
     # Embed a 2D shape in a 3D array, along all possible testing directions.
-    assert arr.dtype == bool, "input array type {} is not boolean".format(arr.dtype)
-    assert arr.ndim == 2, "number of dimensions {} in input array is not 2".fomrat(arr.ndim)
+    assert arr.dtype == bool, "input array type is {}. should be boolean".format(arr.dtype)
+    assert arr.ndim == 2, "number of dimensions in input array is {}, should be 2".fomrat(arr.ndim)
 
     m, n = arr.shape
     embeddedInX = np.zeros((3, m, n), dtype=bool)
@@ -213,3 +213,12 @@ def test_frame3d():
     frame3d[2:-2, 2:-2, 2:-2] = 1
     frame3d[4:-4, 4:-4, 4:-4] = 0
     _allOrientationsTest(frame3d, 1)
+
+
+def test_banana():
+    # https://en.wikipedia.org/wiki/Rosenbrock_function
+    xf, yf = np.mgrid[-1.5:3:50j, -1.5:2:50j]
+    f = (1 - xf) ** 2 + 100 * (yf - xf ** 2) ** 2
+    i = 1 * (f > 250)
+    i = i.astype(bool)
+    doEmbeddedTest(i)
