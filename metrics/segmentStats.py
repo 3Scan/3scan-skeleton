@@ -268,7 +268,7 @@ class SegmentStats:
                         self._visitedPaths.append(simplePath)
                         self._sortedSegments.append(sortedSegment)
                     sourceOnCycle = point
-            self.cycleInfoDict[self.cycles + nthcycle] = [len(branchPointsOnCycle), self._getLengthAndRemoveTracedPath(cycle, isCycle=True, remove=False)]
+            self.cycleInfoDict[self.cycles] = [len(branchPointsOnCycle), self._getLengthAndRemoveTracedPath(cycle, isCycle=True, remove=False)]
             self.cycles += 1
         for path in self._visitedPaths:
             self._getLengthAndRemoveTracedPath(path)
