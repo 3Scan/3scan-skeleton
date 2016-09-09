@@ -37,19 +37,13 @@ def _removeEdgesInVisitedPath(subGraphSkeleton, path, isCycle):
     first node to form a closed cycle/ path and is removed
     """
     shortestPathEdges = []
-    if isCycle == 0:
-        for index, item in enumerate(path):
-            if index + 1 != len(path):
-                shortestPathEdges.append(tuple((item, path[index + 1])))
-        subGraphSkeleton.remove_edges_from(shortestPathEdges)
-    else:
-        for index, item in enumerate(path):
-            if index + 1 != len(path):
-                shortestPathEdges.append(tuple((item, path[index + 1])))
-            else:
-                item = path[0]
-                shortestPathEdges.append(tuple((item, path[-1])))
-        subGraphSkeleton.remove_edges_from(shortestPathEdges)
+    for index, item in enumerate(path):
+        if index + 1 != len(path):
+            item2 = path[index + 1]
+        elif isCycle:
+            item2 = path[0]
+        shortestPathEdges.append(tuple((item, item2)))
+    subGraphSkeleton.remove_edges_from(shortestPathEdges)
 
 
 def getObjBranchPointsWrite(networkxGraph, pathTosave):
