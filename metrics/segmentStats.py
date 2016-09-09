@@ -143,21 +143,14 @@ class SegmentStats:
         """
         length = 0
         shortestPathEdges = []
-        if isCycle:
-            for index, item in enumerate(path):
-                if index + 1 < len(path):
-                    item2 = path[index + 1]
-                else:
-                    item2 = path[0]
-                if remove:
-                    shortestPathEdges.append(tuple((item, item2)))
-                length += np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2))
-        else:
-            for index, item in enumerate(path[:-1]):
+        for index, item in enumerate(path):
+            if index + 1 != len(path):
                 item2 = path[index + 1]
-                length += np.sqrt(np.sum((np.array(item) - np.array(item2)) ** 2))
-                if remove:
-                    shortestPathEdges.append(tuple((item, item2)))
+            elif isCycle:
+                item2 = path[0]
+            vect = [j - i for i, j in zip(item, item2)]
+            length += np.linalg.norm(vect)
+            shortestPathEdges.append(tuple((item, item2)))
         if remove:
             self._subGraphSkeleton.remove_edges_from(shortestPathEdges)
         return length
@@ -202,28 +195,37 @@ class SegmentStats:
                 if nx.has_path(self._subGraphSkeleton, sourceOnTree, item) and sourceOnTree != item:
                     simplePaths = list(nx.all_simple_paths(self._subGraphSkeleton, source=sourceOnTree, target=item))
                     simplePath = simplePaths[0]
-                    if sum([1 for point in simplePath if point in nodes]) == 2:
+                    countBranchNodesOnPath = sum([1 for point in simplePath if point in nodes])
+                    if countBranchNodesOnPath == 2:
                         curveLength = self._getLengthAndRemoveTracedPath(simplePath)
                         self.isolatedEdgeInfoDict[sourceOnTree, item] = curveLength
         else:
             # each node is connected to one or two other nodes implies it is a line,
-            _endPoints = [k for (k, v) in self._nodeDegreeDict.items() if v == 1]
-            sourceOnLine = _endPoints[0]
-            targetOnLine = _endPoints[1]
+            endPoints = [k for (k, v) in self._nodeDegreeDict.items() if v == 1]
+            sourceOnLine = endPoints[0]
+            targetOnLine = endPoints[1]
             simplePath = nx.shortest_path(self._subGraphSkeleton, source=sourceOnLine, target=targetOnLine)
             curveLength = self._getLengthAndRemoveTracedPath(simplePath)
             self.isolatedEdgeInfoDict[sourceOnLine, targetOnLine] = curveLength
+
+    def _setCountDict(self, source):
+        if source not in self._visitedSources:
+            self.countDict[source] = 1
+            self._visitedSources.append(source)
+        else:
+            self.countDict[source] = self.countDict[source] + 1
+
+    def _setHausdorffDimensionDict(self, source, target, length, displacement):
+        logDisplacement = np.log(displacement)
+        if logDisplacement != -np.inf or not np.allclose(logDisplacement, 0.0):
+            self.hausdorffDimensionDict[self.countDict[source], source, target] = np.log(length) / logDisplacement
 
     def _singleCycle(self, cycle):
         """
         Find statistics of a single cycle of a disjoint graph
         """
         sourceOnCycle = cycle[0]
-        if sourceOnCycle not in self._visitedSources:
-            self.countDict[sourceOnCycle] = 1
-            self._visitedSources.append(sourceOnCycle)
-        else:
-            self.countDict[sourceOnCycle] += 1
+        self._setCountDict(sourceOnCycle)
         curveLength = self._getLengthAndRemoveTracedPath(cycle, isCycle=1)
         self.cycleInfoDict[self.cycles] = [0, curveLength]
         self.lengthDict[self.countDict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = curveLength
@@ -250,21 +252,16 @@ class SegmentStats:
                         continue
                     simplePath = nx.shortest_path(self._subGraphSkeleton, source=sourceOnCycle, target=point)
                     sortedSegment = sorted(simplePath)
-                    if (sortedSegment not in self._sortedSegments and
-                       sum([1 for pathPoint in simplePath if pathPoint in branchPointsOnCycle]) == 2 and
-                       self._checkSegmentNotTraced(simplePath)):
-                        if sourceOnCycle not in self._visitedSources:
-                            self.countDict[sourceOnCycle] = 1
-                            self._visitedSources.append(sourceOnCycle)
-                        else:
-                            self.countDict[sourceOnCycle] += 1
+                    isSegmentTraced = (sortedSegment not in self._sortedSegments and self._checkSegmentNotTraced(simplePath))
+                    countBranchNodesOnPath = sum([1 for pathPoint in simplePath if pathPoint in branchPointsOnCycle])
+                    if countBranchNodesOnPath == 2 and isSegmentTraced:
+                        self._setCountDict(sourceOnCycle)
                         curveLength = self._getLengthAndRemoveTracedPath(simplePath, remove=False)
                         curveDisplacement = np.sqrt(np.sum((np.array(sourceOnCycle) - np.array(point)) ** 2))
                         self.lengthDict[self.countDict[sourceOnCycle], sourceOnCycle, point] = curveLength
                         self.tortuosityDict[self.countDict[sourceOnCycle], sourceOnCycle, point] = curveLength / curveDisplacement
                         self.contractionDict[self.countDict[sourceOnCycle], sourceOnCycle, point] = curveDisplacement / curveLength
-                        if np.log(curveDisplacement) != -np.inf or not np.allclose(np.log(curveDisplacement), 0.0):
-                            self.hausdorffDimensionDict[self.countDict[sourceOnCycle], sourceOnCycle, point] = np.log(curveLength) / np.log(curveDisplacement)
+                        self._setHausdorffDimensionDict(sourceOnCycle, point, curveLength, curveDisplacement)
                         self._visitedPaths.append(simplePath)
                         self._sortedSegments.append(sortedSegment)
                     sourceOnCycle = point
@@ -280,20 +277,16 @@ class SegmentStats:
                 continue
             simplePaths = list(nx.all_simple_paths(self._subGraphSkeleton, source=sourceOnTree, target=item))
             for simplePath in simplePaths:
-                if not(sum([1 for point in simplePath if point in self._branchPoints]) == intersection):
+                countBranchNodesOnPath = sum([1 for point in simplePath if point in self._branchPoints])
+                if not(countBranchNodesOnPath == intersection):
                     continue
-                if sourceOnTree not in self._visitedSources:
-                    self.countDict[sourceOnTree] = 1
-                    self._visitedSources.append(sourceOnTree)
-                else:
-                    self.countDict[sourceOnTree] = self.countDict[sourceOnTree] + 1
+                self._setCountDict(sourceOnTree)
                 curveLength = self._getLengthAndRemoveTracedPath(simplePath)
                 curveDisplacement = np.sqrt(np.sum((np.array(sourceOnTree) - np.array(item)) ** 2))
                 self.lengthDict[self.countDict[sourceOnTree], sourceOnTree, item] = curveLength
                 self.tortuosityDict[self.countDict[sourceOnTree], sourceOnTree, item] = curveLength / curveDisplacement
                 self.contractionDict[self.countDict[sourceOnTree], sourceOnTree, item] = curveDisplacement / curveLength
-                if np.log(curveDisplacement) != -np.inf or not np.allclose(np.log(curveDisplacement), 0.0):
-                    self.hausdorffDimensionDict[self.countDict[sourceOnTree], sourceOnTree, item] = np.log(curveLength) / np.log(curveDisplacement)
+                self._setHausdorffDimensionDict(sourceOnTree, item, curveLength, curveDisplacement)
 
     def _tree(self):
         """
