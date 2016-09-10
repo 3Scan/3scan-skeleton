@@ -9,9 +9,9 @@ A Parallel 3D 12-Subiteration Thinning Algorithm Kálmán Palágyi,Graphical Mod
 Volume 61, Issue 4, July 1999, Pages 199-221 Attila Kuba, 1999
 cube is of equal dimensions in x, y and z in this program
 """
-REFERENCEARRAY = np.array([[[2 ** 0, 2 ** 1, 2 ** 2], [2 ** 3, 2 ** 4, 2 ** 5], [2 ** 6, 2 ** 7, 2 ** 8]],
-                          [[2 ** 9, 2 ** 10, 2 ** 11], [2 ** 12, 0, 2 ** 13], [2 ** 14, 2 ** 15, 2 ** 16]],
-                          [[2 ** 17, 2 ** 18, 2 ** 19], [2 ** 20, 2 ** 21, 2 ** 22], [2 ** 23, 2 ** 24, 2 ** 25]]], dtype=np.uint64)
+REFERENCEARRAY = np.array([[[33554432, 16777216, 8388608], [4194304, 2097152, 1048576], [524288, 262144, 131072]],
+                          [[65536, 32768, 16384], [8192, 0, 4096], [2048, 1024, 512]],
+                          [[256, 128, 64], [32, 16, 8], [4, 2, 1]]], dtype=np.uint64)
 
 
 def column(matrix, i):
@@ -85,8 +85,6 @@ def flipFbInZ(cubeArray):
     cubeArrayFlippedFbInZ = np.copy(cubeArray)
     cubeArrayFlippedFbInZ[:] = cubeArray[::-1, :, :]
     return cubeArrayFlippedFbInZ
-
-REFERENCEARRAY = flipLrInX(flipUdInY(flipFbInZ(REFERENCEARRAY)))
 
 
 def _rot3D90(cubeArray=REFERENCEARRAY, rotAxis='z', k=0):

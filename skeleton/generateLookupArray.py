@@ -13,6 +13,50 @@ Volume 61, Issue 4, July 1999, Pages 199-221 Attila Kuba, 1999
 """
 
 
+def _getVoxelDeletionFlag(neighborValues, direction):
+    """
+    Returns a flag saying voxel should be deleted or not
+
+    Parameters
+    ----------
+    neighborValues : list
+        list of first order neighborhood (26 voxels) of a nonzero value at origin
+
+    direction : array
+       transformation array describing rotation of cube to remove boundary voxels in a different direction
+
+    Returns
+    -------
+    shouldVoxelBeDeleted : boolean
+        0 => should not be deleted
+        1 => should be deleted
+
+    """
+    # 3 x 3 x 3 cube
+    neighborMatrix = np.reshape(neighborValues, (3, 3, 3))
+    neighborMatrix = direction(neighborMatrix)
+    neighborValues = np.ravel(neighborMatrix).tolist()
+    del neighborValues[13]
+    # assign 26 voxels in a 2nd ordered neighborhood of a 3D voxels as 26 alphabet variables
+    a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z = tuple(neighborValues)
+    # insert aplhabetical variables into equations of templates for deleting the boundary voxel
+    shouldVoxelBeDeleted = (~(a) & ~(b) & ~(c) & ~(j) & ~(k) & ~(l) & ~(r) & ~(s) & ~(t) & p & (d | e | f | m | n | u | v | w | g | h | i | o | q | x | y | z)) | \
+                           (~(a) & ~(b) & ~(c) & ~(d) & ~(e) & ~(f) & ~(g) & ~(h) & ~(i) & v & (r | s | t | j | k | l | m | n | u | w | o | p | q | x | y | z)) | \
+                           (~(a) & ~(b) & ~(c) & ~(j) & ~(k) & ~(l) & ~(r) & ~(s) & ~(t) & ~(d) & ~(e) & ~(f) & ~(g) & ~(h) & ~(i) & y & (m | n | u | w | o | q | x | z)) | \
+                           (~(a) & ~(b) & ~(c) & ~(k) & ~(e) & ~(d & j) & ~ (l & f) & p & v) | \
+                           (~(a) & ~(b) & ~(k) & ~(e) & c & v & p & ~(j & d) & (l ^ f)) | \
+                           (a & v & p & ~(b) & ~(c) & ~(k) & ~(e) & ~(l & f) & (j ^ d)) | \
+                           (~(a) & ~(b) & ~(k) & ~(e) & n & v & p & ~(j & d)) | \
+                           (~(b) & ~(c) & ~(k) & ~(e) & m & v & p & ~(l & f)) | \
+                           (~(b) & ~(k) & ~(e) & a & n & v & p & (j ^ d)) | \
+                           (~(b) & ~(k) & ~(e) & c & m & v & p & (l ^ f)) | \
+                           (~(a) & ~(b) & ~(c) & ~(j) & ~(k) & ~(l) & ~(r) & ~(s) & ~(t) & ~(d) & ~(e) & ~(g) & ~(h) & q & y) | \
+                           (~(a) & ~(b) & ~(c) & ~(j) & ~(k) & ~(l) & ~(r) & ~(s) & ~(t) & ~(e) & ~(f) & ~(h) & ~(i) & o & y) | \
+                           (~(a) & ~(b) & ~(c) & ~(j) & ~(k) & ~(r) & ~(s) & ~(d) & ~(e) & ~(f) & ~(g) & ~(h) & ~(i) & w & y) | \
+                           (~(a) & ~(b) & ~(c) & ~(d) & ~(e) & ~(f) & ~(g) & ~(h) & ~(i) & ~(k) & ~(l) & ~(s) & ~(t) & u & y)
+    return shouldVoxelBeDeleted
+
+
 def generateLookupArray(stop, direction):
     """
     Returns lookuparray
@@ -22,8 +66,8 @@ def generateLookupArray(stop, direction):
     stop : int
     integer describing the length of array
 
-    direction : function
-       function that describes rotation of cube to remove boundary voxels in a different direction
+    direction : array
+       transformation array describing rotation of cube to remove boundary voxels in a different direction
 
     Returns
     -------
@@ -43,31 +87,11 @@ def generateLookupArray(stop, direction):
         neighborValues = [(item >> digit) & 0x01 for digit in range(26)]
         # voxel at origin/center of the cube should be nonzero, so insert
         neighborValues.insert(13, 1)
-        # 3 x 3 x 3 cube
-        neighborMatrix = np.reshape(neighborValues, (3, 3, 3))
         # if it's a single non zero voxel in the cube
         if np.sum(neighborValues) == 1:
             lookUparray[item] = 0
         else:
-            neighborValues = direction(neighborMatrix)
-            # assign 26 voxels in a 2nd ordered neighborhood of a 3D voxels as 26 alphabet variables
-            a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z = tuple(neighborValues)
-            # insert aplhabetical variables into equations of templates for deleting the boundary voxel
-            shouldVoxelBedeleted = (~(a) & ~(b) & ~(c) & ~(j) & ~(k) & ~(l) & ~(r) & ~(s) & ~(t) & p & (d | e | f | m | n | u | v | w | g | h | i | o | q | x | y | z)) | \
-                                   (~(a) & ~(b) & ~(c) & ~(d) & ~(e) & ~(f) & ~(g) & ~(h) & ~(i) & v & (r | s | t | j | k | l | m | n | u | w | o | p | q | x | y | z)) | \
-                                   (~(a) & ~(b) & ~(c) & ~(j) & ~(k) & ~(l) & ~(r) & ~(s) & ~(t) & ~(d) & ~(e) & ~(f) & ~(g) & ~(h) & ~(i) & y & (m | n | u | w | o | q | x | z)) | \
-                                   (~(a) & ~(b) & ~(c) & ~(k) & ~(e) & ~(d & j) & ~ (l & f) & p & v) | \
-                                   (~(a) & ~(b) & ~(k) & ~(e) & c & v & p & ~(j & d) & (l ^ f)) | \
-                                   (a & v & p & ~(b) & ~(c) & ~(k) & ~(e) & ~(l & f) & (j ^ d)) | \
-                                   (~(a) & ~(b) & ~(k) & ~(e) & n & v & p & ~(j & d)) | \
-                                   (~(b) & ~(c) & ~(k) & ~(e) & m & v & p & ~(l & f)) | \
-                                   (~(b) & ~(k) & ~(e) & a & n & v & p & (j ^ d)) | \
-                                   (~(b) & ~(k) & ~(e) & c & m & v & p & (l ^ f)) | \
-                                   (~(a) & ~(b) & ~(c) & ~(j) & ~(k) & ~(l) & ~(r) & ~(s) & ~(t) & ~(d) & ~(e) & ~(g) & ~(h) & q & y) | \
-                                   (~(a) & ~(b) & ~(c) & ~(j) & ~(k) & ~(l) & ~(r) & ~(s) & ~(t) & ~(e) & ~(f) & ~(h) & ~(i) & o & y) | \
-                                   (~(a) & ~(b) & ~(c) & ~(j) & ~(k) & ~(r) & ~(s) & ~(d) & ~(e) & ~(f) & ~(g) & ~(h) & ~(i) & w & y) | \
-                                   (~(a) & ~(b) & ~(c) & ~(d) & ~(e) & ~(f) & ~(g) & ~(h) & ~(i) & ~(k) & ~(l) & ~(s) & ~(t) & u & y)
-            lookUparray[item] = shouldVoxelBedeleted
+            lookUparray[item] = _getVoxelDeletionFlag(neighborValues, direction)
     return lookUparray
 
 if __name__ == '__main__':
