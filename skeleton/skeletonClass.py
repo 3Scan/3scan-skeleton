@@ -31,12 +31,7 @@ class Skeleton:
         if type(path) is str:
             if path.endswith("npy"):
                 # extract rootDir of path
-                rootDir = ""
-                separator = os.sep
-                directories = path.split(separator)[1:-1]
-                for directory in directories:
-                    rootDir = rootDir + separator + directory
-                self.path = rootDir
+                self.path = os.path.split(path)[0] + os.sep
                 self.inputStack = np.load(path)
             else:
                 self.path = path
