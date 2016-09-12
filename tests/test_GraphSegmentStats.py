@@ -2,7 +2,6 @@ import numpy as np
 
 from metrics.segmentStats import SegmentStats
 from skeleton.skeletonClass import Skeleton
-from skimage.morphology import skeletonize as getSkeletonize2D
 from tests.test_3DThinning import getDonut
 
 """
@@ -22,6 +21,7 @@ def getCycleNoTree():
 
 
 def getCyclesWithBranchesProtrude(size=(10, 10)):
+    from skimage.morphology import skeletonize as getSkeletonize2D
     # a loop and a branches coming at end of the cycle
     frame = np.zeros(size, dtype=np.uint8)
     frame[2:-2, 2:-2] = 1

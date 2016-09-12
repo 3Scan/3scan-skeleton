@@ -1,7 +1,6 @@
 import numpy as np
 from scipy import ndimage
 
-from skeleton.thinVolume import getThinned
 from skeleton.unitWidthCurveSkeleton import getShortestPathSkeleton, outOfPixBounds
 
 """
@@ -38,7 +37,7 @@ def getRandomBlob():
 def checkAlgorithmSameObjects(image):
     # single object is expected in convex blob it should remain the same in skeletonized blob
     label_img, countObjects = ndimage.measurements.label(image, structure=np.ones((3, 3, 3), dtype=np.uint8))
-    newImage = getShortestPathSkeleton(getThinned(image))
+    newImage = getShortestPathSkeleton(image)
     label_img, countObjectsn = ndimage.measurements.label(newImage, structure=np.ones((3, 3, 3), dtype=np.uint8))
     assert (countObjectsn == countObjects), "number of objects in the skeletonized image {} is different from input {}".format(countObjectsn, countObjects)
 

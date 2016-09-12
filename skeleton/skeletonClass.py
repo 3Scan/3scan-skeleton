@@ -28,6 +28,8 @@ class Skeleton:
         # initialize input array
         # path : can be an 3D binary array or series of png images
         # or a numpy(.npy) array
+        # if path is a 3D volume saveSkeletonStack, saves series of
+        # skeleton pngs in present directory
         if type(path) is str:
             if path.endswith("npy"):
                 # extract rootDir of path
@@ -72,7 +74,7 @@ class Skeleton:
         self.setPrunedSkeletonOutput()
         self.outputGraph = removeCliqueEdges(getNetworkxGraphFromArray(self.outputStack))
 
-    def saveStack(self):
+    def saveSkeletonStack(self):
         # Save output skeletonized stack as series of pngs in the path under a subdirectory skeleton
         # in the input "path"
         self.setPrunedSkeletonOutput()

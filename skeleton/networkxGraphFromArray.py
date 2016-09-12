@@ -115,7 +115,6 @@ def _setAdjacencyList(arr):
             adjacentCoordinatelist = [tuple(np.array(item) + np.array(increments))
                                       for increments in _getIncrements(result[item], dimensions) if increments != ()]
             dictOfIndicesAndAdjacentcoordinates[item] = adjacentCoordinatelist
-    assert set(dictOfIndicesAndAdjacentcoordinates.keys()) == set(nonZeros)
     return dictOfIndicesAndAdjacentcoordinates
 
 
