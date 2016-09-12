@@ -87,7 +87,7 @@ def _setAdjacencyList(arr):
 
     """
     dimensions = arr.ndim
-    assert dimensions == (2 or 3), "array dimensions must be 2 or 3, they are {}".format(dimensions)
+    assert dimensions in [2, 3], "array dimensions must be 2 or 3, they are {}".format(dimensions)
     if dimensions == 3:
         # flipped 3D template in advance
         template = np.array([[[33554432, 16777216, 8388608], [4194304, 2097152, 1048576], [524288, 262144, 131072]],
@@ -136,9 +136,6 @@ def getNetworkxGraphFromArray(arr):
     dictOfIndicesAndAdjacentcoordinates = _setAdjacencyList(arr)
     G = nx.from_dict_of_lists(dictOfIndicesAndAdjacentcoordinates)
 
-    # asserting no extra nodes other than nonzero coordinates on skeleton
-    # are added in the graph
-    assert set(dictOfIndicesAndAdjacentcoordinates.keys()) == set(G.nodes())
     print("time taken to obtain networkxGraph is %0.3f seconds" % (time.time() - start))
     return G
 

@@ -6,7 +6,7 @@ from numpy import random
 from scipy import ndimage
 from skeleton.thinVolume import getThinned
 from skimage.morphology import skeletonize as getskeletonize2d
-from tests.test_3DThinning import getRing
+from tests.helpers import getRing
 
 """
 Tests for 2D and 3D thinning algorithms testing strictly with change in directions, axis

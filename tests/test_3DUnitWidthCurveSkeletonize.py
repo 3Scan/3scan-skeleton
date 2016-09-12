@@ -3,6 +3,7 @@ from scipy import ndimage
 
 from skeleton.unitWidthCurveSkeleton import getShortestPathSkeleton, outOfPixBounds
 
+from tests.helpers import getRandomBlob
 """
 tests for unit width curve skeleton
 implemented according to the paper
@@ -12,26 +13,6 @@ Advances in Visual Computing
 Volume 5358 of the series Lecture Notes in Computer Science pp 1051-1060
 in unitWidthCurveSkeleton.py
 """
-
-
-def getRandomBlob():
-    # get random convex blob
-    from scipy.spatial import ConvexHull
-    xs = np.random.uniform(-1, 1, size=50)
-    ys = np.random.uniform(-1, 1, size=50)
-    zs = np.random.uniform(-1, 1, size=50)
-
-    xyzs = list(zip(xs, ys, zs))
-
-    hullz = ConvexHull(xyzs)
-
-    xf, yf, zf = np.mgrid[-1:1:100j, -1:1:10j, -1:1:10j]
-    blob = np.ones(xf.shape, dtype=bool)
-    for x, y, z, c in hullz.equations:
-        mask = (xf * x) + (yf * y) + (zf * z) - c < 0
-        blob[mask] = 0
-    blob = blob.astype(bool)
-    return blob
 
 
 def checkAlgorithmSameObjects(image):

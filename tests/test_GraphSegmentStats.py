@@ -1,8 +1,5 @@
-import numpy as np
-
 from metrics.segmentStats import SegmentStats
-from skeleton.skeletonClass import Skeleton
-from tests.test_3DThinning import getDonut
+from tests.helpers import getCyclesWithBranchesProtrude, getSingleVoxelLineNobranches, getCycleNoTree, getDisjointTreesNoCycle3d
 
 """
 Program to test if graphs created using networkxGraphFromArray and removeCliqueEdges
@@ -11,51 +8,6 @@ from the dictionary of the coordinate and adjacent nonzero coordinates
 after removing the cliques have the number of segments as expected
 PV TODO:Test if lengths of segments and tortuoisty of the curves as expected
 """
-
-
-def getCycleNoTree():
-    donut = getDonut()
-    skel = Skeleton(donut)
-    skel.setNetworkGraph(True)
-    return skel.graph
-
-
-def getCyclesWithBranchesProtrude(size=(10, 10)):
-    from skimage.morphology import skeletonize as getSkeletonize2D
-    # a loop and a branches coming at end of the cycle
-    frame = np.zeros(size, dtype=np.uint8)
-    frame[2:-2, 2:-2] = 1
-    frame[4:-4, 4:-4] = 0
-    frame = getSkeletonize2D(frame)
-    frame[1, 5] = 1
-    frame[7, 5] = 1
-    sampleImage = np.zeros((3, 10, 10), dtype=np.uint8)
-    sampleImage[1] = frame
-    skel = Skeleton(sampleImage)
-    skel.setNetworkGraph(False)
-    return skel.graph
-
-
-def getDisjointTreesNoCycle3d(size=(10, 10, 10)):
-    # two disjoint crosses
-    crosPair = np.zeros(size, dtype=np.uint8)
-    cros = np.zeros((5, 5), dtype=np.uint8)
-    cros[:, 2] = 1
-    cros[2, :] = 1
-    crosPair[0, 0:5, 0:5] = cros
-    crosPair[5, 5:10, 5:10] = cros
-    skel = Skeleton(crosPair)
-    skel.setNetworkGraph(False)
-    return skel.graph
-
-
-def getSingleVoxelLineNobranches(size=(5, 5, 5)):
-    # no branches single line
-    sampleLine = np.zeros(size, dtype=np.uint8)
-    sampleLine[1, :, 4] = 1
-    skel = Skeleton(sampleLine)
-    skel.setNetworkGraph(False)
-    return skel.graph
 
 
 def test_cycleAndTree():

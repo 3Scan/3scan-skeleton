@@ -226,7 +226,7 @@ class SegmentStats:
         """
         sourceOnCycle = cycle[0]
         self._setCountDict(sourceOnCycle)
-        curveLength = self._getLengthAndRemoveTracedPath(cycle, isCycle=1)
+        curveLength = self._getLengthAndRemoveTracedPath(cycle, isCycle=True)
         self.cycleInfoDict[self.cycles] = [0, curveLength]
         self.lengthDict[self.countDict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = curveLength
         self.tortuosityDict[self.countDict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = 0
