@@ -87,21 +87,20 @@ def _setAdjacencyList(arr):
 
     """
     dimensions = arr.ndim
+    assert dimensions == (2 or 3), "array dimensions must be 2 or 3, they are {}".format(dimensions)
     if dimensions == 3:
         # flipped 3D template in advance
         template = np.array([[[33554432, 16777216, 8388608], [4194304, 2097152, 1048576], [524288, 262144, 131072]],
                             [[65536, 32768, 16384], [8192, 0, 4096], [2048, 1024, 512]],
                             [[256, 128, 64], [32, 16, 8], [4, 2, 1]]], dtype=np.uint64)
-    elif dimensions == 2:
-        # 2 dimensions
-        template = np.array([[2 ** 0, 2 ** 1, 2 ** 2], [2 ** 3, 0, 2 ** 4], [2 ** 5, 2 ** 6, 2 ** 7]])
-        template = np.fliplr(np.flipud(template))
     else:
-        assert 1 != 2, "array dimensions are not 2 or 3"
+        # 2 dimensions
+        template = np.array([[128, 64, 32], [16, 0, 8], [4, 2, 1]], dtype=np.uint64)
     # convert the binary array to a configuration number array of same size
     # by convolving with template
     arr = np.ascontiguousarray(arr, dtype=np.uint64)
     result = convolve(arr, template, mode='constant', cval=0)
+    # set the values in convolution result to zero which were zero in 'arr'
     result[arr == 0] = 0
     dictOfIndicesAndAdjacentcoordinates = {}
     # list of nonzero tuples
