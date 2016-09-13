@@ -4,6 +4,8 @@ import time
 import networkx as nx
 import numpy as np
 
+from enum import Enum
+
 
 """
 Find the segments, lengths and tortuosity of a networkx graph by
@@ -17,6 +19,14 @@ Find the segments, lengths and tortuosity of a networkx graph by
         curve displacement to find tortuosity, hausdorff dimension and contraction
         5) Remove all the edges in this path once they are traced
 """
+
+
+class SubgraphTypes(Enum):
+    singleNode = 0
+    singleCycle = 1
+    singleLine = 2
+    acyclic = 3
+    cyclic = 4
 
 
 class SegmentStats:
@@ -179,7 +189,6 @@ class SegmentStats:
     def _singleSegment(self, nodes):
         # disjoint line or a bent line at 45 degrees appearing as dichtonomous tree but an error due to
         # improper binarization, so remove them and do not account for statistics
-        self.typeGraphdict[self._ithDisjointGraph] = 2
         listOfPerms = list(itertools.combinations(nodes, 2))
         if type(nodes[0]) == int:
             modulus = [[start - end] for start, end in listOfPerms]
@@ -231,7 +240,6 @@ class SegmentStats:
         self.lengthDict[self.countDict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = curveLength
         self.tortuosityDict[self.countDict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = 0
         self.contractionDict[self.countDict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = 0
-        self.typeGraphdict[self._ithDisjointGraph] = 1
         self.cycles = self.cycles + 1
 
     def _cyclicTree(self, cycleList):
@@ -336,17 +344,19 @@ class SegmentStats:
         for self._ithDisjointGraph, self._subGraphSkeleton in enumerate(self._disjointGraphs):
             self._findAccessComponentsDisjoint()
             if len(self._nodes) == 1:
-                self.typeGraphdict[self._ithDisjointGraph] = 0
+                self.typeGraphdict[self._ithDisjointGraph] = SubgraphTypes.singleNode.value
             elif min(self._degreeList) == max(self._degreeList) and nx.is_biconnected(self._subGraphSkeleton) and self._cycleCount == 1:
                 self._singleCycle(self._cycleList[0])
+                self.typeGraphdict[self._ithDisjointGraph] = SubgraphTypes.singleCycle.value
             elif set(self._degreeList) == set((1, 2)) or set(self._degreeList) == {1}:
                 self._singleSegment(self._nodes)
+                self.typeGraphdict[self._ithDisjointGraph] = SubgraphTypes.singleLine.value
             elif self._cycleCount != 0:
                 self._cyclicTree(self._cycleList)
-                self.typeGraphdict[self._ithDisjointGraph] = 3
+                self.typeGraphdict[self._ithDisjointGraph] = SubgraphTypes.cyclic.value
             else:
                 self._tree()
-                self.typeGraphdict[self._ithDisjointGraph] = 4
+                self.typeGraphdict[self._ithDisjointGraph] = SubgraphTypes.acyclic.value
             # check if any unfinished business in _subGraphSkeleton, untraced edges
             if self._subGraphSkeleton.number_of_edges() != 0:
                 self._branchToBranch()
