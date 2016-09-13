@@ -22,11 +22,14 @@ Find the segments, lengths and tortuosity of a networkx graph by
 
 
 class SubgraphTypes(Enum):
+    """
+    Enumerate typeGraphdict's type of subgraphs and values
+    """
     singleNode = 0
     singleCycle = 1
     singleLine = 2
-    acyclic = 3
-    cyclic = 4
+    cyclic = 3
+    acyclic = 4
 
 
 class SegmentStats:
