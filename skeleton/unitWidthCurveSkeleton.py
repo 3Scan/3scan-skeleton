@@ -2,10 +2,10 @@ import itertools
 import time
 
 import numpy as np
-
 from scipy import ndimage
 from scipy.ndimage.filters import convolve
 from skimage.graph import route_through_array
+
 from skeleton.networkxGraphFromArray import LISTSTEPDIRECTIONS3D
 
 """
@@ -19,7 +19,7 @@ Volume 5358 of the series Lecture Notes in Computer Science pp 1051-1060
 
 TEMPLATE = np.ones((3, 3, 3), dtype=np.uint8)
 TEMPLATE[1, 1, 1] = 0
-LISTSTEPDIRECTIONS3D = np.array(LISTSTEPDIRECTIONS3D).copy(order='C')
+ARRAYSTEPDIRECTIONS3D = np.array(LISTSTEPDIRECTIONS3D).copy(order='C')
 
 
 def outOfPixBounds(nearByCoordinate, aShape):
@@ -94,7 +94,7 @@ def _getAllLabelledArray(skeletonIm, valenceArray):
     listJointAndcrowded = list(np.transpose(np.array(np.where(valenceArray > 2))))
     for k in listJointAndcrowded:
         connNeighborsList = []
-        for d in LISTSTEPDIRECTIONS3D:
+        for d in ARRAYSTEPDIRECTIONS3D:
             nearByCoordinate = tuple(k + d)
             if outOfPixBounds(nearByCoordinate, aShape) or skeletonIm[nearByCoordinate] == 0:
                 continue

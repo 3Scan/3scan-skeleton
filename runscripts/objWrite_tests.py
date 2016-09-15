@@ -3,8 +3,8 @@ import shutil
 import tempfile
 
 from runscripts.objWrite import getObjBranchPointsWrite, getObjPointsWrite
-from tests.test_GraphSegmentStats import (getCyclesWithBranchesProtrude, getSingleVoxelLineNobranches,
-                                          getCycleNoTree, getDisjointTreesNoCycle3d)
+from skeleton.thinning_testlib import (getCyclesWithBranchesProtrude, getSingleVoxelLineNobranches,
+                                       getCycleNoTree, getDisjointTreesNoCycle3d)
 
 
 """

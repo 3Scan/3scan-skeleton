@@ -1,12 +1,10 @@
-import numpy as np
 import os
 
-from kesm.projects.KESMAnalysis.imgtools import loadStack, saveStack
-
-from metrics.segmentStats import SegmentStats
-
+import numpy as np
 from scipy import ndimage
 
+from kesm.projects.KESMAnalysis.imgtools import loadStack, saveStack
+from metrics.segmentStats import SegmentStats
 from skeleton.cliqueRemoving import removeCliqueEdges
 from skeleton.networkxGraphFromArray import getNetworkxGraphFromArray
 from skeleton.thinVolume import getThinned

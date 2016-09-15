@@ -1,10 +1,9 @@
 import itertools
 import time
+from enum import Enum
 
 import networkx as nx
 import numpy as np
-
-from enum import Enum
 
 
 """

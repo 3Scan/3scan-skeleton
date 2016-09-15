@@ -1,6 +1,6 @@
 import numpy as np
-
 from scipy import ndimage
+
 from skeleton.skeletonClass import Skeleton
 
 """

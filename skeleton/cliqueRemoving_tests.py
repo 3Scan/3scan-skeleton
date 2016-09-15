@@ -1,6 +1,7 @@
 import networkx as nx
+
 from skeleton.cliqueRemoving import removeCliqueEdges
-from tests.test_NetworkxGraphFromArray import getWithCliquesGraphs
+from skeleton.networkxGraphFromArray_tests import getWithCliquesGraphs
 
 
 def test_cliqueRemoval():

@@ -1,7 +1,7 @@
 import numpy as np
 
 from skeleton.networkxGraphFromArray import getNetworkxGraphFromArray
-from tests.helpers import getTinyLoopWithBranches, getDisjointCrosses, getSingleVoxelLine
+from skeleton.thinning_testlib import getTinyLoopWithBranches, getDisjointCrosses, getSingleVoxelLine
 
 
 def getWithCliquesGraphs():

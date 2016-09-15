@@ -2,8 +2,8 @@ import numpy as np
 
 from scipy import ndimage
 from skeleton.thinVolume import getThinned
-from tests.helpers import (getDonut, get3DRandImages, getDisjointCrosses, get3DRolledThickLines, getTinyLoopWithBranches,
-                           getSingleVoxelLine, getStationary3dRectangles, getStationary3DSinglePixelLines, checkSameObjects)
+from skeleton.thinning_testlib import (getDonut, get3DRandImages, getDisjointCrosses, get3DRolledThickLines, getTinyLoopWithBranches,
+                                       getSingleVoxelLine, getStationary3dRectangles, getStationary3DSinglePixelLines, checkSameObjects)
 
 """
 Tests 3D thinning implemented as in
@@ -74,4 +74,6 @@ def test_crosPair():
 
 def test_singleVoxelLine():
     checkSameObjects(getSingleVoxelLine())
+
+
 

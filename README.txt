@@ -30,10 +30,10 @@ with insturctions executed in a virtual environment with python 2.6 as below
 *mlab.savefig("arrayName.png")
 
 
-Install nosetests to run tests in 3scan-skeleton/tests folder
+Install nosetests to run tests in 3scan-skeleton/skeleton folder under the name submodule_tests
 *conda install nose
 *pip install nose
-nosetests -xs path to + "3scan-skeleton/tests/"
+nosetests -xs path to + "3scan-skeleton/skeleton/"
 To run tests with coverage
 *conda install coverage
 nosetests -sxv --with-coverage --cover-package=3scan-skeleton/tests

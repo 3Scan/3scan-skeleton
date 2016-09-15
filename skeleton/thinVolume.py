@@ -1,10 +1,10 @@
-import pyximport; pyximport.install() # NOQA
 import time
 
 import numpy as np
+import pyximport; pyximport.install() # NOQA
+from skimage.morphology import skeletonize
 
 from skeleton.thinning import cy_getThinned3D # NOQA
-from skimage.morphology import skeletonize
 
 """
 Thinning algorithm as described in

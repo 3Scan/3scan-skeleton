@@ -1,6 +1,7 @@
 import numpy as np
-
 from scipy import ndimage
+from scipy.spatial import ConvexHull
+
 from skeleton.skeletonClass import Skeleton
 
 
@@ -18,7 +19,6 @@ def checkSameObjects(image):
 
 def getRandomBlob():
     # get random convex blob
-    from scipy.spatial import ConvexHull
     xs = np.random.uniform(-1, 1, size=50)
     ys = np.random.uniform(-1, 1, size=50)
     zs = np.random.uniform(-1, 1, size=50)

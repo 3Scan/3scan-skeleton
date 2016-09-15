@@ -1,5 +1,5 @@
 from metrics.segmentStats import SegmentStats
-from tests.helpers import getCyclesWithBranchesProtrude, getSingleVoxelLineNobranches, getCycleNoTree, getDisjointTreesNoCycle3d
+from skeleton.thinning_testlib import getCyclesWithBranchesProtrude, getSingleVoxelLineNobranches, getCycleNoTree, getDisjointTreesNoCycle3d
 
 """
 Program to test if graphs created using networkxGraphFromArray and removeCliqueEdges

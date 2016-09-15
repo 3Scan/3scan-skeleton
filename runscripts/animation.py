@@ -1,5 +1,6 @@
-import numpy as np
 import os
+
+import numpy as np
 
 from mayavi.api import Engine
 from mayavi import mlab
