@@ -1,6 +1,6 @@
 import numpy as np
 
-from skeleton.rotationalOperators import DIRECTIONLIST
+from skeleton.rotationalOperators import TRANSFORMATIONS_LIST
 
 """
 Lookuptable is 3Scan's idea of pre-generating a look up array of length (2 ** 26)
@@ -32,11 +32,11 @@ def _getVoxelDeletionFlag(neighborValues, direction):
         1 => should be deleted
 
     """
-    # 3 x 3 x 3 cube
+    assert len(neighborValues) == 27
+    # reshape neighborValues to a 3 x 3 x 3 cube
     neighborMatrix = np.reshape(neighborValues, (3, 3, 3))
-    neighborMatrix = direction(neighborMatrix)
-    neighborValues = np.ravel(neighborMatrix).tolist()
-    del neighborValues[13]
+    # transform neighborValues to direction
+    neighborValues = direction(neighborMatrix)
     # assign 26 voxels in a 2nd ordered neighborhood of a 3D voxels as 26 alphabet variables
     a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z = tuple(neighborValues)
     # insert aplhabetical variables into equations of templates for deleting the boundary voxel
@@ -57,7 +57,7 @@ def _getVoxelDeletionFlag(neighborValues, direction):
     return shouldVoxelBeDeleted
 
 
-def generateLookupArray(stop, direction):
+def generateLookupArray(stop, direction=TRANSFORMATIONS_LIST[0]):
     """
     Returns lookuparray
 
@@ -96,6 +96,7 @@ def generateLookupArray(stop, direction):
 
 if __name__ == '__main__':
     # generating and saving all the 12 lookuparrays
-    for index, direction in enumerate(DIRECTIONLIST):
+    for index, direction in enumerate(TRANSFORMATIONS_LIST):
         lookUparray = generateLookupArray(2 ** 26, direction)
+        print(direction)
         np.save("lookuparray%i.npy" % (index + 1), lookUparray)

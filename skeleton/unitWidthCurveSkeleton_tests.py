@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import ndimage
 
-from skeleton.thinning_testlib import getRandomBlob
+from skeleton.skeleton_testlib import getRandomBlob
 from skeleton.unitWidthCurveSkeleton import getShortestPathSkeleton, outOfPixBounds
 """
 tests for unit width curve skeleton

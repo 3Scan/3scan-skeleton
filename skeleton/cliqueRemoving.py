@@ -32,6 +32,7 @@ def removeCliqueEdges(networkxGraph):
     Doesn't deal with any other cliques
     """
     start = time.time()
+    networkxGraphAfter = networkxGraph.copy()
     cliques = nx.find_cliques_recursive(networkxGraph)
     # all the nodes/vertices of 3 cliques
     threeVErtexCliques = [clq for clq in cliques if len(clq) == 3]
@@ -62,6 +63,8 @@ def removeCliqueEdges(networkxGraph):
                         subDim = index
                         cliqueEdges.append(combinationEdges[mainDim][subDim])
                         break
-        networkxGraph.remove_edges_from(cliqueEdges)
+        networkxGraphAfter.remove_edges_from(cliqueEdges)
         print("time taken to remove cliques is %0.2f seconds" % (time.time() - start))
-    return networkxGraph
+    else:
+        networkxGraphAfter = networkxGraph
+    return networkxGraphAfter

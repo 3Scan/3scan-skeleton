@@ -6,7 +6,7 @@ from scipy import ndimage
 from skimage.morphology import skeletonize as getskeletonize2d
 
 from skeleton.thinVolume import getThinned
-from skeleton.thinning_testlib import getRing
+from skeleton.skeleton_testlib import getRing
 
 """
 Tests for 2D and 3D thinning algorithms testing strictly with change in directions, axis
@@ -48,7 +48,8 @@ def doEmbeddedTest(arr, expectedResult=None):
     twoResult = _getCountObjects(arr)
 
     if expectedResult is not None:
-        assert twoResult == expectedResult, "twoResult {} is not same as expectedResult {}".format(twoResult, expectedResult)
+        assert twoResult == expectedResult, "twoResult {} is not same as expectedResult {}".format(twoResult,
+                                                                                                   expectedResult)
     else:
         expectedResult = twoResult
 

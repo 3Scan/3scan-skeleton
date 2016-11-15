@@ -1,10 +1,10 @@
 import numpy as np
 
 from skeleton.networkxGraphFromArray import getNetworkxGraphFromArray
-from skeleton.thinning_testlib import getTinyLoopWithBranches, getDisjointCrosses, getSingleVoxelLine
+from skeleton.skeleton_testlib import getTinyLoopWithBranches, getDisjointCrosses, getSingleVoxelLine
 
 
-def getWithCliquesGraphs():
+def getGraphsWithCliques():
     # returns graphs with cliques and nonzeros
     samples = [getTinyLoopWithBranches(), getDisjointCrosses(), getSingleVoxelLine()]
     for sample in samples:
@@ -14,6 +14,5 @@ def getWithCliquesGraphs():
 
 def test_sameNodesInGraph():
     # no nodes in the input array are missing in the networkx graph
-    for G, nonZeros in getWithCliquesGraphs():
+    for G, nonZeros in getGraphsWithCliques():
         assert set(G.nodes()) == nonZeros, "different nodes in input array and graph"
-

@@ -91,6 +91,149 @@ def flipFbInZ(cubeArray):
     return cubeArrayFlippedFbInZ
 
 
+def firstSubIter(validateMatrix):
+    """
+    returns a decision if there is a valid borders voxels
+    that can be removed in up or south
+    """
+    assert np.ndim(validateMatrix) == 3
+    listedMatrix = list(np.reshape(validateMatrix, 27))
+    del(listedMatrix[13])
+    return listedMatrix
+
+
+def secondSubIter(validateMatrix):
+    """
+    returns a decision if there is a valid borders voxels
+    that can be removed in north or east
+    """
+    assert np.ndim(validateMatrix) == 3
+    firstTransition = rot3D90(rot3D90(validateMatrix, 'y', 2), 'x', 3)
+    listedMatrix = list(np.reshape(firstTransition, 27))
+    del(listedMatrix[13])
+    return listedMatrix
+
+
+def thirdSubIter(validateMatrix):
+    """
+    returns a decision if there is a valid borders voxels
+    that can be removed in west or down
+    """
+    assert np.ndim(validateMatrix) == 3
+    secondTransition = rot3D90(rot3D90(validateMatrix, 'x', 1), 'z', 1)
+    listedMatrix = list(np.reshape(secondTransition, 27))
+    del(listedMatrix[13])
+    return listedMatrix
+
+
+def fourthSubIter(validateMatrix):
+    """
+    returns a decision if there is a valid borders voxels
+    that can be removed in east or south
+    """
+    assert np.ndim(validateMatrix) == 3
+    thirdTransition = rot3D90(validateMatrix, 'x', 3)
+    listedMatrix = list(np.reshape(thirdTransition, 27))
+    del(listedMatrix[13])
+    return listedMatrix
+
+
+def fifthSubIter(validateMatrix):
+    """
+    returns a decision if there is a valid borders voxels
+    that can be removed in up or west
+    """
+    assert np.ndim(validateMatrix) == 3
+    fourthTransition = rot3D90(validateMatrix, 'y', 3)
+    listedMatrix = list(np.reshape(fourthTransition, 27))
+    del(listedMatrix[13])
+    return listedMatrix
+
+
+def sixthSubIter(validateMatrix):
+    """
+    returns a decision if there is a valid borders voxels
+    that can be removed in north or down
+    """
+    assert np.ndim(validateMatrix) == 3
+    fifthTransition = rot3D90(rot3D90(rot3D90(validateMatrix, 'x', 3), 'z', 1), 'y', 1)
+    listedMatrix = list(np.reshape(fifthTransition, 27))
+    del(listedMatrix[13])
+    return listedMatrix
+
+
+def seventhSubIter(validateMatrix):
+    """
+    returns a decision if there is a valid borders voxels
+    that can be removed in south or west
+    """
+    assert np.ndim(validateMatrix) == 3
+    sixthTransition = rot3D90(validateMatrix, 'x', 1)
+    listedMatrix = list(np.reshape(sixthTransition, 27))
+    del(listedMatrix[13])
+    return listedMatrix
+
+
+def eighthSubIter(validateMatrix):
+    """
+    returns a decision if there is a valid borders voxels
+    that can be removed in up or north
+    """
+    assert np.ndim(validateMatrix) == 3
+    seventhTransition = rot3D90(validateMatrix, 'y', 2)
+    listedMatrix = list(np.reshape(seventhTransition, 27))
+    del(listedMatrix[13])
+    return listedMatrix
+
+
+def ninthSubIter(validateMatrix):
+    """
+    returns a decision if there is a valid borders voxels
+    that can be removed in east or down
+    """
+    assert np.ndim(validateMatrix) == 3
+    eighthTransition = rot3D90(rot3D90(validateMatrix, 'x', 3), 'z', 1)
+    listedMatrix = list(np.reshape(eighthTransition, 27))
+    del(listedMatrix[13])
+    return listedMatrix
+
+
+def tenthSubIter(validateMatrix):
+    """
+    returns a decision if there is a valid borders voxels
+    that can be removed in north or west
+    """
+    assert np.ndim(validateMatrix) == 3
+    ninthTransition = rot3D90(rot3D90(validateMatrix, 'y', 2), 'x', 1)
+    listedMatrix = list(np.reshape(ninthTransition, 27))
+    del(listedMatrix[13])
+    return listedMatrix
+
+
+def eleventhSubIter(validateMatrix):
+    """
+    returns a decision if there is a valid borders voxels
+    that can be removed in up or east
+    """
+    assert np.ndim(validateMatrix) == 3
+    tenthTransition = rot3D90(validateMatrix, 'y', 1)
+    listedMatrix = list(np.reshape(tenthTransition, 27))
+    del(listedMatrix[13])
+    return listedMatrix
+
+
+def twelvethSubIter(validateMatrix):
+    """
+    returns a decision if there is a valid borders voxels
+    that can be removed in south or down
+    """
+    assert np.ndim(validateMatrix) == 3
+    eleventhTransition = rot3D90(validateMatrix, 'x', 2)
+    listedMatrix = list(np.reshape(eleventhTransition, 27))
+    del(listedMatrix[13])
+    return listedMatrix
+
+
 def rot3D90(cubeArray=REFERENCE_ARRAY, rotAxis='z', k=0):
     """
     Returns a 3D array after rotating 90 degrees anticlockwise k times around rotAxis
@@ -135,7 +278,7 @@ def rot3D90(cubeArray=REFERENCE_ARRAY, rotAxis='z', k=0):
             rotMatrix = cubeArray
         elif k == 1:  # rotate 90 degrees around y
             ithSlice = [cubeArray[i] for i in range(3)]
-            rotSlices = []
+            rotSlices = [0] * 3
             for i in range(3):
                 a = np.array(column(ithSlice[2], i))
                 b = np.array(column(ithSlice[1], i))
@@ -146,7 +289,7 @@ def rot3D90(cubeArray=REFERENCE_ARRAY, rotAxis='z', k=0):
             rotMatrix = flipLrInX(flipFbInZ(cubeArray))
         elif k == 3:  # rotate 270 degrees around y
             ithSlice = [cubeArray[i] for i in range(3)]
-            rotSlices = []
+            rotSlices = [0] * 3
             for i in range(3):
                 a = np.array(column(ithSlice[0], i))
                 b = np.array(column(ithSlice[1], i))
@@ -169,9 +312,13 @@ eleventhSubiteration = rot3D90(REFERENCE_ARRAY, 'y', 1).copy(order='C')  # mask 
 twelvethSubiteration = rot3D90(REFERENCE_ARRAY, 'x', 2).copy(order='C')  # mask outs border voxels in SD
 
 # List of 12 directions
-DIRECTIONLIST = [firstSubiteration, secondSubiteration, thirdSubiteration, fourthSubiteration,
-                 fifthSubiteration, sixthSubiteration, seventhSubiteration, eighthSubiteration,
-                 ninthSubiteration, tenthSubiteration, eleventhSubiteration, twelvethSubiteration]
+DIRECTION_LIST = [firstSubiteration, secondSubiteration, thirdSubiteration, fourthSubiteration,
+                  fifthSubiteration, sixthSubiteration, seventhSubiteration, eighthSubiteration,
+                  ninthSubiteration, tenthSubiteration, eleventhSubiteration, twelvethSubiteration]
+
+TRANSFORMATIONS_LIST = [firstSubIter, secondSubIter, thirdSubIter, fourthSubIter,
+                        fifthSubIter, sixthSubIter, seventhSubIter, eighthSubIter,
+                        ninthSubIter, tenthSubIter, eleventhSubIter, twelvethSubIter]
 
 # Path of pre-generated lookuparray.npy
-LOOKUPARRAYPATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lookuparray.npy')
+LOOKUPARRAY_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lookuparray.npy')

@@ -5,6 +5,22 @@ from scipy.spatial import ConvexHull
 from skeleton.skeletonClass import Skeleton
 
 
+def checkAlgorithmPreservesImage(image):
+    skel = Skeleton(image)
+    skel.setThinningOutput()
+    newImage = skel.thinnedStack
+    assert np.array_equal(image, newImage)
+
+
+def checkCycle(image):
+    # check if number of cycles in the donut image after thinning is 1
+    skel = Skeleton(image)
+    skel.setThinningOutput()
+    newImage = skel.thinnedStack
+    label_img, countObjects = ndimage.measurements.label(newImage, structure=np.ones((3, 3, 3), dtype=bool))
+    assert countObjects == 1, "number of cycles in single donut is {}".format(countObjects)
+
+
 def checkSameObjects(image):
     # check if number of objects are same in input and output of thinning
     dims = image.ndim
@@ -13,7 +29,8 @@ def checkSameObjects(image):
     skel.setThinningOutput()
     newImage = skel.thinnedStack
     label_img, countObjectsn = ndimage.measurements.label(newImage, structure=np.ones([3] * dims, dtype=bool))
-    assert (countObjectsn == countObjects), "number of objects in input {} is different from output".format(countObjects, countObjectsn)
+    assert (countObjectsn == countObjects), ("number of objects in input"
+                                             "{} is different from output".format(countObjects, countObjectsn))
     return newImage
 
 

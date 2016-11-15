@@ -1,10 +1,10 @@
 import numpy as np
 cimport cython  # NOQA
-from rotationalOperators import DIRECTIONLIST, LOOKUPARRAYPATH
+from rotationalOperators import DIRECTION_LIST, LOOKUPARRAY_PATH
 """
 cython convolve to speed up thinning
 """
-lookUparray = np.load(LOOKUPARRAYPATH)
+lookUparray = np.load(LOOKUPARRAY_PATH)
 
 def cy_convolve(unsigned long long int[:, :, :] binaryArr, unsigned long long int[:, :, :] kernel, Py_ssize_t[:, ::1]  points):
     """
@@ -64,7 +64,7 @@ def cy_getThinned3D(unsigned long long int[:, :, :] arr):
         for i in range(12):
             nonzeroCoordinates = np.asarray(np.transpose(np.nonzero(arr)), order='C')
             # convolve to find config number and convolve only at points in the array "nonzeroCoordinates"
-            convImage = cy_convolve(arr, kernel=DIRECTIONLIST[i], points=nonzeroCoordinates)
+            convImage = cy_convolve(arr, kernel=DIRECTION_LIST[i], points=nonzeroCoordinates)
             removableIndices = (index for value, index in zip(convImage, nonzeroCoordinates) if lookUparray[value] == 1)
             for x, y, z in removableIndices:
                 arr[x, y, z] = 0

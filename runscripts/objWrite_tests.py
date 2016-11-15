@@ -3,7 +3,7 @@ import shutil
 import tempfile
 
 from runscripts.objWrite import getObjBranchPointsWrite, getObjPointsWrite
-from skeleton.thinning_testlib import (getCyclesWithBranchesProtrude, getSingleVoxelLineNobranches,
+from skeleton.skeleton_testlib import (getCyclesWithBranchesProtrude, getSingleVoxelLineNobranches,
                                        getCycleNoTree, getDisjointTreesNoCycle3d)
 
 
