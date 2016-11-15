@@ -3,7 +3,7 @@ import os
 import numpy as np
 from scipy import ndimage
 
-from kesm.projects.KESMAnalysis.imgtools import loadStack, saveStack
+from kesm.projects.KESMAnalysis.tools.io_tools import loadStack, saveStack
 from metrics.segmentStats import SegmentStats
 from skeleton.cliqueRemoving import removeCliqueEdges
 from skeleton.networkxGraphFromArray import getNetworkxGraphFromArray

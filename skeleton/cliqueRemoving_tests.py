@@ -18,4 +18,3 @@ def test_cliqueRemoval():
         assert disjointGraphsAfter == disjointGraphsBefore, (
             "clique removed, original graph have {}, {} disjoint graphs respectively"
             .format(disjointGraphsAfter, disjointGraphsBefore))
-

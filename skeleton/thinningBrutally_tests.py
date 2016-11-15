@@ -63,7 +63,7 @@ def _allOrientationsTest(arr, expectedResult=None):
     for reoriented in reorders(arr):
         i += 1
         result = _getCountObjects(reoriented)
-        assert result == expectedResult
+        assert result == expectedResult, "result {} is not same as expectedResult {}".format(result, expectedResult)
 
 
 def _getCountObjects(image):
