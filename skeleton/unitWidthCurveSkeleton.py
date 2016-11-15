@@ -6,7 +6,7 @@ from scipy import ndimage
 from scipy.ndimage.filters import convolve
 from skimage.graph import route_through_array
 
-from skeleton.networkxGraphFromArray import LISTSTEPDIRECTIONS3D
+from skeleton.networkxGraphFromArray import LIST_STEP_DIRECTIONS3D
 
 """
 The goal of this algorithm is to generate a topologically and geometrically preserved
@@ -19,7 +19,7 @@ Volume 5358 of the series Lecture Notes in Computer Science pp 1051-1060
 
 TEMPLATE = np.ones((3, 3, 3), dtype=np.uint8)
 TEMPLATE[1, 1, 1] = 0
-ARRAYSTEPDIRECTIONS3D = np.array(LISTSTEPDIRECTIONS3D).copy(order='C')
+ARRAYSTEPDIRECTIONS3D = np.array(LIST_STEP_DIRECTIONS3D).copy(order='C')
 
 
 def outOfPixBounds(nearByCoordinate, aShape):
@@ -78,7 +78,7 @@ def _getAllLabelledArray(skeletonIm, valenceArray):
     listIterateMiddle = list(np.transpose(np.array(np.where(valenceArray == 2))))
     for k in listIterateMiddle:
         connNeighborsIndices = []
-        for d in LISTSTEPDIRECTIONS3D:
+        for d in LIST_STEP_DIRECTIONS3D:
             nearByCoordinate = tuple(k + d)
             if outOfPixBounds(nearByCoordinate, aShape) or skeletonIm[nearByCoordinate] == 0:
                 continue
@@ -150,21 +150,16 @@ def getShortestPathSkeleton(skeletonIm):
             for crowdRegion in range(countCrowdedRegions):
                 loc = objectify[crowdRegion]
                 # find boundaries of the crowded region
-                zcoords = loc[0]
-                ycoords = loc[1]
-                xcoords = loc[2]
-                regionLowerBoundZ = zcoords.start - 1
-                regionLowerBoundY = ycoords.start - 1
-                regionLowerBoundX = xcoords.start - 1
-                regionUpperBoundZ = zcoords.stop + 1
-                regionUpperBoundY = ycoords.stop + 1
-                regionUpperBoundX = xcoords.stop + 1
-                bounds = [regionLowerBoundZ, regionLowerBoundY, regionLowerBoundX, regionUpperBoundZ, regionUpperBoundY, regionUpperBoundX]
-                # remove negative boundaries
-                bounds = [0 if bound < 0 else bound for bound in bounds]
-                dilatedValenceObjectLoc = valencearray[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]]
-                dilatedRegionExits = exits[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]]
-                dilatedLabelledObjectLoc = skeletonLabelled[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]]
+                bounds = [(max(coords.start - 1, 0), max(coords.stop + 1, 0)) for coords in loc]
+                dilatedValenceObjectLoc = valencearray[bounds[0][0]: bounds[0][1],
+                                                       bounds[1][0]: bounds[1][1],
+                                                       bounds[2][0]: bounds[2][1]]
+                dilatedRegionExits = exits[bounds[0][0]: bounds[0][1],
+                                           bounds[1][0]: bounds[1][1],
+                                           bounds[2][0]: bounds[2][1]]
+                dilatedLabelledObjectLoc = skeletonLabelled[bounds[0][0]: bounds[0][1],
+                                                            bounds[1][0]: bounds[1][1],
+                                                            bounds[2][0]: bounds[2][1]]
                 listSourceIndices = list(np.transpose(np.array(np.where(dilatedLabelledObjectLoc == 4))))
                 listExitIndices = list(np.transpose(np.array(np.where(dilatedRegionExits != 0))))
                 listOfExits = []
@@ -181,8 +176,10 @@ def getShortestPathSkeleton(skeletonIm):
                 if len(listSourceIndices) == 1:
                     srcs = listSourceIndices[0]
                 else:
-                    summationList = [sum([np.sum(np.square(value - pt)) for pt in listSourceIndices]) / valence for value, valence in listIndex]
-                srcs = [tuple(item2) for item1, item2 in zip(summationList, listSourceIndices) if item1 == min(summationList)]
+                    summationList = [sum([np.sum(np.square(value - pt)) for pt in listSourceIndices]) / valence
+                                     for value, valence in listIndex]
+                    srcs = [tuple(item2) for item1, item2 in zip(summationList, listSourceIndices)
+                            if item1 == min(summationList)]
                 dilatedLabelledObjectLoc[dilatedLabelledObjectLoc == 0] = 255
                 # find shortest paths from centroid to exits
                 for src, dest in itertools.product(srcs, dests):
@@ -190,13 +187,18 @@ def getShortestPathSkeleton(skeletonIm):
                     indices = np.array(indices).T
                     dilatedLabelledObjectLoc1 = np.zeros_like(dilatedLabelledObjectLoc)
                     dilatedLabelledObjectLoc1[indices[0], indices[1], indices[2]] = 1
-                    skeletonImNew[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]] = np.logical_or(skeletonImNew[bounds[0]: bounds[3], bounds[1]: bounds[4], bounds[2]: bounds[5]], dilatedLabelledObjectLoc1)
+                    skeletonImNew[bounds[0][0]: bounds[0][1],
+                                  bounds[1][0]: bounds[1][1],
+                                  bounds[2][0]: bounds[2][1]] = np.logical_or(skeletonImNew[bounds[0][0]: bounds[0][1],
+                                                                                            bounds[1][0]: bounds[1][1],
+                                                                                            bounds[2][0]: bounds[2][1]],
+                                                                              dilatedLabelledObjectLoc1)
                 progress = int((100 * crowdRegion) / countCrowdedRegions)
                 print("cleaning crowded regions in progress {}% \r".format(progress), end="", flush=True)
             # output the unit width curve skeleton
             skeletonImNew[skeletonLabelled < 4] = True
             skeletonImNew[skeletonLabelled == 0] = False
-            skeletonImNew[np.logical_and(valencearray == 0, skeletonIm == 1)] = 0  # see if isolated voxels can be removed (answer: yes)
+            skeletonImNew[np.logical_and(valencearray == 0, skeletonIm == 1)] = 0  # remove isolated single voxels
             print("time taken to find unit width curve skeleton is %0.3f seconds" % (time.time() - start))
             return skeletonImNew
 

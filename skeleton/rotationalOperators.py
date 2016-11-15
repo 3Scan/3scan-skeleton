@@ -47,6 +47,7 @@ def flipLrInX(cubeArray):
     flip a 3D cube array in X with respect to element at origin, center of the cube
 
     """
+    assert cubeArray.ndim == 3
     cubeArrayFlippedLrInX = np.copy(cubeArray)
     cubeArrayFlippedLrInX[:] = cubeArray[:, :, ::-1]
     return cubeArrayFlippedLrInX
@@ -65,6 +66,7 @@ def flipUdInY(cubeArray):
     flip a 3D cube array in Y with respect to element at origin, center of the cube
 
     """
+    assert cubeArray.ndim == 3
     cubeArrayFlippedUdInY = np.copy(cubeArray)
     cubeArrayFlippedUdInY[:] = cubeArray[:, ::-1, :]
     return cubeArrayFlippedUdInY
@@ -83,12 +85,13 @@ def flipFbInZ(cubeArray):
     flip a 3D cube array in Z with respect to element at origin, center of the cube
 
     """
+    assert cubeArray.ndim == 3
     cubeArrayFlippedFbInZ = np.copy(cubeArray)
     cubeArrayFlippedFbInZ[:] = cubeArray[::-1, :, :]
     return cubeArrayFlippedFbInZ
 
 
-def _rot3D90(cubeArray=REFERENCE_ARRAY, rotAxis='z', k=0):
+def rot3D90(cubeArray=REFERENCE_ARRAY, rotAxis='z', k=0):
     """
     Returns a 3D array after rotating 90 degrees anticlockwise k times around rotAxis
     Parameters
@@ -129,58 +132,41 @@ def _rot3D90(cubeArray=REFERENCE_ARRAY, rotAxis='z', k=0):
             return flipLrInX(cubeArray.swapaxes(1, 2))
     elif rotAxis == 'y':
         if k == 0:  # doesn't rotate
-            return cubeArray
+            rotMatrix = cubeArray
         elif k == 1:  # rotate 90 degrees around y
-            slice0 = cubeArray[0]
-            slice1 = cubeArray[1]
-            slice2 = cubeArray[2]
-            a = np.array(column(slice2, 0))
-            b = np.array(column(slice1, 0))
-            c = np.array(column(slice0, 0))
-            a1 = np.array(column(slice2, 1))
-            b1 = np.array(column(slice1, 1))
-            c1 = np.array(column(slice0, 1))
-            a2 = np.array(column(slice2, 2))
-            b2 = np.array(column(slice1, 2))
-            c2 = np.array(column(slice0, 2))
-            rotSlice0 = np.column_stack((a, b, c))
-            rotSlice1 = np.column_stack((a1, b1, c1))
-            rotSlice2 = np.column_stack((a2, b2, c2))
-            rotMatrix = np.array((rotSlice0, rotSlice1, rotSlice2))
-            return rotMatrix
+            ithSlice = [cubeArray[i] for i in range(3)]
+            rotSlices = []
+            for i in range(3):
+                a = np.array(column(ithSlice[2], i))
+                b = np.array(column(ithSlice[1], i))
+                c = np.array(column(ithSlice[0], i))
+                rotSlices[i] = np.column_stack((a, b, c))
+            rotMatrix = np.array((rotSlices[0], rotSlices[1], rotSlices[2]))
         elif k == 2:  # rotate 270 degrees around y
-            return flipLrInX(flipFbInZ(cubeArray))
+            rotMatrix = flipLrInX(flipFbInZ(cubeArray))
         elif k == 3:  # rotate 270 degrees around y
-            slice0 = cubeArray[0]
-            slice1 = cubeArray[1]
-            slice2 = cubeArray[2]
-            a = np.array(column(slice0, 2))
-            b = np.array(column(slice1, 2))
-            c = np.array(column(slice2, 2))
-            a1 = np.array(column(slice0, 1))
-            b1 = np.array(column(slice1, 1))
-            c1 = np.array(column(slice2, 1))
-            a2 = np.array(column(slice0, 0))
-            b2 = np.array(column(slice1, 0))
-            c2 = np.array(column(slice2, 0))
-            rotSlice0 = np.column_stack((a, b, c))
-            rotSlice1 = np.column_stack((a1, b1, c1))
-            rotSlice2 = np.column_stack((a2, b2, c2))
-            rotMatrix = np.array((rotSlice0, rotSlice1, rotSlice2))
-            return rotMatrix
+            ithSlice = [cubeArray[i] for i in range(3)]
+            rotSlices = []
+            for i in range(3):
+                a = np.array(column(ithSlice[0], i))
+                b = np.array(column(ithSlice[1], i))
+                c = np.array(column(ithSlice[2], i))
+                rotSlices[i] = np.column_stack((a, b, c))
+            rotMatrix = np.array((rotSlices[0], rotSlices[1], rotSlices[2]))
+        return rotMatrix
 
 firstSubiteration = REFERENCE_ARRAY.copy(order='C')  # mask outs border voxels in US
-secondSubiteration = _rot3D90(_rot3D90(REFERENCE_ARRAY, 'y', 2), 'x', 3).copy(order='C')  # mask outs border voxels in NE
-thirdSubiteration = _rot3D90(_rot3D90(REFERENCE_ARRAY, 'x', 1), 'z', 1).copy(order='C')  # mask outs border voxels in WD
-fourthSubiteration = _rot3D90(REFERENCE_ARRAY, 'x', 3).copy(order='C')  # mask outs border voxels in ES
-fifthSubiteration = _rot3D90(REFERENCE_ARRAY, 'y', 3).copy(order='C')  # mask outs border voxels in UW
-sixthSubiteration = _rot3D90(_rot3D90(_rot3D90(REFERENCE_ARRAY, 'x', 3), 'z', 1), 'y', 1).copy(order='C')  # mask outs border voxels in ND
-seventhSubiteration = _rot3D90(REFERENCE_ARRAY, 'x', 1).copy(order='C')  # mask outs border voxels in SW
-eighthSubiteration = _rot3D90(REFERENCE_ARRAY, 'y', 2).copy(order='C')  # mask outs border voxels in UN
-ninthSubiteration = _rot3D90(_rot3D90(REFERENCE_ARRAY, 'x', 3), 'z', 1).copy(order='C')  # mask outs border voxels in ED
-tenthSubiteration = _rot3D90(_rot3D90(REFERENCE_ARRAY, 'y', 2), 'x', 1).copy(order='C')  # mask outs border voxels in NW
-eleventhSubiteration = _rot3D90(REFERENCE_ARRAY, 'y', 1).copy(order='C')  # mask outs border voxels in UE
-twelvethSubiteration = _rot3D90(REFERENCE_ARRAY, 'x', 2).copy(order='C')  # mask outs border voxels in SD
+secondSubiteration = rot3D90(rot3D90(REFERENCE_ARRAY, 'y', 2), 'x', 3).copy(order='C')  # mask outs border voxels in NE
+thirdSubiteration = rot3D90(rot3D90(REFERENCE_ARRAY, 'x', 1), 'z', 1).copy(order='C')  # mask outs border voxels in WD
+fourthSubiteration = rot3D90(REFERENCE_ARRAY, 'x', 3).copy(order='C')  # mask outs border voxels in ES
+fifthSubiteration = rot3D90(REFERENCE_ARRAY, 'y', 3).copy(order='C')  # mask outs border voxels in UW
+sixthSubiteration = rot3D90(rot3D90(rot3D90(REFERENCE_ARRAY, 'x', 3), 'z', 1), 'y', 1).copy(order='C')  # mask outs border voxels in ND
+seventhSubiteration = rot3D90(REFERENCE_ARRAY, 'x', 1).copy(order='C')  # mask outs border voxels in SW
+eighthSubiteration = rot3D90(REFERENCE_ARRAY, 'y', 2).copy(order='C')  # mask outs border voxels in UN
+ninthSubiteration = rot3D90(rot3D90(REFERENCE_ARRAY, 'x', 3), 'z', 1).copy(order='C')  # mask outs border voxels in ED
+tenthSubiteration = rot3D90(rot3D90(REFERENCE_ARRAY, 'y', 2), 'x', 1).copy(order='C')  # mask outs border voxels in NW
+eleventhSubiteration = rot3D90(REFERENCE_ARRAY, 'y', 1).copy(order='C')  # mask outs border voxels in UE
+twelvethSubiteration = rot3D90(REFERENCE_ARRAY, 'x', 2).copy(order='C')  # mask outs border voxels in SD
 
 # List of 12 directions
 DIRECTIONLIST = [firstSubiteration, secondSubiteration, thirdSubiteration, fourthSubiteration,

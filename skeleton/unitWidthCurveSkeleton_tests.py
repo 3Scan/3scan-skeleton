@@ -19,7 +19,8 @@ def checkAlgorithmSameObjects(image):
     label_img, countObjects = ndimage.measurements.label(image, structure=np.ones((3, 3, 3), dtype=np.uint8))
     newImage = getShortestPathSkeleton(image)
     label_img, countObjectsn = ndimage.measurements.label(newImage, structure=np.ones((3, 3, 3), dtype=np.uint8))
-    assert (countObjectsn == countObjects), "number of objects in the skeletonized image {} is different from input {}".format(countObjectsn, countObjects)
+    assert (countObjectsn == countObjects), ("number of objects in the skeletonized image"
+                                             "{} is different from input {}".format(countObjectsn, countObjects))
 
 
 def test_randomBlob():
