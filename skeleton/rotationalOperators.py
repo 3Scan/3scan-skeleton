@@ -10,9 +10,9 @@ A Parallel 3D 12-Subiteration Thinning Algorithm Kálmán Palágyi,Graphical Mod
 Volume 61, Issue 4, July 1999, Pages 199-221 Attila Kuba, 1999
 cube is of equal dimensions in x, y and z in this program
 """
-REFERENCEARRAY = np.array([[[33554432, 16777216, 8388608], [4194304, 2097152, 1048576], [524288, 262144, 131072]],
-                          [[65536, 32768, 16384], [8192, 0, 4096], [2048, 1024, 512]],
-                          [[256, 128, 64], [32, 16, 8], [4, 2, 1]]], dtype=np.uint64)
+REFERENCE_ARRAY = np.array([[[33554432, 16777216, 8388608], [4194304, 2097152, 1048576], [524288, 262144, 131072]],
+                           [[65536, 32768, 16384], [8192, 0, 4096], [2048, 1024, 512]],
+                           [[256, 128, 64], [32, 16, 8], [4, 2, 1]]], dtype=np.uint64)
 
 
 def column(matrix, i):
@@ -88,13 +88,13 @@ def flipFbInZ(cubeArray):
     return cubeArrayFlippedFbInZ
 
 
-def _rot3D90(cubeArray=REFERENCEARRAY, rotAxis='z', k=0):
+def _rot3D90(cubeArray=REFERENCE_ARRAY, rotAxis='z', k=0):
     """
     Returns a 3D array after rotating 90 degrees anticlockwise k times around rotAxis
     Parameters
     ----------
     cubeArray : numpy array
-        3D numpy array, by default REFERENCEARRAY
+        3D numpy array, by default REFERENCE_ARRAY
 
     rotAxis : string
         can be z, y or x specifies which axis should the array be rotated around, by default 'z'
@@ -169,18 +169,18 @@ def _rot3D90(cubeArray=REFERENCEARRAY, rotAxis='z', k=0):
             rotMatrix = np.array((rotSlice0, rotSlice1, rotSlice2))
             return rotMatrix
 
-firstSubiteration = REFERENCEARRAY.copy(order='C')  # mask outs border voxels in US
-secondSubiteration = _rot3D90(_rot3D90(REFERENCEARRAY, 'y', 2), 'x', 3).copy(order='C')  # mask outs border voxels in NE
-thirdSubiteration = _rot3D90(_rot3D90(REFERENCEARRAY, 'x', 1), 'z', 1).copy(order='C')  # mask outs border voxels in WD
-fourthSubiteration = _rot3D90(REFERENCEARRAY, 'x', 3).copy(order='C')  # mask outs border voxels in ES
-fifthSubiteration = _rot3D90(REFERENCEARRAY, 'y', 3).copy(order='C')  # mask outs border voxels in UW
-sixthSubiteration = _rot3D90(_rot3D90(_rot3D90(REFERENCEARRAY, 'x', 3), 'z', 1), 'y', 1).copy(order='C')  # mask outs border voxels in ND
-seventhSubiteration = _rot3D90(REFERENCEARRAY, 'x', 1).copy(order='C')  # mask outs border voxels in SW
-eighthSubiteration = _rot3D90(REFERENCEARRAY, 'y', 2).copy(order='C')  # mask outs border voxels in UN
-ninthSubiteration = _rot3D90(_rot3D90(REFERENCEARRAY, 'x', 3), 'z', 1).copy(order='C')  # mask outs border voxels in ED
-tenthSubiteration = _rot3D90(_rot3D90(REFERENCEARRAY, 'y', 2), 'x', 1).copy(order='C')  # mask outs border voxels in NW
-eleventhSubiteration = _rot3D90(REFERENCEARRAY, 'y', 1).copy(order='C')  # mask outs border voxels in UE
-twelvethSubiteration = _rot3D90(REFERENCEARRAY, 'x', 2).copy(order='C')  # mask outs border voxels in SD
+firstSubiteration = REFERENCE_ARRAY.copy(order='C')  # mask outs border voxels in US
+secondSubiteration = _rot3D90(_rot3D90(REFERENCE_ARRAY, 'y', 2), 'x', 3).copy(order='C')  # mask outs border voxels in NE
+thirdSubiteration = _rot3D90(_rot3D90(REFERENCE_ARRAY, 'x', 1), 'z', 1).copy(order='C')  # mask outs border voxels in WD
+fourthSubiteration = _rot3D90(REFERENCE_ARRAY, 'x', 3).copy(order='C')  # mask outs border voxels in ES
+fifthSubiteration = _rot3D90(REFERENCE_ARRAY, 'y', 3).copy(order='C')  # mask outs border voxels in UW
+sixthSubiteration = _rot3D90(_rot3D90(_rot3D90(REFERENCE_ARRAY, 'x', 3), 'z', 1), 'y', 1).copy(order='C')  # mask outs border voxels in ND
+seventhSubiteration = _rot3D90(REFERENCE_ARRAY, 'x', 1).copy(order='C')  # mask outs border voxels in SW
+eighthSubiteration = _rot3D90(REFERENCE_ARRAY, 'y', 2).copy(order='C')  # mask outs border voxels in UN
+ninthSubiteration = _rot3D90(_rot3D90(REFERENCE_ARRAY, 'x', 3), 'z', 1).copy(order='C')  # mask outs border voxels in ED
+tenthSubiteration = _rot3D90(_rot3D90(REFERENCE_ARRAY, 'y', 2), 'x', 1).copy(order='C')  # mask outs border voxels in NW
+eleventhSubiteration = _rot3D90(REFERENCE_ARRAY, 'y', 1).copy(order='C')  # mask outs border voxels in UE
+twelvethSubiteration = _rot3D90(REFERENCE_ARRAY, 'x', 2).copy(order='C')  # mask outs border voxels in SD
 
 # List of 12 directions
 DIRECTIONLIST = [firstSubiteration, secondSubiteration, thirdSubiteration, fourthSubiteration,

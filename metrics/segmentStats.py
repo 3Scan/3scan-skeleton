@@ -50,9 +50,11 @@ class SegmentStats:
            SegmentStats.tortuosityDict - A dictionary with key as the (branching index (nth branch from the start node),
                                              start node, end node of the branch) value = tortuosity of the branch
 
-           SegmentStats.totalSegments - total number of branches (segments between branch and branch points, branch and end points)
+           SegmentStats.totalSegments - total number of branches (segments between branch and branch points, branch and
+                                        end points)
 
-           SegmentStats.typeGraphdict - A dictionary with the nth disjoint graph as the key and the type of graph as the value
+           SegmentStats.typeGraphdict - A dictionary with the nth disjoint graph as the key and the type of graph as
+                                        the value
 
            SegmentStats.avgBranching - Average branching index (number of branches at a branch point) of the network
 
@@ -60,16 +62,20 @@ class SegmentStats:
 
            SegmentStats.countBranchPoints - nodes with more than 2 nodes connected to them
 
-           SegmentStats.contractionDict - A dictionary with key as the (branching index (nth branch from the start node), start node,
-                                                end node of the branch) value = contraction of the branch
+           SegmentStats.contractionDict - A dictionary with key as the (branching index (nth branch from the start node)
+                                          ,start node, end node of the branch) value = contraction of the branch
 
-           SegmentStats.hausdorffDimensionDict - A dictionary with key as the (branching index (nth branch from the start node), start node,
-                                                       end node of the branch) value = hausdorff dimension of the branch
+           SegmentStats.hausdorffDimensionDict - A dictionary with key as the (branching index (nth branch from
+                                                 the start node), start node,
+                                                 end node of the branch) value = hausdorff dimension of the branch
 
-           SegmentStats.cycleInfoDict - Dictionary with key as nth cycle, value as list with [number of branch points on cycle, length of the cycle]
+           SegmentStats.cycleInfoDict - Dictionary with key as nth cycle, value as list with [number of branch points on
+                                        cycle, length of the cycle]
 
-           SegmentStats.isolatedEdgeInfoDict - A dictionary with key as the (start node, end node of the branch), value as the length of the segment
-           isolatededges are the edges that form a single segment of line with no trees in them, except if it's a dichtonomous tree with segments of
+           SegmentStats.isolatedEdgeInfoDict - A dictionary with key as the (start node, end node of the branch), value
+                                               as the length of the segment
+           isolatededges are the edges that form a single segment of line with no trees in them, except if it's
+           a dichtonomous tree with segments of
            length 1 at 45 degrees
 
 
@@ -77,8 +83,10 @@ class SegmentStats:
     --------
 
     tortuosity = curveLength / curveDisplacement
-    contraction = curveDisplacement / curveLength (better becuase there is no change of instability (undefined) in case of cycles)
-    Hausdorff Dimension = np.log(curveLength) / np.log(curveDisplacement) https://en.wikipedia.org/wiki/Hausdorff_dimension
+    contraction = curveDisplacement / curveLength (better becuase there is no change of instability (undefined) in case
+                                                    of cycles)
+    Hausdorff Dimension = np.log(curveLength) / np.log(curveDisplacement)
+    https://en.wikipedia.org/wiki/Hausdorff_dimension
     Type of subgraphs:
     0 = if graph a single node
     1 = if graph is a single cycle
@@ -239,9 +247,10 @@ class SegmentStats:
         self._setCountDict(sourceOnCycle)
         curveLength = self._getLengthAndRemoveTracedPath(cycle, isCycle=True)
         self.cycleInfoDict[self.cycles] = [0, curveLength]
-        self.lengthDict[self.countDict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = curveLength
-        self.tortuosityDict[self.countDict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = 0
-        self.contractionDict[self.countDict[sourceOnCycle], sourceOnCycle, cycle[len(cycle) - 1]] = 0
+        nthCycle = self.countDict[sourceOnCycle]
+        self.lengthDict[nthCycle, sourceOnCycle, cycle[len(cycle) - 1]] = curveLength
+        self.tortuosityDict[nthCycle, sourceOnCycle, cycle[len(cycle) - 1]] = 0
+        self.contractionDict[nthCycle, sourceOnCycle, cycle[len(cycle) - 1]] = 0
         self.cycles = self.cycles + 1
 
     def _cyclicTree(self, cycleList):
@@ -258,24 +267,28 @@ class SegmentStats:
                 for point in cycle:
                     if point not in branchPointsOnCycle:
                         continue
-                    if not (nx.has_path(self._subGraphSkeleton, source=sourceOnCycle, target=point) and sourceOnCycle != point):
+                    if not (nx.has_path(self._subGraphSkeleton, source=sourceOnCycle, target=point) and
+                            sourceOnCycle != point):
                         continue
                     simplePath = nx.shortest_path(self._subGraphSkeleton, source=sourceOnCycle, target=point)
                     sortedSegment = sorted(simplePath)
-                    isSegmentTraced = (sortedSegment not in self._sortedSegments and self._checkSegmentNotTraced(simplePath))
+                    isSegmentTraced = (sortedSegment not in self._sortedSegments and
+                                       self._checkSegmentNotTraced(simplePath))
                     countBranchNodesOnPath = sum([1 for pathPoint in simplePath if pathPoint in branchPointsOnCycle])
                     if countBranchNodesOnPath == 2 and isSegmentTraced:
                         self._setCountDict(sourceOnCycle)
                         curveLength = self._getLengthAndRemoveTracedPath(simplePath, remove=False)
                         curveDisplacement = np.sqrt(np.sum((np.array(sourceOnCycle) - np.array(point)) ** 2))
-                        self.lengthDict[self.countDict[sourceOnCycle], sourceOnCycle, point] = curveLength
-                        self.tortuosityDict[self.countDict[sourceOnCycle], sourceOnCycle, point] = curveLength / curveDisplacement
-                        self.contractionDict[self.countDict[sourceOnCycle], sourceOnCycle, point] = curveDisplacement / curveLength
+                        nthSegment = self.countDict[sourceOnCycle]
+                        self.lengthDict[nthSegment, sourceOnCycle, point] = curveLength
+                        self.tortuosityDict[nthSegment, sourceOnCycle, point] = curveLength / curveDisplacement
+                        self.contractionDict[nthSegment, sourceOnCycle, point] = curveDisplacement / curveLength
                         self._setHausdorffDimensionDict(sourceOnCycle, point, curveLength, curveDisplacement)
                         self._visitedPaths.append(simplePath)
                         self._sortedSegments.append(sortedSegment)
                     sourceOnCycle = point
-            self.cycleInfoDict[self.cycles] = [len(branchPointsOnCycle), self._getLengthAndRemoveTracedPath(cycle, isCycle=True, remove=False)]
+            self.cycleInfoDict[self.cycles] = [len(branchPointsOnCycle),
+                                               self._getLengthAndRemoveTracedPath(cycle, isCycle=True, remove=False)]
             self.cycles += 1
         for path in self._visitedPaths:
             self._getLengthAndRemoveTracedPath(path)
@@ -293,9 +306,10 @@ class SegmentStats:
                 self._setCountDict(sourceOnTree)
                 curveLength = self._getLengthAndRemoveTracedPath(simplePath)
                 curveDisplacement = np.sqrt(np.sum((np.array(sourceOnTree) - np.array(item)) ** 2))
-                self.lengthDict[self.countDict[sourceOnTree], sourceOnTree, item] = curveLength
-                self.tortuosityDict[self.countDict[sourceOnTree], sourceOnTree, item] = curveLength / curveDisplacement
-                self.contractionDict[self.countDict[sourceOnTree], sourceOnTree, item] = curveDisplacement / curveLength
+                nthSegment = self.countDict[sourceOnTree]
+                self.lengthDict[nthSegment, sourceOnTree, item] = curveLength
+                self.tortuosityDict[nthSegment, sourceOnTree, item] = curveLength / curveDisplacement
+                self.contractionDict[nthSegment, sourceOnTree, item] = curveDisplacement / curveLength
                 self._setHausdorffDimensionDict(sourceOnTree, item, curveLength, curveDisplacement)
 
     def _tree(self):
@@ -347,7 +361,9 @@ class SegmentStats:
             self._findAccessComponentsDisjoint()
             if len(self._nodes) == 1:
                 self.typeGraphdict[self._ithDisjointGraph] = SubgraphTypes.singleNode.value
-            elif min(self._degreeList) == max(self._degreeList) and nx.is_biconnected(self._subGraphSkeleton) and self._cycleCount == 1:
+            elif (min(self._degreeList) == max(self._degreeList) and
+                  nx.is_biconnected(self._subGraphSkeleton) and
+                  self._cycleCount == 1):
                 self._singleCycle(self._cycleList[0])
                 self.typeGraphdict[self._ithDisjointGraph] = SubgraphTypes.singleCycle.value
             elif set(self._degreeList) == set((1, 2)) or set(self._degreeList) == {1}:
@@ -362,11 +378,11 @@ class SegmentStats:
             # check if any unfinished business in _subGraphSkeleton, untraced edges
             if self._subGraphSkeleton.number_of_edges() != 0:
                 self._branchToBranch()
-            assert self._subGraphSkeleton.number_of_edges() == 0, "edges not removed are %i" % self._subGraphSkeleton.number_of_edges()
+            assert self._subGraphSkeleton.number_of_edges() == 0, ("edges not removed are"
+                                                                   "%i" % self._subGraphSkeleton.number_of_edges())
             progress = int((100 * self._ithDisjointGraph) / countDisjointGraphs)
             print("finding segment stats in progress {}% \r".format(progress), end="", flush=True)
             if True:
                 print()
         self._findAccessComponentsNetworkx()
         print("time taken to calculate segments and their lengths is %0.3f seconds" % (time.time() - start))
-

@@ -35,14 +35,13 @@ def removeCliqueEdges(networkxGraph):
     cliques = nx.find_cliques_recursive(networkxGraph)
     # all the nodes/vertices of 3 cliques
     threeVErtexCliques = [clq for clq in cliques if len(clq) == 3]
-    if len(list(threeVErtexCliques)) == 0:
-        return networkxGraph
-    else:
+    if len(list(threeVErtexCliques)) != 0:
         combinationEdges = [list(itertools.combinations(clique, 2)) for clique in threeVErtexCliques]
         subGraphEdgelengths = []
         # different combination of edges in the cliques and their lengths
         for combinationEdge in combinationEdges:
-            subGraphEdgelengths.append([np.sum((np.array(item[0]) - np.array(item[1])) ** 2) for item in combinationEdge])
+            subGraphEdgelengths.append([np.sum((np.array(item[0]) - np.array(item[1])) ** 2)
+                                        for item in combinationEdge])
         cliqueEdges = []
         # clique edges to be removed are collected here
         # the edges with maximum edge length
@@ -61,8 +60,8 @@ def removeCliqueEdges(networkxGraph):
                 for index, val in enumerate(diffOfEdges):
                     if val[0] == 0:
                         subDim = index
+                        cliqueEdges.append(combinationEdges[mainDim][subDim])
                         break
-                cliqueEdges.append(combinationEdges[mainDim][subDim])
         networkxGraph.remove_edges_from(cliqueEdges)
         print("time taken to remove cliques is %0.2f seconds" % (time.time() - start))
-        return networkxGraph
+    return networkxGraph

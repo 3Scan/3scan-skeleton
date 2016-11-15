@@ -28,11 +28,11 @@ using dictOfIndicesAndAdjacentcoordinates.
 # permutations of (-1, 0, 1) in three/two dimensional tuple format
 # representing 8 and 26 increments around a pixel at origin (0, 0, 0)
 # 2nd ordered neighborhood around a voxel/pixel
-LISTSTEPDIRECTIONS3D = list(itertools.product((-1, 0, 1), repeat=3))
-LISTSTEPDIRECTIONS3D.remove((0, 0, 0))
+LIST_STEP_DIRECTIONS3D = list(itertools.product((-1, 0, 1), repeat=3))
+LIST_STEP_DIRECTIONS3D.remove((0, 0, 0))
 
-LISTSTEPDIRECTIONS2D = list(itertools.product((-1, 0, 1), repeat=2))
-LISTSTEPDIRECTIONS2D.remove((0, 0))
+LIST_STEP_DIRECTIONS2D = list(itertools.product((-1, 0, 1), repeat=2))
+LIST_STEP_DIRECTIONS2D.remove((0, 0))
 
 
 def _getIncrements(configNumber, dimensions):
@@ -62,11 +62,13 @@ def _getIncrements(configNumber, dimensions):
     configNumber = np.int64(configNumber)
     if dimensions == 3:
         # convert decimal number to a binary string
-        neighborValues = [(configNumber >> digit) & 0x01 for digit in range(26)]
-        return [neighborValue * increment for neighborValue, increment in zip(neighborValues, LISTSTEPDIRECTIONS3D)]
+        listStepDirections = LIST_STEP_DIRECTIONS3D
+    elif dimensions == 2:
+        listStepDirections = LIST_STEP_DIRECTIONS2D
     else:
-        neighborValues = [(configNumber >> digit) & 0x01 for digit in range(8)]
-        return [neighborValue * increment for neighborValue, increment in zip(neighborValues, LISTSTEPDIRECTIONS2D)]
+        raise AssertionError("dimensions is neither 2 nor 3, they are", dimensions)
+    neighborValues = [(configNumber >> digit) & 0x01 for digit in range(3 ** dimensions - 1)]
+    return [neighborValue * increment for neighborValue, increment in zip(neighborValues, listStepDirections)]
 
 
 def _setAdjacencyList(arr):
@@ -108,7 +110,6 @@ def _setAdjacencyList(arr):
     if np.sum(arr) == 1:
         # if there is just one nonzero element there are no adjacent coordinates
         dictOfIndicesAndAdjacentcoordinates[nonZeros[0]] = []
-        return dictOfIndicesAndAdjacentcoordinates
     else:
         for item in nonZeros:
             adjacentCoordinatelist = [tuple(np.array(item) + np.array(increments))
