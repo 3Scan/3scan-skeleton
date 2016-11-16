@@ -1,40 +1,10 @@
 import numpy as np
-from scipy import ndimage
 from scipy.spatial import ConvexHull
 
 from skeleton.skeletonClass import Skeleton
 
 
-def checkAlgorithmPreservesImage(image):
-    skel = Skeleton(image)
-    skel.setThinningOutput()
-    newImage = skel.thinnedStack
-    assert np.array_equal(image, newImage)
-
-
-def checkCycle(image):
-    # check if number of cycles in the donut image after thinning is 1
-    skel = Skeleton(image)
-    skel.setThinningOutput()
-    newImage = skel.thinnedStack
-    label_img, countObjects = ndimage.measurements.label(newImage, structure=np.ones((3, 3, 3), dtype=bool))
-    assert countObjects == 1, "number of cycles in single donut is {}".format(countObjects)
-
-
-def checkSameObjects(image):
-    # check if number of objects are same in input and output of thinning
-    dims = image.ndim
-    label_img, countObjects = ndimage.measurements.label(image, structure=np.ones([3] * dims, dtype=bool))
-    skel = Skeleton(image)
-    skel.setThinningOutput()
-    newImage = skel.thinnedStack
-    label_img, countObjectsn = ndimage.measurements.label(newImage, structure=np.ones([3] * dims, dtype=bool))
-    assert (countObjectsn == countObjects), ("number of objects in input"
-                                             "{} is different from output".format(countObjects, countObjectsn))
-    return newImage
-
-
-def getRandomBlob():
+def getThinnedRandomBlob():
     # get random convex blob
     xs = np.random.uniform(-1, 1, size=50)
     ys = np.random.uniform(-1, 1, size=50)

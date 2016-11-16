@@ -73,5 +73,3 @@ def getPrunedSkeleton(skeletonStack, networkxGraph, cutoff=9):
         print("pruning in progress {}% \r".format(progress), end="", flush=True)
     print("time taken to prune is %0.3f seconds" % (time.time() - start_prune))
     return skeletonStack
-
-

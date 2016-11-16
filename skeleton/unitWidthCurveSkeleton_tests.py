@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import ndimage
 
-from skeleton.skeleton_testlib import getRandomBlob
+from skeleton.skeleton_testlib import getThinnedRandomBlob
 from skeleton.unitWidthCurveSkeleton import getShortestPathSkeleton, outOfPixBounds
 """
 tests for unit width curve skeleton
@@ -25,7 +25,7 @@ def checkAlgorithmSameObjects(image):
 
 def test_randomBlob():
     # Test 1 Random blob skeletonizes to topology preserving sinle object representing the blob
-    testBlob = getRandomBlob()
+    testBlob = getThinnedRandomBlob()
     checkAlgorithmSameObjects(testBlob)
 
 

@@ -38,4 +38,3 @@ def test_rectangle():
 def test_rectangleNoise():
     # Test 2 rectangle with noise must prune
     checkAlgorithmSameObjects(getRectangleNoise())
-
