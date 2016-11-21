@@ -37,7 +37,7 @@ def getThinned(binaryArr):
         orig = np.pad(np.uint64(binaryArr), 1, mode='constant', constant_values=0)
         cy_getThinned3D(orig)
         print("thinned %i number of pixels in %0.2f seconds" % (voxCount, time.time() - start_skeleton))
-    return orig[1:zOrig + 1, 1: yOrig + 1, 1: xOrig + 1]
+    return orig[1:zOrig + 1, 1: yOrig + 1, 1: xOrig + 1].astype(bool)
 
 
 if __name__ == '__main__':

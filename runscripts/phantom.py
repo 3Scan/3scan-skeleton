@@ -98,11 +98,11 @@ def createCylinder(stack, p1, p2, r):
     # (X0,Y0,Z0) + ((X-X0)u1+(Y-Y0)u2+(Z-Z0)u3) (u1,u2,u3)
 
     # (x-x0)^2 + (y-y0)^2 = r^2
-    if p1[2] > p2[2]:  # points need to have the first point have a lower Z
+    if p1[0] > p2[0]:  # points need to have the first point have a lower Z
         p1, p2 = p2, p1  # swap
-    z = np.arange(p1[2], p2[2])
+    z = np.arange(p1[0], p2[0])
     n = len(z)
-    x, y = np.linspace(p1[0], p2[0], n, dtype=int), np.linspace(p1[1], p2[1], n, dtype=int)
+    x, y = np.linspace(p1[1], p2[1], n, dtype=int), np.linspace(p1[2], p2[2], n, dtype=int)
     color = 255  # white
     thickness = -1  # filled circle
     for i, zz in enumerate(z):
