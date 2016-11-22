@@ -1,13 +1,15 @@
-import numpy as np
+import math
 import random
+
 from skimage.draw import ellipse
+import numpy as np
 
 
 def makeFakeVessels(imgsize=(2048, 1024), background=230):
     """
     create and save a matrix with whitish background and randomly selected vessel sizes and save matrices generated as images of format png
     """
-    nVes = 9
+    nVes = 1
     mu = 20
     sigma = 5
     minw = 5
@@ -23,15 +25,34 @@ def makeFakeVessels(imgsize=(2048, 1024), background=230):
             r2 = np.random.normal(mu, sigma)
         print(r1, r2)
 
-        rr, cc = ellipse(cy, cx, r1, r2)
-        if np.any(rr >= sy):
-            ix = rr < sy
-            rr, cc = rr[ix], cc[ix]
-        if np.any(cc >= sx):
-            ix = cc < sx
-            rr, cc = rr[ix], cc[ix]
+        rr, cc = ellipse(cy, cx, r1, r1)
+        # if np.any(rr >= sy):
+        #     ix = rr < sy
+        #     rr, cc = rr[ix], cc[ix]
+        # if np.any(cc >= sx):
+        #     ix = cc < sx
+        #     rr, cc = rr[ix], cc[ix]
         vasc[rr, cc] = 1  # make circle blackish
     return vasc
+
+
+def eulerAnglesToRotationMatrix(theta):
+    # Calculates Rotation Matrix given euler angles.
+    R_x = np.array([[1, 0, 0],
+                    [0, math.cos(theta[0]), -math.sin(theta[0])],
+                    [0, math.sin(theta[0]), math.cos(theta[0])]
+                    ])
+
+    R_y = np.array([[math.cos(theta[1]), 0, math.sin(theta[1])],
+                    [0, 1, 0],
+                    [-math.sin(theta[1]), 0, math.cos(theta[1])]
+                    ])
+    R_z = np.array([[math.cos(theta[2]),-math.sin(theta[2]), 0],
+                    [math.sin(theta[2]), math.cos(theta[2]), 0],
+                    [0, 0, 1]
+                    ])
+
+    return np.array((R_x, R_y, R_z))
 
 
 def getPhantom(slices):
@@ -44,7 +65,7 @@ def getPhantom(slices):
 
 def _getCrosssection():
     s = np.array((512, 512))
-    vessels = makeFakeVessels(s.shape(), background=0)
+    vessels = makeFakeVessels(s, background=0)
     return vessels
 
 
