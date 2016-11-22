@@ -61,7 +61,7 @@ def createVesselLoop():
     cubeEdge = 512
     stack = np.ones((cubeEdge, cubeEdge, cubeEdge)) * 20
 
-    p1, p2 = (5, 15, 2), (480, 400, 510)
+    p1, p2 = (1, 5, 15), (cubeEdge, 480, 400)
     radius = 35
     stack = createCylinder(stack, p1, p2, radius)
 

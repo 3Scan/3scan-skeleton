@@ -44,7 +44,7 @@ def getPhantom(slices):
 
 def _getCrosssection():
     s = np.array((512, 512))
-    vessels = makeFakeVessels(s, background=0)
+    vessels = makeFakeVessels(s.shape(), background=0)
     return vessels
 
 
