@@ -10,9 +10,6 @@ A Parallel 3D 12-Subiteration Thinning Algorithm Kálmán Palágyi,Graphical Mod
 Volume 61, Issue 4, July 1999, Pages 199-221 Attila Kuba, 1999
 cube is of equal dimensions in x, y and z in this program
 """
-REFERENCE_ARRAY = np.array([[[33554432, 16777216, 8388608], [4194304, 2097152, 1048576], [524288, 262144, 131072]],
-                           [[65536, 32768, 16384], [8192, 0, 4096], [2048, 1024, 512]],
-                           [[256, 128, 64], [32, 16, 8], [4, 2, 1]]], dtype=np.uint64)
 
 
 def column(cubeArray, i):
@@ -352,13 +349,13 @@ def twelvethSubIter(cubeArray):
     return listedArray
 
 
-def rot3D90(cubeArray=REFERENCE_ARRAY, rotAxis='z', k=0):
+def rot3D90(cubeArray, rotAxis='z', k=0):
     """
     Returns a 3D array after rotating 90 degrees anticlockwise k times around rotAxis
     Parameters
     ----------
     cubeArray : numpy array
-        3D numpy array, by default REFERENCE_ARRAY
+        3D numpy array
 
     rotAxis : string
         can be z, y or x specifies which axis should the array be rotated around, by default 'z'
@@ -408,36 +405,57 @@ def rot3D90(cubeArray=REFERENCE_ARRAY, rotAxis='z', k=0):
             rotcubeArray = np.array((rotSlices[0], rotSlices[1], rotSlices[2]))
         return rotcubeArray
 
-# mask outs border voxels in US
-firstSubiteration = REFERENCE_ARRAY.copy(order='C')
-# mask outs border voxels in NE
-secondSubiteration = rot3D90(rot3D90(REFERENCE_ARRAY, 'y', 2), 'x', 3).copy(order='C')
-# mask outs border voxels in WD
-thirdSubiteration = rot3D90(rot3D90(REFERENCE_ARRAY, 'x', 1), 'z', 1).copy(order='C')
-# mask outs border voxels in ES
-fourthSubiteration = rot3D90(REFERENCE_ARRAY, 'x', 3).copy(order='C')
-# mask outs border voxels in UW
-fifthSubiteration = rot3D90(REFERENCE_ARRAY, 'y', 3).copy(order='C')
-# mask outs border voxels in ND
-sixthSubiteration = rot3D90(rot3D90(rot3D90(REFERENCE_ARRAY, 'x', 3), 'z', 1), 'y', 1).copy(order='C')
-# mask outs border voxels in SW
-seventhSubiteration = rot3D90(REFERENCE_ARRAY, 'x', 1).copy(order='C')
-# mask outs border voxels in UN
-eighthSubiteration = rot3D90(REFERENCE_ARRAY, 'y', 2).copy(order='C')
-# mask outs border voxels in ED
-ninthSubiteration = rot3D90(rot3D90(REFERENCE_ARRAY, 'x', 3), 'z', 1).copy(order='C')
-# mask outs border voxels in NW
-tenthSubiteration = rot3D90(rot3D90(REFERENCE_ARRAY, 'y', 2), 'x', 1).copy(order='C')
-# mask outs border voxels in UE
-eleventhSubiteration = rot3D90(REFERENCE_ARRAY, 'y', 1).copy(order='C')
-# mask outs border voxels in SD
-twelvethSubiteration = rot3D90(REFERENCE_ARRAY, 'x', 2).copy(order='C')
 
-# List of 12 rotated configuration arrays
-DIRECTIONS_LIST = [firstSubiteration, secondSubiteration, thirdSubiteration, fourthSubiteration,
-                   fifthSubiteration, sixthSubiteration, seventhSubiteration, eighthSubiteration,
-                   ninthSubiteration, tenthSubiteration, eleventhSubiteration, twelvethSubiteration]
+def getDirectionsList(cubeArray):
+    """
+    Returns a list of rotated 3D arrays to change pixel to one of 12 directions
+    in UN, UE, US, UW, NE, NW, ND, ES, ED, SW, SD, and WD
+    Parameters
+    ----------
+    cubeArray : numpy array
+        3D numpy array
 
+    Returns
+    -------
+    list
+
+    """
+    # mask outs border voxels in US
+    firstSubiteration = cubeArray.copy(order='C')
+    # mask outs border voxels in NE
+    secondSubiteration = rot3D90(rot3D90(cubeArray, 'y', 2), 'x', 3).copy(order='C')
+    # mask outs border voxels in WD
+    thirdSubiteration = rot3D90(rot3D90(cubeArray, 'x', 1), 'z', 1).copy(order='C')
+    # mask outs border voxels in ES
+    fourthSubiteration = rot3D90(cubeArray, 'x', 3).copy(order='C')
+    # mask outs border voxels in UW
+    fifthSubiteration = rot3D90(cubeArray, 'y', 3).copy(order='C')
+    # mask outs border voxels in ND
+    sixthSubiteration = rot3D90(rot3D90(rot3D90(cubeArray, 'x', 3), 'z', 1), 'y', 1).copy(order='C')
+    # mask outs border voxels in SW
+    seventhSubiteration = rot3D90(cubeArray, 'x', 1).copy(order='C')
+    # mask outs border voxels in UN
+    eighthSubiteration = rot3D90(cubeArray, 'y', 2).copy(order='C')
+    # mask outs border voxels in ED
+    ninthSubiteration = rot3D90(rot3D90(cubeArray, 'x', 3), 'z', 1).copy(order='C')
+    # mask outs border voxels in NW
+    tenthSubiteration = rot3D90(rot3D90(cubeArray, 'y', 2), 'x', 1).copy(order='C')
+    # mask outs border voxels in UE
+    eleventhSubiteration = rot3D90(cubeArray, 'y', 1).copy(order='C')
+    # mask outs border voxels in SD
+    twelvethSubiteration = rot3D90(cubeArray, 'x', 2).copy(order='C')
+
+    # List of 12 rotated configuration arrays
+    DIRECTIONS_LIST = [firstSubiteration, secondSubiteration, thirdSubiteration, fourthSubiteration,
+                       fifthSubiteration, sixthSubiteration, seventhSubiteration, eighthSubiteration,
+                       ninthSubiteration, tenthSubiteration, eleventhSubiteration, twelvethSubiteration]
+    return DIRECTIONS_LIST
+
+
+REFERENCE_ARRAY = np.array([[[33554432, 16777216, 8388608], [4194304, 2097152, 1048576], [524288, 262144, 131072]],
+                           [[65536, 32768, 16384], [8192, 0, 4096], [2048, 1024, 512]],
+                           [[256, 128, 64], [32, 16, 8], [4, 2, 1]]], dtype=np.uint64)
+DIRECTIONS_LIST = getDirectionsList(REFERENCE_ARRAY)
 # List of 12 functions corresponding to transformations in 12 directions
 TRANSFORMATIONS_LIST = [firstSubIter, secondSubIter, thirdSubIter, fourthSubIter,
                         fifthSubIter, sixthSubIter, seventhSubIter, eighthSubIter,

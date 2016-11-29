@@ -3,6 +3,7 @@ import random
 
 from skimage.draw import ellipse
 import numpy as np
+import scipy
 
 
 def makeFakeVessels(imgsize=(2048, 1024), background=230):
@@ -53,6 +54,11 @@ def eulerAnglesToRotationMatrix(theta):
                     ])
 
     return np.array((R_x, R_y, R_z))
+
+
+def rotate(cylinders, angle, axis):
+    cr = scipy.ndimage.interpolation.rotate(cylinders, angle)
+    return cr
 
 
 def getPhantom(slices):

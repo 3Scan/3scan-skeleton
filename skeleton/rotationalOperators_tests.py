@@ -60,5 +60,12 @@ def test_iters():
             assert sum(iterFunction(randArr)) + 1 == randArr.sum()
 
 
-def test_directions():
-    assert len(rotationalOperators.DIRECTIONS_LIST) == 12
+def test_getDirectionList():
+    test_array = np.array([[[0, 1, 0], [0, 0, 0], [0, 0, 0]],
+                           [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+                           [[0, 0, 0], [0, 0, 0], [0, 0, 0]]], dtype=np.uint8)
+    directions_list = rotationalOperators.getDirectionsList(test_array)
+    expected_results = [2, 24, 16, 6, 10, 26, 4, 20, 18, 22, 12, 8]
+    for expected_result, direction in zip(expected_results, directions_list):
+        assert direction.reshape(27).tolist()[expected_result - 1]
+        assert direction.sum() == 1
