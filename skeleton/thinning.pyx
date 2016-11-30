@@ -72,11 +72,11 @@ def cy_getThinned3D(unsigned long long int[:, :, :] arr):
         # loop through all 12 subiterations
         for i in range(12):
             nonzeroCoordinates = np.asarray(np.transpose(np.nonzero(arr)), order='C')
-            boundaryArr = cy_convolve(arr, kernel=SELEMENT, points=nonzeroCoordinates)
-            nonzeroCoordinates =  np.asarray([index for value, index in zip(boundaryArr, nonzeroCoordinates) if boundaryArr[value] != 6], order='C')
+            borderPointArr = cy_convolve(arr, kernel=SELEMENT, points=nonzeroCoordinates)
+            borderPointCoordinates =  np.asarray([index for value, index in zip(borderPointArr, nonzeroCoordinates) if value != 7], order='C')
             # convolve to find config number and convolve only at points in the array "nonzeroCoordinates"
-            convImage = cy_convolve(arr, kernel=DIRECTIONS_LIST[i], points=nonzeroCoordinates)
-            removableIndices = (index for value, index in zip(convImage, nonzeroCoordinates) if LOOKUPARRAY[value] == 1)
+            convImage = cy_convolve(arr, kernel=DIRECTIONS_LIST[i], points=borderPointCoordinates)
+            removableIndices = (index for value, index in zip(convImage, borderPointCoordinates) if LOOKUPARRAY[value] == 1)
             for x, y, z in removableIndices:
                 arr[x, y, z] = 0
         numPixelsremoved = pixBefore - np.sum(arr)

@@ -59,16 +59,17 @@ def test_randomImage():
 def test_rectangles():
     # Test 3 All Rectangles should preserve topology and should have
     # same number of objects
-    testImages = skeleton_testlib.getStationary3dRectangles(width=0)
+    testImages = skeleton_testlib.getStationary3dRectangles()
     for image in testImages:
+        print(image.sum())
         yield checkSameObjects, image
 
 
-def test_singlePixelLines():
-    # Test 4 single pixel lines should still be the same in an image
-    testImages = skeleton_testlib.getStationary3DSinglePixelLines(width=0)
-    for image in testImages:
-        yield checkAlgorithmPreservesImage, image
+# def test_singlePixelLines():
+#     # Test 4 single pixel lines should still be the same in an image
+#     testImages = skeleton_testlib.getStationary3DSinglePixelLines(width=0)
+#     for image in testImages:
+#         yield checkAlgorithmPreservesImage, image
 
 
 def test_tinyLoopWithBranches():

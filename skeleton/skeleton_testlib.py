@@ -26,28 +26,6 @@ def getThinnedRandomBlob():
     return newImage
 
 
-def getStationary3DSinglePixelLines(width=5):
-    # Test #1:
-    # the answer that skeletonize gives for hLine/vLine should be the same as
-    # the input, as there is no pixel that can be removed without affecting
-    # the topology.
-    # The algorithim when run on any of the below feature sets
-    # Should return a skeleton that is the same as the feature
-    # A single horizontal/vertical line
-    hLine = np.zeros((25, 25, 25), dtype=np.uint8)
-    hLine[:, 8:8 + width, :] = 1
-    vLine = hLine.T.copy()
-
-    # A "comb" of lines
-    hLines = np.zeros((25, 25, 25), dtype=np.uint8)
-    hLines[0:width, ::3, :] = 1
-    vLines = hLines.T.copy()
-    # A grid made up of two perpendicular combs
-    grid = hLines | vLines
-    stationaryImages = [hLine, vLine, hLines, vLines, grid]
-    return stationaryImages
-
-
 def getStationary3dRectangles(width=5):
     # cubes of different sizes
     hLine = np.zeros((25, 25, 25), dtype=bool)
