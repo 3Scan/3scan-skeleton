@@ -13,7 +13,84 @@ Volume 61, Issue 4, July 1999, Pages 199-221 Attila Kuba, 1999
 """
 
 
-def _getVoxelDeletionFlag(neighborValues, direction):
+def firstTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z):
+    result = ((not a) & (not b) & (not c) & (not j) & (not k) & (not l) & (not r) & (not s) & (not t) & p &
+              (d | e | f | m | n | u | v | w | g | h | i | o | q | x | y | z))
+    return result
+
+
+def secondTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z):
+    result = ((not a) & (not b) & (not c) & (not d) & (not e) & (not f) & (not g) & (not h) & (not i) & v &
+              (r | s | t | j | k | l | m | n | u | w | o | p | q | x | y | z))
+    return result
+
+
+def thirdTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z):
+    result = ((not a) & (not b) & (not c) & (not j) & (not k) & (not l) & (not r) & (not s) & (not t) & (not d) &
+              (not e) & (not f) & (not g) & (not h) & (not i) & y & (m | n | u | w | o | q | x | z))
+    return result
+
+
+def fourthTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z):
+    result = ((not a) & (not b) & (not c) & (not k) & (not e) & (not (d & j)) & (not (l & f)) & p & v)
+    return result
+
+
+def fifthTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z):
+    result = ((not a) & (not b) & (not k) & (not e) & c & v & p & (not (j & d)) & (l ^ f))
+    return result
+
+
+def sixthTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z):
+    result = (a & v & p & (not b) & (not c) & (not k) & (not e) & (not (l & f)) & (j ^ d))
+    return result
+
+
+def seventhTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z):
+    result = ((not a) & (not b) & (not k) & (not e) & n & v & p & (not (j & d)))
+    return result
+
+
+def eighthTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z):
+    result = ((not b) & (not c) & (not k) & (not e) & m & v & p & (not (l & f)))
+    return result
+
+
+def ninthTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z):
+    result = ((not b) & (not k) & (not e) & a & n & v & p & (j ^ d))
+    return result
+
+
+def tenthTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z):
+    result = ((not b) & (not k) & (not e) & c & m & v & p & (l ^ f))
+    return result
+
+
+def eleventhTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z):
+    result = ((not a) & (not b) & (not c) & (not j) & (not k) & (not l) & (not r) & (not s) & (not t) & (not d) &
+              (not e) & (not g) & (not h) & q & y)
+    return result
+
+
+def twelvethTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z):
+    result = ((not a) & (not b) & (not c) & (not j) & (not k) & (not l) & (not r) & (not s) & (not t) & (not e) &
+              (not f) & (not h) & (not i) & o & y)
+    return result
+
+
+def thirteenthTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z):
+    result = ((not a) & (not b) & (not c) & (not j) & (not k) & (not r) & (not s) & (not d) & (not e) & (not f) &
+              (not g) & (not h) & (not i) & w & y)
+    return result
+
+
+def fourteenthTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z):
+    result = ((not a) & (not b) & (not c) & (not d) & (not e) & (not f) & (not g) & (not h) & (not i) &
+              (not k) & (not l) & (not s) & (not t) & u & y)
+    return result
+
+
+def getVoxelDeletionFlag(neighborValues, direction):
     """
     Returns a flag saying voxel should be deleted or not
 
@@ -40,20 +117,20 @@ def _getVoxelDeletionFlag(neighborValues, direction):
     # assign 26 voxels in a 2nd ordered neighborhood of a 3D voxels as 26 alphabet variables
     a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z = tuple(neighborValues)
     # insert aplhabetical variables into equations of templates for deleting the boundary voxel
-    shouldVoxelBeDeleted = (~(a) & ~(b) & ~(c) & ~(j) & ~(k) & ~(l) & ~(r) & ~(s) & ~(t) & p & (d | e | f | m | n | u | v | w | g | h | i | o | q | x | y | z)) | \
-                           (~(a) & ~(b) & ~(c) & ~(d) & ~(e) & ~(f) & ~(g) & ~(h) & ~(i) & v & (r | s | t | j | k | l | m | n | u | w | o | p | q | x | y | z)) | \
-                           (~(a) & ~(b) & ~(c) & ~(j) & ~(k) & ~(l) & ~(r) & ~(s) & ~(t) & ~(d) & ~(e) & ~(f) & ~(g) & ~(h) & ~(i) & y & (m | n | u | w | o | q | x | z)) | \
-                           (~(a) & ~(b) & ~(c) & ~(k) & ~(e) & ~(d & j) & ~ (l & f) & p & v) | \
-                           (~(a) & ~(b) & ~(k) & ~(e) & c & v & p & ~(j & d) & (l ^ f)) | \
-                           (a & v & p & ~(b) & ~(c) & ~(k) & ~(e) & ~(l & f) & (j ^ d)) | \
-                           (~(a) & ~(b) & ~(k) & ~(e) & n & v & p & ~(j & d)) | \
-                           (~(b) & ~(c) & ~(k) & ~(e) & m & v & p & ~(l & f)) | \
-                           (~(b) & ~(k) & ~(e) & a & n & v & p & (j ^ d)) | \
-                           (~(b) & ~(k) & ~(e) & c & m & v & p & (l ^ f)) | \
-                           (~(a) & ~(b) & ~(c) & ~(j) & ~(k) & ~(l) & ~(r) & ~(s) & ~(t) & ~(d) & ~(e) & ~(g) & ~(h) & q & y) | \
-                           (~(a) & ~(b) & ~(c) & ~(j) & ~(k) & ~(l) & ~(r) & ~(s) & ~(t) & ~(e) & ~(f) & ~(h) & ~(i) & o & y) | \
-                           (~(a) & ~(b) & ~(c) & ~(j) & ~(k) & ~(r) & ~(s) & ~(d) & ~(e) & ~(f) & ~(g) & ~(h) & ~(i) & w & y) | \
-                           (~(a) & ~(b) & ~(c) & ~(d) & ~(e) & ~(f) & ~(g) & ~(h) & ~(i) & ~(k) & ~(l) & ~(s) & ~(t) & u & y)
+    shouldVoxelBeDeleted = (firstTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) |
+                            secondTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) |
+                            thirdTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) |
+                            fourthTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) |
+                            fifthTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) |
+                            sixthTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) |
+                            seventhTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) |
+                            eighthTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) |
+                            ninthTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) |
+                            tenthTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) |
+                            eleventhTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) |
+                            twelvethTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) |
+                            thirteenthTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) |
+                            fourteenthTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z))
     return shouldVoxelBeDeleted
 
 
@@ -92,7 +169,7 @@ def generateLookupArray(stop=2**26, direction=TRANSFORMATIONS_LIST[0]):
         else:
             # voxel at origin/center of the cube should be nonzero, so insert
             neighborValues.insert(13, 1)
-            lookUparray[item] = _getVoxelDeletionFlag(neighborValues, direction)
+            lookUparray[item] = getVoxelDeletionFlag(neighborValues, direction)
     return lookUparray
 
 if __name__ == '__main__':
