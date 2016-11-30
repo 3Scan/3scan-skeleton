@@ -56,11 +56,6 @@ def eulerAnglesToRotationMatrix(theta):
     return np.array((R_x, R_y, R_z))
 
 
-def rotate(cylinders, angle, axis):
-    cr = scipy.ndimage.interpolation.rotate(cylinders, angle)
-    return cr
-
-
 def getPhantom(slices):
     vessels = _getCrosssection()
     phantom = np.zeros((slices, vessels.shape[0], vessels.shape[1]), dtype=np.uint8)
@@ -94,3 +89,4 @@ def getPhantomLineToCheckOrientation(size=(25, 25, 25)):
 if __name__ == '__main__':
     phantom = getPhantom(424)
     np.save('/home/pranathi/Downloads/phantom.npy', phantom)
+    cylinderRotated = scipy.ndimage.interpolation.rotate(phantom, 45)

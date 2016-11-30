@@ -57,7 +57,7 @@ def _getVoxelDeletionFlag(neighborValues, direction):
     return shouldVoxelBeDeleted
 
 
-def generateLookupArray(stop, direction=TRANSFORMATIONS_LIST[0]):
+def generateLookupArray(stop=2**26, direction=TRANSFORMATIONS_LIST[0]):
     """
     Returns lookuparray
 
@@ -83,14 +83,15 @@ def generateLookupArray(stop, direction=TRANSFORMATIONS_LIST[0]):
     """
     lookUparray = np.zeros(stop, dtype=bool)
     for item in range(0, stop):
+        print("nth iteration", item)
         # convert the decimal number to a binary string
         neighborValues = [(item >> digit) & 0x01 for digit in range(26)]
-        # voxel at origin/center of the cube should be nonzero, so insert
-        neighborValues.insert(13, 1)
-        # if it's a single non zero voxel in the cube
+        # if it's a single non zero voxel in the 26 neighbors
         if np.sum(neighborValues) == 1:
             lookUparray[item] = 0
         else:
+            # voxel at origin/center of the cube should be nonzero, so insert
+            neighborValues.insert(13, 1)
             lookUparray[item] = _getVoxelDeletionFlag(neighborValues, direction)
     return lookUparray
 

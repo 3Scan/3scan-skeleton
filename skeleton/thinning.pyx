@@ -1,10 +1,18 @@
+import time
+
 import numpy as np
+from scipy import ndimage
 cimport cython  # NOQA
 from rotationalOperators import DIRECTIONS_LIST, LOOKUPARRAY_PATH
 """
 cython convolve to speed up thinning
 """
-lookUparray = np.load(LOOKUPARRAY_PATH)
+LOOKUPARRAY = np.load(LOOKUPARRAY_PATH)
+
+SELEMENT = np.array([[[False, False, False], [False,  True, False], [False, False, False]],
+                     [[False,  True, False], [True,  True,  True], [False,  True, False]],
+                     [[False, False, False], [False,  True, False], [False, False, False]]], dtype=np.uint64)
+
 
 def cy_convolve(unsigned long long int[:, :, :] binaryArr, unsigned long long int[:, :, :] kernel, Py_ssize_t[:, ::1]  points):
     """
@@ -46,27 +54,32 @@ def cy_getThinned3D(unsigned long long int[:, :, :] arr):
     Parameters
     ----------
     binaryArr : Numpy array
-        2D or 3D binary numpy array
+        3D binary numpy array
 
     Returns
     -------
     Numpy array
-        2D or 3D binary thinned numpy array of the same shape
+        3D binary thinned numpy array of the same shape
     """
     assert np.max(arr) in [0, 1], "arr must be boolean"
     cdef Py_ssize_t numPixelsremoved = 1
+    cdef Py_ssize_t iterCount = 0 
     cdef Py_ssize_t x, y, z
-    # Loop until array doesn't change equivalent to you cant remove any pixels 
-    # => numPixelsremoved = 0
+    # Loop until array doesn't change equivalent to you cant remove any pixels => numPixelsremoved = 0
     while numPixelsremoved > 0:
+        iterTime = time.time()
         pixBefore = np.sum(arr)
         # loop through all 12 subiterations
         for i in range(12):
             nonzeroCoordinates = np.asarray(np.transpose(np.nonzero(arr)), order='C')
+            boundaryArr = cy_convolve(arr, kernel=SELEMENT, points=nonzeroCoordinates)
+            nonzeroCoordinates =  np.asarray([index for value, index in zip(boundaryArr, nonzeroCoordinates) if boundaryArr[value] != 6], order='C')
             # convolve to find config number and convolve only at points in the array "nonzeroCoordinates"
             convImage = cy_convolve(arr, kernel=DIRECTIONS_LIST[i], points=nonzeroCoordinates)
-            removableIndices = (index for value, index in zip(convImage, nonzeroCoordinates) if lookUparray[value] == 1)
+            removableIndices = (index for value, index in zip(convImage, nonzeroCoordinates) if LOOKUPARRAY[value] == 1)
             for x, y, z in removableIndices:
                 arr[x, y, z] = 0
         numPixelsremoved = pixBefore - np.sum(arr)
+        iterCount += 1
+        print("Finished iteration {}, {} s, removed {} pixels".format(iterCount, time.time() - iterTime, numPixelsremoved))
     return np.asarray(arr)
