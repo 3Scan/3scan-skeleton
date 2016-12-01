@@ -83,7 +83,6 @@ def cy_getThinned3D(unsigned long long int[:, :, :] arr):
             removableIndices = (index for value, index in zip(convImage, borderPointCoordinates) if LOOKUPARRAY[value] == 1)
             for x, y, z in removableIndices:
                 arr[x, y, z] = 0
-        print(pixBefore)
         numPixelsremoved = pixBefore - np.sum(arr)
         iterCount += 1
         print("Finished iteration {}, {} s, removed {} pixels".format(iterCount, time.time() - iterTime, numPixelsremoved))
