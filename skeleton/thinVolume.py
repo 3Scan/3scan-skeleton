@@ -36,7 +36,7 @@ def getThinned(binaryArr):
         assert np.max(binaryArr) in [0, 1], "input must always be a binary array"
         start_skeleton = time.time()
         zOrig, yOrig, xOrig = np.shape(binaryArr)
-        orig = np.lib.pad(np.uint64(binaryArr), (1, 1), 'edge')
+        orig = np.lib.pad(np.uint64(binaryArr), 1, 'edge')
         cy_getThinned3D(orig)
         print("thinned %i number of pixels in %0.2f seconds" % (voxCount, time.time() - start_skeleton))
     return orig[1:zOrig + 1, 1: yOrig + 1, 1: xOrig + 1].astype(bool)
