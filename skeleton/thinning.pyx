@@ -12,7 +12,7 @@ cython convolve to speed up thinning
 LOOKUPARRAY = np.load(LOOKUPARRAY_PATH)
 
 SELEMENT = np.array([[[False, False, False], [False,  True, False], [False, False, False]],
-                     [[False,  True, False], [True,  True,  True], [False,  True, False]],
+                     [[False,  True, False], [True,  False,  True], [False,  True, False]],
                      [[False, False, False], [False,  True, False], [False, False, False]]], dtype=np.uint64)
 
 
@@ -77,7 +77,7 @@ def cy_getThinned3D(unsigned long long int[:, :, :] arr):
         for i in range(12):
             nonzeroCoordinates = np.asarray(np.transpose(np.nonzero(arr)), order='C')
             borderPointArr = cy_convolve(arr, kernel=SELEMENT, points=nonzeroCoordinates)
-            borderPointCoordinates =  np.asarray([index for value, index in zip(borderPointArr, nonzeroCoordinates) if value != 7], order='C')
+            borderPointCoordinates =  np.asarray([index for value, index in zip(borderPointArr, nonzeroCoordinates) if value != 6], order='C')
             # convolve to find config number and convolve only at points in the array "nonzeroCoordinates"
             convImage = cy_convolve(arr, kernel=DIRECTIONS_LIST[i], points=borderPointCoordinates)
             removableIndices = (index for value, index in zip(convImage, borderPointCoordinates) if LOOKUPARRAY[value] == 1)
