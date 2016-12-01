@@ -1,10 +1,8 @@
 import time
 
 import numpy as np
-from scipy import ndimage
 cimport cython  # NOQA
 
-from skeleton.unitWidthCurveSkeleton import outOfPixBounds
 from skeleton.rotationalOperators import DIRECTIONS_LIST, LOOKUPARRAY_PATH
 """
 cython convolve to speed up thinning
@@ -46,9 +44,7 @@ def cy_convolve(unsigned long long int[:, :, :] binaryArr, unsigned long long in
         for k in range(ks):
             for i in range(ks):
                 for j in range(ks):
-                    nearByCoordinate = (z + k - 1, y + i - 1, x + j - 1)
-                    if not outOfPixBounds(nearByCoordinate, arrShape):
-                        responses[n] += binaryArr[z + k - 1, y + i - 1, x + j - 1] * kernel[k, i, j]
+                    responses[n] += binaryArr[z + k - 1, y + i - 1, x + j - 1] * kernel[k, i, j]
     return np.asarray(responses, order='C')
 
 
@@ -65,7 +61,6 @@ def cy_getThinned3D(unsigned long long int[:, :, :] arr):
     Numpy array
         3D binary thinned numpy array of the same shape
     """
-    assert np.max(arr) in [0, 1], "arr must be boolean"
     cdef Py_ssize_t numPixelsremoved = 1
     cdef Py_ssize_t iterCount = 0 
     cdef Py_ssize_t x, y, z
@@ -74,13 +69,12 @@ def cy_getThinned3D(unsigned long long int[:, :, :] arr):
         iterTime = time.time()
         pixBefore = np.sum(arr)
         # loop through all 12 subiterations
+        nonzeroCoordinates = np.asarray(np.transpose(np.nonzero(arr)), order='C')
+        borderPointArr = cy_convolve(arr, kernel=SELEMENT, points=nonzeroCoordinates)
+        borderPointArrCoordinates =  np.asarray([index for value, index in zip(borderPointArr, nonzeroCoordinates) if value != 6], order='C')
         for i in range(12):
-            nonzeroCoordinates = np.asarray(np.transpose(np.nonzero(arr)), order='C')
-            borderPointArr = cy_convolve(arr, kernel=SELEMENT, points=nonzeroCoordinates)
-            borderPointCoordinates =  np.asarray([index for value, index in zip(borderPointArr, nonzeroCoordinates) if value != 6], order='C')
-            # convolve to find config number and convolve only at points in the array "borderPointCoordinates"
-            convImage = cy_convolve(arr, kernel=DIRECTIONS_LIST[i], points=borderPointCoordinates)
-            removableIndices = (index for value, index in zip(convImage, borderPointCoordinates) if LOOKUPARRAY[value] == 1)
+            convImage = cy_convolve(arr, kernel=DIRECTIONS_LIST[i], points=borderPointArr)
+            removableIndices = (index for value, index in zip(convImage, borderPointArr) if LOOKUPARRAY[value] == 1)
             for x, y, z in removableIndices:
                 arr[x, y, z] = 0
         numPixelsremoved = pixBefore - np.sum(arr)

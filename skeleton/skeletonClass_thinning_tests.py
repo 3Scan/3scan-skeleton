@@ -21,7 +21,6 @@ def checkSameObjects(image):
     skel.setThinningOutput()
     newImage = skel.thinnedStack
     label_img, countObjectsn = ndimage.measurements.label(newImage, structure=np.ones([3] * dims, dtype=bool))
-    np.save("image.npy", image)
     assert (countObjectsn == countObjects), ("number of objects in input "
                                              "{} is different from output {}".format(countObjects, countObjectsn))
     return newImage
@@ -68,7 +67,7 @@ def test_rectangles():
 
 def test_singlePixelLines():
     # Test 4 single pixel lines should still be the same in an image
-    testImages = skeleton_testlib.getStationary3DSinglePixelLines(width=0)
+    testImages = skeleton_testlib.getStationary3dRectangles(width=0)
     for image in testImages:
         yield checkAlgorithmPreservesImage, image
 
