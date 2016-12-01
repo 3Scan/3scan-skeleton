@@ -3,7 +3,9 @@ import time
 import numpy as np
 from scipy import ndimage
 cimport cython  # NOQA
-from rotationalOperators import DIRECTIONS_LIST, LOOKUPARRAY_PATH
+
+from skeleton.unitWidthCurveSkeleton import outOfPixBounds
+from skeleton.rotationalOperators import DIRECTIONS_LIST, LOOKUPARRAY_PATH
 """
 cython convolve to speed up thinning
 """
@@ -32,6 +34,7 @@ def cy_convolve(unsigned long long int[:, :, :] binaryArr, unsigned long long in
     responses : Numpy array
         3D convolved numpy array only at "points"
     """
+    arrShape = np.asarray(binaryArr).shape
     cdef Py_ssize_t i, j, y, z, x, n
     cdef Py_ssize_t ks = kernel.shape[0]
     cdef Py_ssize_t npoints = points.shape[0]
@@ -43,8 +46,9 @@ def cy_convolve(unsigned long long int[:, :, :] binaryArr, unsigned long long in
         for k in range(ks):
             for i in range(ks):
                 for j in range(ks):
-                    responses[n] += binaryArr[z + k - 1, y + i - 1, x + j - 1] * kernel[k, i, j]
-
+                    nearByCoordinate = (z + k - 1, y + i - 1, x + j - 1)
+                    if not outOfPixBounds(nearByCoordinate, arrShape):
+                        responses[n] += binaryArr[z + k - 1, y + i - 1, x + j - 1] * kernel[k, i, j]
     return np.asarray(responses, order='C')
 
 

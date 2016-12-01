@@ -24,17 +24,19 @@ def getThinned(binaryArr):
 
     Returns
     -------
-    result : Numpy array
+    result : boolean Numpy array
         2D or 3D binary thinned numpy array of the same shape
     """
     voxCount = np.sum(binaryArr)
-    if len(binaryArr.shape) == 2:
-        return skeletonize(binaryArr)
+    if binaryArr.sum() == 0:
+        return binaryArr.astype(bool)
+    elif len(binaryArr.shape) == 2:
+        return skeletonize(binaryArr).astype(bool)
     else:
         assert np.max(binaryArr) in [0, 1], "input must always be a binary array"
         start_skeleton = time.time()
         zOrig, yOrig, xOrig = np.shape(binaryArr)
-        orig = np.pad(np.uint64(binaryArr), 1, mode='constant')
+        orig = np.lib.pad(np.uint64(binaryArr), (1, 1), 'edge')
         cy_getThinned3D(orig)
         print("thinned %i number of pixels in %0.2f seconds" % (voxCount, time.time() - start_skeleton))
     return orig[1:zOrig + 1, 1: yOrig + 1, 1: xOrig + 1].astype(bool)

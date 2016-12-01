@@ -131,12 +131,11 @@ def getNetworkxGraphFromArray(arr):
     networkxGraph : Networkx graph
         graphical representation of the input array
     """
-    assert arr.max() == 1
-    assert arr.min() in [0, 1]
+    assert arr.max() == 1, arr.max()
+    assert arr.min() in [0, 1], arr.min()
     start = time.time()
     dictOfIndicesAndAdjacentcoordinates = _setAdjacencyList(arr)
     G = nx.from_dict_of_lists(dictOfIndicesAndAdjacentcoordinates)
-
     print("time taken to obtain networkxGraph is %0.3f seconds" % (time.time() - start))
     return G
 
