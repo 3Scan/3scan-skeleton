@@ -79,5 +79,5 @@ def cy_getThinned3D(unsigned long long int[:, :, :] arr):
                 arr[x, y, z] = 0
         numPixelsremoved = pixBefore - np.sum(arr)
         iterCount += 1
-        print("Finished iteration {}, {} s, removed {} pixels".format(iterCount, time.time() - iterTime, numPixelsremoved))
+        print("Finished iteration %i, %0.2f s, removed {} pixels" % (iterCount, time.time() - iterTime, numPixelsremoved))
     return np.asarray(arr)
