@@ -74,9 +74,8 @@ def cy_getThinned3D(unsigned long long int[:, :, :] arr):
         borderPointArrCoordinates =  np.asarray([index for value, index in zip(borderPointArr, nonzeroCoordinates) if value != 6], order='C')
         for i in range(12):
             convImage = cy_convolve(arr, kernel=DIRECTIONS_LIST[i], points=borderPointArrCoordinates)
-            removableIndices = (index for value, index in zip(convImage, borderPointArrCoordinates) if LOOKUPARRAY[value] == 1)
-            for x, y, z in removableIndices:
-                arr[x, y, z] = 0
+            for value, index in zip(convImage, borderPointArrCoordinates):
+                if LOOKUPARRAY[value]): arr[index] = 0
         numPixelsremoved = pixBefore - np.sum(arr)
         iterCount += 1
         print("Finished iteration %i, %0.2f s, removed {} pixels" % (iterCount, time.time() - iterTime, numPixelsremoved))
