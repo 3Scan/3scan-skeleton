@@ -6,11 +6,11 @@ import numpy as np
 import scipy
 
 
-def makeFakeVessels(imgsize=(2048, 1024), background=230):
+def makeFakeVessels(imgsize=(512, 512), background=230):
     """
     create and save a matrix with whitish background and randomly selected vessel sizes and save matrices generated as images of format png
     """
-    nVes = 1
+    nVes = 20
     mu = 20
     sigma = 5
     minw = 5
@@ -26,13 +26,13 @@ def makeFakeVessels(imgsize=(2048, 1024), background=230):
             r2 = np.random.normal(mu, sigma)
         print(r1, r2)
 
-        rr, cc = ellipse(cy, cx, r1, r1)
-        # if np.any(rr >= sy):
-        #     ix = rr < sy
-        #     rr, cc = rr[ix], cc[ix]
-        # if np.any(cc >= sx):
-        #     ix = cc < sx
-        #     rr, cc = rr[ix], cc[ix]
+        rr, cc = ellipse(cy, cx, r1, r2)
+        if np.any(rr >= sy):
+            ix = rr < sy
+            rr, cc = rr[ix], cc[ix]
+        if np.any(cc >= sx):
+            ix = cc < sx
+            rr, cc = rr[ix], cc[ix]
         vasc[rr, cc] = 1  # make circle blackish
     return vasc
 
