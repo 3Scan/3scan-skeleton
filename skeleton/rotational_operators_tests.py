@@ -8,14 +8,6 @@ RAND_ARR = np.array([[[0, 0, 0], [0, 0, 0], [0, 0, 0]],
                     [[0, 1, 0], [0, 0, 1], [0, 0, 0]]], dtype=bool)
 
 
-def raise_assertion_error(call, arg):
-    """ helper function to raise error and print if error is raised correctly"""
-    try:
-        return call(arg)
-    except AssertionError:
-        print("error raised correctly")
-
-
 def test_column():
     expected_summations = [1, 2, 0]
     for index, summation in enumerate(expected_summations):
@@ -23,8 +15,12 @@ def test_column():
 
 
 def test_rotate_3D_90():
+    # test if rot_3D_90 raises assertion error correctly
+    try:
+        rotational_operators.rot_3D_90(RAND_ARR[0:1])
+    except AssertionError:
+        print("error raised correctly")
     expected_sum = RAND_ARR.sum()
-    raise_assertion_error(rotational_operators.rot_3D_90, RAND_ARR[0:1])
     obtained_sum = rotational_operators.rot_3D_90(RAND_ARR).sum()
     assert obtained_sum == expected_sum, "expeceted {}, obtained {}".format(expected_sum, obtained_sum)
 
