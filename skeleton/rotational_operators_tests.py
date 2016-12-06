@@ -22,7 +22,7 @@ def test_column():
         assert rotational_operators._column(RAND_ARR, index).sum() == summation
 
 
-def test_rotate3D():
+def test_rotate_3D_90():
     expected_sum = RAND_ARR.sum()
     raise_assertion_error(rotational_operators.rot_3D_90, RAND_ARR[0:1])
     obtained_sum = rotational_operators.rot_3D_90(RAND_ARR).sum()
@@ -34,6 +34,7 @@ def test_get_directions_list():
                            [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
                            [[0, 0, 0], [0, 0, 0], [0, 0, 0]]], dtype=np.uint8)
     directions_list = rotational_operators.get_directions_list(test_array)
+    # expected index where 1 occurs after one of the rotation in 12 directions
     expected_results = [1, 23, 15, 5, 9, 25, 3, 19, 17, 21, 11, 7]
     for expected_result, direction in zip(expected_results, directions_list):
         assert direction.reshape(27).tolist()[expected_result]
