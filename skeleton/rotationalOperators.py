@@ -114,6 +114,7 @@ def rot3D90(cubeArray, rotAxis='z', k=0):
         roated cubeArray of the cubeArray
 
     """
+    assert cubeArray.ndim == 3, "number of dimensions must be 3, it is %i " % cubeArray.ndim
     k = k % 4  # modulus of k, since rotating 5 times is same as rotating once (360 degrees rotation)
     if rotAxis == 'z':
         if k == 0:  # doesn't rotate
@@ -165,7 +166,7 @@ def getDirectionsList(cubeArray):
     list
 
     """
-    assert 1 not in np.unique(cubeArray.shape)
+    assert cubeArray.ndim == 3, "number of dimensions must be 3, it is %i " % cubeArray.ndim
     # mask outs border voxels in US
     firstSubiteration = cubeArray.copy(order='C')
     # mask outs border voxels in NE
