@@ -1,6 +1,6 @@
 import numpy as np
 
-from skeleton.rotationalOperators import getDirectionsList
+from skeleton.rotational_operators import get_directions_list
 
 """
 Lookuptable is 3Scan's idea of pre-generating a look up array of length (2 ** 26)
@@ -113,7 +113,7 @@ def getVoxelDeletionFlag(neighborValues, direction):
     # reshape neighborValues to a 3 x 3 x 3 cube
     neighborMatrix = np.reshape(neighborValues, (3, 3, 3))
     # transform neighborValues to direction
-    neighborValues = getDirectionsList(neighborMatrix)[direction]
+    neighborValues = get_directions_list(neighborMatrix)[direction]
     neighborValues = list(np.reshape(neighborValues, 27))
     del(neighborValues[13])
     # assign 26 voxels in a 2nd ordered neighborhood of a 3D voxels as 26 alphabet variables
