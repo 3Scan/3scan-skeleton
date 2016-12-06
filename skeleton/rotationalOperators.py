@@ -9,6 +9,11 @@ as in reference paper
 A Parallel 3D 12-Subiteration Thinning Algorithm Kálmán Palágyi,Graphical Models and Image Processing
 Volume 61, Issue 4, July 1999, Pages 199-221 Attila Kuba, 1999
 cube is of equal dimensions in x, y and z in this program
+first dimension(0) is z, second(1) is y, third(2) is x
+np.rot90 is not used to Rotate an array by 90 degrees in the counter-clockwise direction.
+The first two dimensions are rotated; therefore, the array must be atleast 2-D. nor
+scipy.ndimage.interpolation.rotate is used because axes definitions are different in scipy
+Instead a rot3D90 is written in this program to work to our needs
 """
 
 
@@ -28,6 +33,7 @@ def column(cubeArray, i):
     array formed from ith column of the cubeArray
 
     """
+    assert cubeArray.ndim > 1, "number of dimensions must be greater than one, it is %i " % cubeArray.ndim
     return np.array([row[i] for row in cubeArray])
 
 
@@ -44,6 +50,7 @@ def flipLrInX(cubeArray):
     flip a 3D cube array in X with respect to element at origin, center of the cube
 
     """
+    assert cubeArray.ndim == 3, "number of dimensions must be 3, it is %i " % cubeArray.ndim
     cubeArrayFlippedLrInX = np.copy(cubeArray)
     cubeArrayFlippedLrInX[:] = cubeArray[:, :, ::-1]
     return cubeArrayFlippedLrInX
@@ -62,6 +69,7 @@ def flipUdInY(cubeArray):
     flip a 3D cube array in Y with respect to element at origin, center of the cube
 
     """
+    assert cubeArray.ndim == 3, "number of dimensions must be 3, it is %i " % cubeArray.ndim
     cubeArrayFlippedUdInY = np.copy(cubeArray)
     cubeArrayFlippedUdInY[:] = cubeArray[:, ::-1, :]
     return cubeArrayFlippedUdInY
@@ -80,273 +88,10 @@ def flipFbInZ(cubeArray):
     flip a 3D cube array in Z with respect to element at origin, center of the cube
 
     """
+    assert cubeArray.ndim == 3, "number of dimensions must be 3, it is %i " % cubeArray.ndim
     cubeArrayFlippedFbInZ = np.copy(cubeArray)
     cubeArrayFlippedFbInZ[:] = cubeArray[::-1, :, :]
     return cubeArrayFlippedFbInZ
-
-
-def firstSubIter(cubeArray):
-    """
-    Returns a list of array elements after no transformation
-    Parameters
-    ----------
-    cubeArray : numpy array
-        3D numpy array
-
-    Returns
-    -------
-    listedArray: list
-        list of 26 elements
-    returns a list of array elements after removing the element at origin
-    after transforming array in Up South (US)
-    """
-    assert 1 not in np.unique(cubeArray.shape)
-    listedArray = list(np.reshape(cubeArray, 27))
-    del(listedArray[13])
-    return listedArray
-
-
-def secondSubIter(cubeArray):
-    """
-    Returns a list of array elements after 1st transformation
-    Parameters
-    ----------
-    cubeArray : numpy array
-        3D numpy array
-
-    Returns
-    -------
-    listedArray: list
-        list of 26 elements
-    returns a list of array elements after removing the element at origin
-    after transforming array in North East (NE)
-    """
-    assert 1 not in np.unique(cubeArray.shape)
-    firstTransition = rot3D90(rot3D90(cubeArray, 'y', 2), 'x', 3)
-    listedArray = list(np.reshape(firstTransition, 27))
-    del(listedArray[13])
-    return listedArray
-
-
-def thirdSubIter(cubeArray):
-    """
-    Returns a list of array elements after 2nd transformation
-    Parameters
-    ----------
-    cubeArray : numpy array
-        3D numpy array
-
-    Returns
-    -------
-    listedArray: list
-        list of 26 elements
-    returns a list of array elements after removing the element at origin
-    after transforming array in West Down (WD)
-    """
-    assert 1 not in np.unique(cubeArray.shape)
-    secondTransition = rot3D90(rot3D90(cubeArray, 'x', 1), 'z', 1)
-    listedArray = list(np.reshape(secondTransition, 27))
-    del(listedArray[13])
-    return listedArray
-
-
-def fourthSubIter(cubeArray):
-    """
-    Returns a list of array elements after 3rd transformation
-    Parameters
-    ----------
-    cubeArray : numpy array
-        3D numpy array
-
-    Returns
-    -------
-    listedArray: list
-        list of 26 elements
-    returns a list of array elements after removing the element at origin
-    after transforming array in East South (ES)
-    """
-    assert 1 not in np.unique(cubeArray.shape)
-    thirdTransition = rot3D90(cubeArray, 'x', 3)
-    listedArray = list(np.reshape(thirdTransition, 27))
-    del(listedArray[13])
-    return listedArray
-
-
-def fifthSubIter(cubeArray):
-    """
-    Returns a list of array elements after 4th transformation
-    Parameters
-    ----------
-    cubeArray : numpy array
-        3D numpy array
-
-    Returns
-    -------
-    listedArray: list
-        list of 26 elements
-    returns a list of array elements after removing the element at origin
-    after transforming array in Up West (UW)
-    """
-    assert 1 not in np.unique(cubeArray.shape)
-    fourthTransition = rot3D90(cubeArray, 'y', 3)
-    listedArray = list(np.reshape(fourthTransition, 27))
-    del(listedArray[13])
-    return listedArray
-
-
-def sixthSubIter(cubeArray):
-    """
-    Returns a list of array elements after 5th transformation
-    Parameters
-    ----------
-    cubeArray : numpy array
-        3D numpy array
-
-    Returns
-    -------
-    listedArray: list
-        list of 26 elements
-    returns a list of array elements after removing the element at origin
-    after transforming array in North Down (ND)
-    """
-    assert 1 not in np.unique(cubeArray.shape)
-    fifthTransition = rot3D90(rot3D90(rot3D90(cubeArray, 'x', 3), 'z', 1), 'y', 1)
-    listedArray = list(np.reshape(fifthTransition, 27))
-    del(listedArray[13])
-    return listedArray
-
-
-def seventhSubIter(cubeArray):
-    """
-    Returns a list of array elements after 6th transformation
-    Parameters
-    ----------
-    cubeArray : numpy array
-        3D numpy array
-
-    Returns
-    -------
-    listedArray: list
-        list of 26 elements
-    returns a list of array elements after removing the element at origin
-    after transforming array in South West (SW)
-    """
-    assert 1 not in np.unique(cubeArray.shape)
-    sixthTransition = rot3D90(cubeArray, 'x', 1)
-    listedArray = list(np.reshape(sixthTransition, 27))
-    del(listedArray[13])
-    return listedArray
-
-
-def eighthSubIter(cubeArray):
-    """
-    Returns a list of array elements after 7th transformation
-    Parameters
-    ----------
-    cubeArray : numpy array
-        3D numpy array
-
-    Returns
-    -------
-    listedArray: list
-        list of 26 elements
-    returns a list of array elements after removing the element at origin
-    after transforming array in Up North (UN)
-    """
-    assert 1 not in np.unique(cubeArray.shape)
-    seventhTransition = rot3D90(cubeArray, 'y', 2)
-    listedArray = list(np.reshape(seventhTransition, 27))
-    del(listedArray[13])
-    return listedArray
-
-
-def ninthSubIter(cubeArray):
-    """
-    Returns a list of array elements after 8th transformation
-    Parameters
-    ----------
-    cubeArray : numpy array
-        3D numpy array
-
-    Returns
-    -------
-    listedArray: list
-        list of 26 elements
-    returns a list of array elements after removing the element at origin
-    after transforming array in East Down (ED)
-    """
-    assert 1 not in np.unique(cubeArray.shape)
-    eighthTransition = rot3D90(rot3D90(cubeArray, 'x', 3), 'z', 1)
-    listedArray = list(np.reshape(eighthTransition, 27))
-    del(listedArray[13])
-    return listedArray
-
-
-def tenthSubIter(cubeArray):
-    """
-    Returns a list of array elements after 9th transformation
-    Parameters
-    ----------
-    cubeArray : numpy array
-        3D numpy array
-
-    Returns
-    -------
-    listedArray: list
-        list of 26 elements
-    returns a list of array elements after removing the element at origin
-    after transforming array in North West (NW)
-    """
-
-    assert 1 not in np.unique(cubeArray.shape)
-    ninthTransition = rot3D90(rot3D90(cubeArray, 'y', 2), 'x', 1)
-    listedArray = list(np.reshape(ninthTransition, 27))
-    del(listedArray[13])
-    return listedArray
-
-
-def eleventhSubIter(cubeArray):
-    """
-    Returns a list of array elements after 10th transformation
-    Parameters
-    ----------
-    cubeArray : numpy array
-        3D numpy array
-
-    Returns
-    -------
-    listedArray: list
-        list of 26 elements
-    returns a list of array elements after removing the element at origin
-    after transforming array in Up East (UE)
-    """
-    assert 1 not in np.unique(cubeArray.shape)
-    tenthTransition = rot3D90(cubeArray, 'y', 1)
-    listedArray = list(np.reshape(tenthTransition, 27))
-    del(listedArray[13])
-    return listedArray
-
-
-def twelvethSubIter(cubeArray):
-    """
-    Returns a list of array elements after 11th transformation
-    Parameters
-    ----------
-    cubeArray : numpy array
-        3D numpy array
-
-    Returns
-    -------
-    listedArray: list
-        list of 26 elements
-    returns a list of array elements after removing the element at origin
-    after transforming array in South Down (SD)
-    """
-    assert 1 not in np.unique(cubeArray.shape)
-    eleventhTransition = rot3D90(cubeArray, 'x', 2)
-    listedArray = list(np.reshape(eleventhTransition, 27))
-    del(listedArray[13])
-    return listedArray
 
 
 def rot3D90(cubeArray, rotAxis='z', k=0):
@@ -420,6 +165,7 @@ def getDirectionsList(cubeArray):
     list
 
     """
+    assert 1 not in np.unique(cubeArray.shape)
     # mask outs border voxels in US
     firstSubiteration = cubeArray.copy(order='C')
     # mask outs border voxels in NE
@@ -457,9 +203,5 @@ REFERENCE_ARRAY = np.array([[[33554432, 16777216, 8388608], [4194304, 2097152, 1
                            [[256, 128, 64], [32, 16, 8], [4, 2, 1]]], dtype=np.uint64)
 DIRECTIONS_LIST = getDirectionsList(REFERENCE_ARRAY)
 # List of 12 functions corresponding to transformations in 12 directions
-TRANSFORMATIONS_LIST = [firstSubIter, secondSubIter, thirdSubIter, fourthSubIter,
-                        fifthSubIter, sixthSubIter, seventhSubIter, eighthSubIter,
-                        ninthSubIter, tenthSubIter, eleventhSubIter, twelvethSubIter]
-
 # Path of pre-generated lookuparray.npy
 LOOKUPARRAY_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lookuparray.npy')

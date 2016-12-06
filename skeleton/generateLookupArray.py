@@ -1,6 +1,6 @@
 import numpy as np
 
-from skeleton.rotationalOperators import TRANSFORMATIONS_LIST
+from skeleton.rotationalOperators import getDirectionsList
 
 """
 Lookuptable is 3Scan's idea of pre-generating a look up array of length (2 ** 26)
@@ -113,28 +113,30 @@ def getVoxelDeletionFlag(neighborValues, direction):
     # reshape neighborValues to a 3 x 3 x 3 cube
     neighborMatrix = np.reshape(neighborValues, (3, 3, 3))
     # transform neighborValues to direction
-    neighborValues = direction(neighborMatrix)
+    neighborValues = getDirectionsList(neighborMatrix)[direction]
+    neighborValues = list(np.reshape(neighborValues, 27))
+    del(neighborValues[13])
     # assign 26 voxels in a 2nd ordered neighborhood of a 3D voxels as 26 alphabet variables
-    a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z = tuple(neighborValues)
+    neighborValues = tuple(neighborValues)
     # insert aplhabetical variables into equations of templates for deleting the boundary voxel
-    shouldVoxelBeDeleted = (firstTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) |
-                            secondTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) |
-                            thirdTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) |
-                            fourthTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) |
-                            fifthTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) |
-                            sixthTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) |
-                            seventhTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) |
-                            eighthTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) |
-                            ninthTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) |
-                            tenthTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) |
-                            eleventhTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) |
-                            twelvethTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) |
-                            thirteenthTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) |
-                            fourteenthTemplate(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z))
+    shouldVoxelBeDeleted = (firstTemplate(*neighborValues) |
+                            secondTemplate(*neighborValues) |
+                            thirdTemplate(*neighborValues) |
+                            fourthTemplate(*neighborValues) |
+                            fifthTemplate(*neighborValues) |
+                            sixthTemplate(*neighborValues) |
+                            seventhTemplate(*neighborValues) |
+                            eighthTemplate(*neighborValues) |
+                            ninthTemplate(*neighborValues) |
+                            tenthTemplate(*neighborValues) |
+                            eleventhTemplate(*neighborValues) |
+                            twelvethTemplate(*neighborValues) |
+                            thirteenthTemplate(*neighborValues) |
+                            fourteenthTemplate(*neighborValues))
     return shouldVoxelBeDeleted
 
 
-def generateLookupArray(stop=2**26, direction=TRANSFORMATIONS_LIST[0]):
+def generateLookupArray(stop=2**26, direction=0):
     """
     Returns lookuparray
 
@@ -143,8 +145,8 @@ def generateLookupArray(stop=2**26, direction=TRANSFORMATIONS_LIST[0]):
     stop : int
     integer describing the length of array
 
-    direction : array
-       transformation array describing rotation of cube to remove boundary voxels in a different direction
+    direction : int
+       describing nth rotation of cube to remove boundary voxels in a different direction
 
     Returns
     -------
@@ -174,7 +176,6 @@ def generateLookupArray(stop=2**26, direction=TRANSFORMATIONS_LIST[0]):
 
 if __name__ == '__main__':
     # generating and saving all the 12 lookuparrays
-    for index, direction in enumerate(TRANSFORMATIONS_LIST):
-        lookUparray = generateLookupArray(2 ** 26, direction)
-        print(direction)
+    for index in range(12):
+        lookUparray = generateLookupArray(2 ** 26, index)
         np.save("lookuparray%i.npy" % (index + 1), lookUparray)

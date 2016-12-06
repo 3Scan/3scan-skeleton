@@ -49,17 +49,6 @@ def test_rot3D90():
         assert rotationalOperators.rot3D90(randArr).sum() == randArr.sum()
 
 
-def test_iters():
-    assert len(rotationalOperators.TRANSFORMATIONS_LIST) == 12
-    for iterFunction in rotationalOperators.TRANSFORMATIONS_LIST:
-        try:
-            iterFunction(randArr[0:1])
-        except AssertionError:
-            print("error raised correctly")
-        finally:
-            assert sum(iterFunction(randArr)) + 1 == randArr.sum()
-
-
 def test_getDirectionList():
     test_array = np.array([[[0, 1, 0], [0, 0, 0], [0, 0, 0]],
                            [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
