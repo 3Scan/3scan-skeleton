@@ -3,7 +3,7 @@ import time
 import numpy as np
 cimport cython  # NOQA
 
-from skeleton.rotationalOperators import DIRECTIONS_LIST, LOOKUPARRAY_PATH
+from skeleton.rotational_operators import DIRECTIONS_LIST, LOOKUPARRAY_PATH
 """
 cython convolve to speed up thinning
 """
@@ -61,11 +61,11 @@ def cy_getThinned3D(unsigned long long int[:, :, :] arr):
     Numpy array
         3D binary thinned numpy array of the same shape
     """
-    cdef Py_ssize_t numPixelsremoved = 1
+    numPixelsremoved = 0
     cdef Py_ssize_t iterCount = 0 
     cdef Py_ssize_t x, y, z
     # Loop until array doesn't change equivalent to you cant remove any pixels => numPixelsremoved = 0
-    while numPixelsremoved > 0:
+    while iterCount == 0 or numPixelsRemoved > 0:
         iterTime = time.time()
         # loop through all 12 subiterations
         nonzeroCoordinates = np.asarray(np.transpose(np.nonzero(arr)), order='C')
