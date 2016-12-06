@@ -27,13 +27,13 @@ def getThinned(binaryArr):
     result : boolean Numpy array
         2D or 3D binary thinned numpy array of the same shape
     """
+    assert np.max(binaryArr) in [0, 1], "input must always be a binary array"
     voxCount = np.sum(binaryArr)
     if binaryArr.sum() == 0:
         return binaryArr.astype(bool)
     elif len(binaryArr.shape) == 2:
         return skeletonize(binaryArr).astype(bool)
     else:
-        assert np.max(binaryArr) in [0, 1], "input must always be a binary array"
         start_skeleton = time.time()
         zOrig, yOrig, xOrig = np.shape(binaryArr)
         orig = np.lib.pad(binaryArr, 1, 'constant')

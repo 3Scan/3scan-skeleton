@@ -1,10 +1,7 @@
-import numpy as np
-
 import skeleton.generateLookupArray as genLookUp
 
 TEST_CASE_ONES = [1] * 26
 TEST_CASE_ZEROES = [0] * 26
-TEST_CASE_RANDOMIZE = np.random.randint(2, size=(3, 3, 3)).reshape(27).tolist()[1:]
 
 
 def test_generateLookupArray():
@@ -21,9 +18,6 @@ def test_templates():
         assert template(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) == 0
         a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z = tuple(TEST_CASE_ZEROES)
         assert template(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) == 0
-        a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z = tuple(TEST_CASE_RANDOMIZE)
-        assert (template(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) == 1 or
-                template(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) == 0)
 
     first_template_test_case = [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     second_template_test_case = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]

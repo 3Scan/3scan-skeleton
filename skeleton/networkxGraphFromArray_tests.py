@@ -5,7 +5,7 @@ from skeleton.skeleton_testlib import getTinyLoopWithBranches, getDisjointCrosse
 
 
 def getGraphsWithCliques():
-    # returns graphs with cliques and nonzeros
+    # yields graphs  and nonzeros of a 3D array
     samples = [getTinyLoopWithBranches(), getDisjointCrosses(), getSingleVoxelLine()]
     for sample in samples:
         G = getNetworkxGraphFromArray(sample)

@@ -67,17 +67,17 @@ def cy_getThinned3D(unsigned long long int[:, :, :] arr):
     # Loop until array doesn't change equivalent to you cant remove any pixels => numPixelsremoved = 0
     while numPixelsremoved > 0:
         iterTime = time.time()
-        pixBefore = np.sum(arr)
         # loop through all 12 subiterations
         nonzeroCoordinates = np.asarray(np.transpose(np.nonzero(arr)), order='C')
         borderPointArr = cy_convolve(arr, kernel=SELEMENT, points=nonzeroCoordinates)
         borderPointArrCoordinates =  np.asarray([index for value, index in zip(borderPointArr, nonzeroCoordinates) if value != 6], order='C')
+        numPixelsRemoved = 0
         for i in range(12):
             convImage = cy_convolve(arr, kernel=DIRECTIONS_LIST[i], points=borderPointArrCoordinates)
             for value, (x, y, z) in zip(convImage, borderPointArrCoordinates):
                 if LOOKUPARRAY[value]: 
                     arr[x, y, z] = 0
-        numPixelsremoved = pixBefore - np.sum(arr)
+                    numPixelsRemoved += 1
         iterCount += 1
-        print("Finished iteration %i, %0.2f s, removed %i pixels" % (iterCount, time.time() - iterTime, numPixelsremoved))
+        print("Finished iteration %i, %0.2f s, removed %i pixels" % (iterCount, time.time() - iterTime, numPixelsRemoved))
     return np.asarray(arr)
