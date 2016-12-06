@@ -12,31 +12,31 @@ def createVesselTree():
     cubeEdge = 512
     stack = np.ones((cubeEdge, cubeEdge, cubeEdge)) * 20
 
-    p1, p2 = (5, 15, 0), (480, 400, cubeEdge)
+    p1, p2 = (0, 5, 15), (cubeEdge, 480, 400)
     radius = 35
     stack = createCylinder(stack, p1, p2, radius)
 
-    p1, p2 = (154, 138, 160), (94, 380, 400)
+    p1, p2 = (160, 154, 138), (400, 94, 380)
     radius = 20
     stack = createCylinder(stack, p1, p2, radius)
 
-    p1, p2 = (122, 270, 292), (250, 400, 500)
+    p1, p2 = (292, 122, 270), (500, 250, 400)
     radius = 15
     stack = createCylinder(stack, p1, p2, radius)
 
-    p1, p2 = (243, 185, 241), (424, 190, 475)
+    p1, p2 = (241, 243, 185), (475, 424, 190)
     radius = 12
     stack = createCylinder(stack, p1, p2, radius)
 
-    p1, p2 = (359, 311, 368), (208, 303, 200)
+    p1, p2 = (368, 359, 311), (200, 208, 303)
     radius = 12
     stack = createCylinder(stack, p1, p2, radius)
 
-    p1, p2 = (318, 280, 345), (322, 459, 510)
+    p1, p2 = (345, 318, 280), (510, 322, 459)
     radius = 18
     stack = createCylinder(stack, p1, p2, radius)
 
-    p1, p2 = (105, 91, cubeEdge), (446, 200, 0)
+    p1, p2 = (cubeEdge, 105, 91), (0, 446, 200)
     radius = 15
     stack = createCylinder(stack, p1, p2, radius)
 
@@ -44,7 +44,7 @@ def createVesselTree():
     radius = 20
     stack = createCylinder(stack, p1, p2, radius)
 
-    p1, p2 = (69, 158, 325), (230, 100, cubeEdge)
+    p1, p2 = (325, 69, 158), (cubeEdge, 230, 100)
     radius = 15
     stack = createCylinder(stack, p1, p2, radius)
 
@@ -81,8 +81,8 @@ def createVesselLoop():
     radius = 17
     stack = createCylinder(stack, p1, p2, radius)
 
-    # stack = blurVessels(stack, sigma=9)
-    # stack = addNoise(stack, level=30, sigma=3)
+    stack = blurVessels(stack, sigma=9)
+    stack = addNoise(stack, level=30, sigma=3)
     stack = stack.astype(np.uint8)
     return stack
 
@@ -116,7 +116,7 @@ def blurVessels(stack, sigma=20):
     """
     assert sigma % 2 == 1, "only odd kernel sizes are allowed"
     for i in range(stack.shape[2]):
-        stack[i, :, :] = cv2.GaussianBlur(stack[:, :, i].copy(), (sigma, sigma), 0)
+        stack[i, :, :] = cv2.GaussianBlur(stack[i, :, :].copy(), (sigma, sigma), 0)
     return stack
 
 
