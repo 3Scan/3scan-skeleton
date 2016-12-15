@@ -72,17 +72,17 @@ def _getCrosssection():
 
 def getPhantomLineToCheckOrientation(size=(25, 25, 25)):
 
-    hLine = np.zeros(size, dtype=bool)
-    hLine[3, :, 4] = 1
-    vLine = hLine.T.copy()
+    h_line = np.zeros(size, dtype=bool)
+    h_line[3, :, 4] = 1
+    v_lines = h_line.T.copy()
 
     # A "comb" of lines
-    hLines = np.zeros(size, dtype=bool)
-    hLines[0, ::3, :] = 1
-    vLines = hLines.T.copy()
+    h_lines = np.zeros(size, dtype=bool)
+    h_lines[0, ::3, :] = 1
+    v_liness = h_lines.T.copy()
     # A grid made up of two perpendicular combs
-    grid = hLines | vLines
-    stationaryImages = [hLine, vLine, hLines, vLines, grid]
+    grid = h_lines | v_liness
+    stationaryImages = [h_line, v_lines, h_lines, v_liness, grid]
     return stationaryImages
 
 

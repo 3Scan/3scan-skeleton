@@ -48,7 +48,7 @@ def cy_convolve(unsigned long long int[:, :, :] binaryArr, unsigned long long in
     return np.asarray(responses, order='C')
 
 
-def cy_getThinned3D(unsigned long long int[:, :, :] arr):
+def cy_get_thinned3D(unsigned long long int[:, :, :] arr):
     """
     Return thinned output
     Parameters

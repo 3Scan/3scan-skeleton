@@ -4,7 +4,7 @@ import numpy as np
 import pyximport; pyximport.install() # NOQA
 from skimage.morphology import skeletonize
 
-from skeleton.thinning import cy_getThinned3D # NOQA
+from skeleton.thinning import cy_get_thinned3D # NOQA
 
 """
 Thinning algorithm as described in
@@ -14,7 +14,7 @@ z is the nth image of the stack in 3D array and is the first dimension in this p
 """
 
 
-def getThinned(binaryArr):
+def get_thinned(binaryArr):
     """
     Return thinned output
     Parameters
@@ -37,11 +37,11 @@ def getThinned(binaryArr):
         start_skeleton = time.time()
         zOrig, yOrig, xOrig = np.shape(binaryArr)
         orig = np.lib.pad(binaryArr, 1, 'constant')
-        result = cy_getThinned3D(np.uint64(orig))
+        result = cy_get_thinned3D(np.uint64(orig))
         print("thinned %i number of pixels in %0.2f seconds" % (voxCount, time.time() - start_skeleton))
-    return result[1:zOrig + 1, 1: yOrig + 1, 1: xOrig + 1].astype(bool)
+        return result[1:zOrig + 1, 1: yOrig + 1, 1: xOrig + 1].astype(bool)
 
 
 if __name__ == '__main__':
     sample = np.ones((5, 5, 5), dtype=np.uint8)
-    resultSkel = getThinned(sample)
+    resultSkel = get_thinned(sample)

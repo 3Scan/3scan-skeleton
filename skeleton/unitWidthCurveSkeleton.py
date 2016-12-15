@@ -19,7 +19,7 @@ Volume 5358 of the series Lecture Notes in Computer Science pp 1051-1060
 
 TEMPLATE = np.ones((3, 3, 3), dtype=np.uint8)
 TEMPLATE[1, 1, 1] = 0
-ARRAYSTEPDIRECTIONS3D = np.array(LIST_STEP_DIRECTIONS3D).copy(order='C')
+ARRAY_STEP_DIRECTIONS_3D = np.array(LIST_STEP_DIRECTIONS3D).copy(order='C')
 
 
 def outOfPixBounds(nearByCoordinate, aShape):
@@ -94,7 +94,7 @@ def _getAllLabelledArray(skeletonIm, valenceArray):
     listJointAndcrowded = list(np.transpose(np.array(np.where(valenceArray > 2))))
     for k in listJointAndcrowded:
         connNeighborsList = []
-        for d in ARRAYSTEPDIRECTIONS3D:
+        for d in ARRAY_STEP_DIRECTIONS_3D:
             nearByCoordinate = tuple(k + d)
             if outOfPixBounds(nearByCoordinate, aShape) or skeletonIm[nearByCoordinate] == 0:
                 continue
@@ -121,15 +121,12 @@ def getShortestPathSkeleton(skeletonIm):
     Numpy array
         3D binary crowded region removed numpy array of the same shape and dtype
     """
-    assert (skeletonIm.dtype is bool or np.unique(skeletonIm).tolist() == [0, 1] or
-            np.unique(skeletonIm).tolist() == [0] or
-            np.unique(skeletonIm).tolist() == [1]), "skeletonIm is not boolean it is {}".format(skeletonIm.dtype)
+    assert np.max(skeletonIm) in [0, 1], "input must always be a binary array"
     if len(skeletonIm.shape) == 2:
         return skeletonIm
     else:
         # initialize
         start = time.time()
-        se = np.ones([3] * 3, dtype=np.uint8)
         skeletonImNew = np.zeros_like(skeletonIm, dtype=bool)
         # compute degrees
         valencearray = convolve(np.uint8(skeletonIm), TEMPLATE, mode='constant', cval=0)
@@ -139,7 +136,9 @@ def getShortestPathSkeleton(skeletonIm):
         # crowded region - 26 connected crowded joint point
         crowdedRegion = np.zeros_like(skeletonLabelled)
         crowdedRegion[skeletonLabelled == 4] = 1
+        se = np.ones([3] * 3, dtype=np.uint8)
         label, countCrowdedRegions = ndimage.measurements.label(crowdedRegion, structure=se)
+        print(countCrowdedRegions)
         if np.max(skeletonLabelled) < 4:  # no crowded regions
             print("no crowded regions")
             return skeletonIm
@@ -185,14 +184,7 @@ def getShortestPathSkeleton(skeletonIm):
                 for src, dest in itertools.product(srcs, dests):
                     indices, weight = route_through_array(dilatedLabelledObjectLoc, src, dest, fully_connected=True)
                     indices = np.array(indices).T
-                    dilatedLabelledObjectLoc1 = np.zeros_like(dilatedLabelledObjectLoc)
-                    dilatedLabelledObjectLoc1[indices[0], indices[1], indices[2]] = 1
-                    skeletonImNew[bounds[0][0]: bounds[0][1],
-                                  bounds[1][0]: bounds[1][1],
-                                  bounds[2][0]: bounds[2][1]] = np.logical_or(skeletonImNew[bounds[0][0]: bounds[0][1],
-                                                                                            bounds[1][0]: bounds[1][1],
-                                                                                            bounds[2][0]: bounds[2][1]],
-                                                                              dilatedLabelledObjectLoc1)
+                    skeletonImNew[indices[0], indices[1], indices[2]] = 1
                 progress = int((100 * crowdRegion) / countCrowdedRegions)
                 print("cleaning crowded regions in progress {}% \r".format(progress), end="", flush=True)
             # output the unit width curve skeleton

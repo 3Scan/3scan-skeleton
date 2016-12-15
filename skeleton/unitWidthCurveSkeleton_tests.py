@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import ndimage
 
-from skeleton.skeleton_testlib import getThinnedRandomBlob
+from skeleton.skeleton_testlib import get_thinnedRandomBlob
 from skeleton.unitWidthCurveSkeleton import getShortestPathSkeleton, outOfPixBounds
 """
 tests for unit width curve skeleton
@@ -17,15 +17,15 @@ in unitWidthCurveSkeleton.py
 def checkAlgorithmSameObjects(image):
     # single object is expected in convex blob it should remain the same in skeletonized blob
     label_img, countObjects = ndimage.measurements.label(image, structure=np.ones((3, 3, 3), dtype=np.uint8))
-    newImage = getShortestPathSkeleton(image)
-    label_img, countObjectsn = ndimage.measurements.label(newImage, structure=np.ones((3, 3, 3), dtype=np.uint8))
+    unit_width_skeleton_blob = getShortestPathSkeleton(image)
+    label_img, countObjectsn = ndimage.measurements.label(unit_width_skeleton_blob, structure=np.ones((3, 3, 3), dtype=np.uint8))
     assert (countObjectsn == countObjects), ("number of objects in the skeletonized image"
                                              "{} is different from input {}".format(countObjectsn, countObjects))
 
 
 def test_randomBlob():
     # Test 1 Random blob skeletonizes to topology preserving sinle object representing the blob
-    testBlob = getThinnedRandomBlob()
+    testBlob = get_thinnedRandomBlob()
     checkAlgorithmSameObjects(testBlob)
 
 

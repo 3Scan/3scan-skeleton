@@ -19,32 +19,32 @@ def checkSameObjects(image):
     label_img, countObjects = ndimage.measurements.label(image, structure=np.ones([3] * dims, dtype=bool))
     skel = Skeleton(image)
     skel.setThinningOutput()
-    newImage = skel.thinnedStack
-    label_img, countObjectsn = ndimage.measurements.label(newImage, structure=np.ones([3] * dims, dtype=bool))
+    thinned_blob = skel.thinnedStack
+    label_img, countObjectsn = ndimage.measurements.label(thinned_blob, structure=np.ones([3] * dims, dtype=bool))
     assert (countObjectsn == countObjects), ("number of objects in input "
                                              "{} is different from output {}".format(countObjects, countObjectsn))
-    return newImage
+    return thinned_blob
 
 
 def checkAlgorithmPreservesImage(image):
     skel = Skeleton(image)
     skel.setThinningOutput()
-    newImage = skel.thinnedStack
-    assert np.array_equal(image, newImage)
+    thinned_blob = skel.thinnedStack
+    assert np.array_equal(image, thinned_blob)
 
 
 def checkCycle(image):
     # check if number of cycles in the donut image after thinning is 1
     skel = Skeleton(image)
     skel.setThinningOutput()
-    newImage = skel.thinnedStack
-    label_img, countObjects = ndimage.measurements.label(newImage, structure=np.ones((3, 3, 3), dtype=bool))
+    thinned_blob = skel.thinnedStack
+    label_img, countObjects = ndimage.measurements.label(thinned_blob, structure=np.ones((3, 3, 3), dtype=bool))
     assert countObjects == 1, "number of cycles in single donut is {}".format(countObjects)
 
 
 def test_donut():
     # Test 1 donut should result in a single cycle
-    image = skeleton_testlib.getDonut()
+    image = skeleton_testlib.get_donut()
     checkCycle(image)
 
 
@@ -74,7 +74,7 @@ def test_singlePixelLines():
 
 def test_tinyLoopWithBranches():
     # Test 5 tiny loop with  branches should still be the same
-    checkSameObjects(skeleton_testlib.getTinyLoopWithBranches())
+    checkSameObjects(skeleton_testlib.get_tiny_loop_with_branches())
 
 
 def test_wideLines():
@@ -87,9 +87,9 @@ def test_wideLines():
 
 def test_crosPair():
     # Test 7 tiny loop with  branches should still be the same
-    checkSameObjects(skeleton_testlib.getDisjointCrosses())
+    checkSameObjects(skeleton_testlib.get_disjoint_crosses())
 
 
 def test_singleVoxelLine():
     # Test 8 single voxel line should still be the same
-    checkSameObjects(skeleton_testlib.getSingleVoxelLine())
+    checkSameObjects(skeleton_testlib.get_single_voxel_line())

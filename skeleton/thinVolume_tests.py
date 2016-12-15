@@ -5,7 +5,7 @@ from numpy import random
 from scipy import ndimage
 from skimage.morphology import skeletonize as getskeletonize2d
 
-from skeleton.thinVolume import getThinned
+from skeleton.thinVolume import get_thinned
 from skeleton.skeleton_testlib import getRing
 
 """
@@ -73,7 +73,7 @@ def _getCountObjects(image):
         skel = getskeletonize2d(image)
         label_skel, countObjects = ndimage.measurements.label(skel, structure=np.ones((3, 3), dtype=bool))
     else:
-        skel = getThinned(image)
+        skel = get_thinned(image)
         label_skel, countObjects = ndimage.measurements.label(skel, structure=np.ones((3, 3, 3), dtype=bool))
     return countObjects
 

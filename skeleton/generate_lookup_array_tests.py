@@ -1,24 +1,24 @@
-import skeleton.generateLookupArray as genLookUp
+import nose.tools
 
-TEST_CASE_ONES = [1] * 26
-TEST_CASE_ZEROES = [0] * 26
+import skeleton.generate_lookup_array as generate_lookup
 
 
-def test_generateLookupArray():
-    assert not genLookUp.generateLookupArray(2).sum(), "first two config numbers should be delete"
+def _helper_template_working(arr, template, equate_to=0):
+    template_test_class = generate_lookup.Templates(*tuple(arr))
+    template_function = getattr(template_test_class, template)
+    nose.tools.assert_equals(template_function(), equate_to)
+
+
+def test_generate_lookup_array():
+    assert not generate_lookup.generate_lookup_array(2).sum(), "first two config numbers should be delete"
 
 
 def test_templates():
-    templates = [genLookUp.firstTemplate, genLookUp.secondTemplate, genLookUp.thirdTemplate, genLookUp.fourthTemplate,
-                 genLookUp.fifthTemplate, genLookUp.sixthTemplate, genLookUp.seventhTemplate, genLookUp.eighthTemplate,
-                 genLookUp.ninthTemplate, genLookUp.tenthTemplate, genLookUp.eleventhTemplate,
-                 genLookUp.twelvethTemplate, genLookUp.thirteenthTemplate, genLookUp.fourteenthTemplate]
-    for template in templates:
-        a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z = tuple(TEST_CASE_ONES)
-        assert template(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) == 0
-        a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z = tuple(TEST_CASE_ZEROES)
-        assert template(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) == 0
-
+    templates = ['first_template', 'second_template', 'third_template', 'fourth_template', 'fifth_template',
+                 'sixth_template', 'seventh_template', 'eighth_template', 'ninth_template', 'tenth_template',
+                 'eleventh_template', 'twelveth_template', 'thirteenth_template', 'fourteenth_template']
+    zeroes_test_case = [0] * 26
+    ones_test_case = [1] * 26
     first_template_test_case = [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     second_template_test_case = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]
     third_template_test_case = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0]
@@ -39,6 +39,7 @@ def test_templates():
                       tenth_template_test_case, eleventh_template_test_case, twelveth_template_test_case,
                       thirteenth_template_test_case, fourteenth_template_test_case]
 
-    for test_case, test_template_function in zip(template_cases, templates):
-        a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z = tuple(test_case)
-        assert test_template_function(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z)
+    for ith_template_case, template in enumerate(templates):
+        _helper_template_working(ones_test_case, template)
+        _helper_template_working(zeroes_test_case, template)
+        _helper_template_working(template_cases[ith_template_case], template, 1)

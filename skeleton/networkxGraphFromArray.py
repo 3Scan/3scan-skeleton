@@ -67,8 +67,8 @@ def _getIncrements(configNumber, dimensions):
         listStepDirections = LIST_STEP_DIRECTIONS2D
     else:
         raise AssertionError("dimensions is neither 2 nor 3, they are", dimensions)
-    neighborValues = [(configNumber >> digit) & 0x01 for digit in range(3 ** dimensions - 1)]
-    return [neighborValue * increment for neighborValue, increment in zip(neighborValues, listStepDirections)]
+    neighbor_values = [(configNumber >> digit) & 0x01 for digit in range(3 ** dimensions - 1)]
+    return [neighborValue * increment for neighborValue, increment in zip(neighbor_values, listStepDirections)]
 
 
 def _setAdjacencyList(arr):

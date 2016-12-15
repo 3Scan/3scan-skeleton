@@ -4,7 +4,7 @@ from scipy.spatial import ConvexHull
 from skeleton.skeletonClass import Skeleton
 
 
-def getThinnedRandomBlob():
+def get_thinnedRandomBlob():
     # get random convex blob
     xs = np.random.uniform(-1, 1, size=50)
     ys = np.random.uniform(-1, 1, size=50)
@@ -22,30 +22,30 @@ def getThinnedRandomBlob():
     blob = blob.astype(bool)
     skel = Skeleton(blob)
     skel.setThinningOutput()
-    newImage = skel.thinnedStack
-    return newImage
+    thinned_blob = skel.thinnedStack
+    return thinned_blob
 
 
 def getStationary3dRectangles(width=5):
     # cubes of different sizes
-    hLine = np.zeros((25, 25, 25), dtype=bool)
-    hLine[:, 8:8 + width, :] = 1
-    vLine = hLine.T.copy()
+    h_line = np.zeros((25, 25, 25), dtype=bool)
+    h_line[:, 8:8 + width, :] = 1
+    v_lines = h_line.T.copy()
 
     # A "comb" of lines
-    hLines = np.zeros((25, 25, 25), dtype=bool)
-    hLines[0:width, ::3, :] = 1
-    vLines = hLines.T.copy()
+    h_lines = np.zeros((25, 25, 25), dtype=bool)
+    h_lines[0:width, ::3, :] = 1
+    v_liness = h_lines.T.copy()
     # A grid made up of two perpendicular combs
-    grid = hLines | vLines
-    stationaryImages = [hLine, vLine, hLines, vLines, grid]
+    grid = h_lines | v_liness
+    stationaryImages = [h_line, v_lines, h_lines, v_liness, grid]
     return stationaryImages
 
 
 def get3DRandImages(width=4):
     # Random binary images
-    randomImages = [np.random.randint(2, size=(25, 25, 25)) for i in range(6)]
-    return randomImages
+    random_images = [np.random.randint(2, size=(25, 25, 25)) for i in range(6)]
+    return random_images
 
 
 def get3DRolledThickLines():
@@ -68,7 +68,7 @@ def getRing(ri, ro, size=(25, 25)):
     return torus
 
 
-def getDonut(width=2, size=(25, 25, 25)):
+def get_donut(width=2, size=(25, 25, 25)):
     # Ring of width = Donut
     x, y, z = size
     assert width < z / 2, "width {} of the donut should be less than half the array size in z {}".format(width, z / 2)
@@ -85,7 +85,7 @@ def getDonut(width=2, size=(25, 25, 25)):
     return donutArray
 
 
-def getTinyLoopWithBranches(size=(10, 10)):
+def get_tiny_loop_with_branches(size=(10, 10)):
     from skimage.morphology import skeletonize as getSkeletonize2D
     # a loop and a branches coming at end of the cycle
     frame = np.zeros(size, dtype=np.uint8)
@@ -99,7 +99,7 @@ def getTinyLoopWithBranches(size=(10, 10)):
     return sampleImage
 
 
-def getDisjointCrosses(size=(10, 10, 10)):
+def get_disjoint_crosses(size=(10, 10, 10)):
     # two disjoint crosses
     crosPair = np.zeros(size, dtype=np.uint8)
     cros = np.zeros((5, 5), dtype=np.uint8)
@@ -110,39 +110,39 @@ def getDisjointCrosses(size=(10, 10, 10)):
     return crosPair
 
 
-def getSingleVoxelLine(size=(5, 5, 5)):
+def get_single_voxel_line(size=(5, 5, 5)):
     sampleLine = np.zeros(size, dtype=np.uint8)
     sampleLine[1, :, 4] = 1
     return sampleLine
 
 
-def getCycleNoTree():
+def get_cycle_no_tree():
     # graph of a cycle
-    donut = getDonut()
+    donut = get_donut()
     skel = Skeleton(donut)
     skel.setNetworkGraph(True)
     return skel.graph
 
 
-def getCyclesWithBranchesProtrude():
+def get_cycles_with_branches_protrude():
     # graph of a cycle with branches
-    sampleImage = getTinyLoopWithBranches()
+    sampleImage = get_tiny_loop_with_branches()
     skel = Skeleton(sampleImage)
     skel.setNetworkGraph(False)
     return skel.graph
 
 
-def getDisjointTreesNoCycle3d():
+def get_disjoint_trees_no_cycle_3d():
     # graph of two disjoint trees
-    crosPair = getDisjointCrosses()
+    crosPair = get_disjoint_crosses()
     skel = Skeleton(crosPair)
     skel.setNetworkGraph(False)
     return skel.graph
 
 
-def getSingleVoxelLineNobranches():
+def get_single_voxel_lineNobranches():
     # graph of no branches single line
-    sampleLine = getSingleVoxelLine()
+    sampleLine = get_single_voxel_line()
     skel = Skeleton(sampleLine)
     skel.setNetworkGraph(False)
     return skel.graph

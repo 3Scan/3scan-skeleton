@@ -59,33 +59,29 @@ def rot_3D_90(cube_array, rot_axis='z', k=0):
     assert 1 not in np.unique(cube_array.shape)
     assert cube_array.ndim == 3, "number of dimensions must be 3, it is %i " % cube_array.ndim
     k = k % 4  # modulus of k, since rotating 5 times is same as rotating once (360 degrees rotation)
-    if rot_axis == 'z':
-        if k == 0:  # doesn't rotate
+    if k == 0:  # doesn't rotate
             return cube_array
-        elif k == 1:  # rotate 90 degrees around z
+    if rot_axis == 'z':
+        if k == 1:  # rotate 90 degrees around z
             return cube_array[::-1, :, :].swapaxes(0, 1)
         elif k == 2:  # rotate 180 degrees around z
             return cube_array[::-1, :, :]
         elif k == 3:  # rotate 270 degrees around z
             return cube_array.swapaxes(0, 1)[::-1, :, :]
     elif rot_axis == 'x':
-        if k == 0:  # doesn't rotate
-            return cube_array
-        elif k == 1:  # rotate 90 degrees around x
+        if k == 1:  # rotate 90 degrees around x
             return cube_array[:, :, ::-1].swapaxes(1, 2)
         elif k == 2:  # rotate 180 degrees around x
             return cube_array[:, :, ::-1][:, ::-1, :]
         elif k == 3:  # rotate 270 degrees around x
             return cube_array.swapaxes(1, 2)[:, :, ::-1]
     elif rot_axis == 'y':
-        if k == 0:  # doesn't rotate
-            rot_cube_array = cube_array
-        elif k == 1:  # rotate 90 degrees around y
+        if k == 1:  # rotate 90 degrees around y
             ithSlice = [cube_array[i] for i in range(3)]
             rot_slices = [np.column_stack((_column(ithSlice[2], i), _column(ithSlice[1], i), _column(ithSlice[0], i)))
                           for i in range(3)]
             rot_cube_array = np.array((rot_slices[0], rot_slices[1], rot_slices[2]))
-        elif k == 2:  # rotate 270 degrees around y
+        elif k == 2:  # rotate 180 degrees around y
             rot_cube_array = cube_array[::-1, :, :][:, :, ::-1]
         elif k == 3:  # rotate 270 degrees around y
             ithSlice = [cube_array[i] for i in range(3)]
@@ -98,7 +94,9 @@ def rot_3D_90(cube_array, rot_axis='z', k=0):
 def get_directions_list(cube_array):
     """
     Returns a list of rotated 3D arrays to change pixel to one of 12 directions
-    in UN, UE, US, UW, NE, NW, ND, ES, ED, SW, SD, and WD
+    where a border point should be removed according to Palagyi's thinning
+    algorithm. the 12 directions are UN, UE, US, UW, NE, NW, ND, ES, ED, SW, SD, and WD
+    Refer notes
     Parameters
     ----------
     cube_array : numpy array
@@ -108,6 +106,11 @@ def get_directions_list(cube_array):
     -------
     list
 
+    Notes
+    -----
+    UN - Up North, UE - Up East, US - Up South, UW - Up West, NE - North East
+    NW - North West, ND - North Down, ES - East South, ED - East Down, SW - South West
+    SD - South Down, WD - West Down
     """
     assert cube_array.ndim == 3, "number of dimensions must be 3, it is %i " % cube_array.ndim
     # mask outs border voxels in US
@@ -142,10 +145,20 @@ def get_directions_list(cube_array):
     return DIRECTIONS_LIST
 
 
-REFERENCE_ARRAY = np.array([[[33554432, 16777216, 8388608], [4194304, 2097152, 1048576], [524288, 262144, 131072]],
-                           [[65536, 32768, 16384], [8192, 0, 4096], [2048, 1024, 512]],
-                           [[256, 128, 64], [32, 16, 8], [4, 2, 1]]], dtype=np.uint64)
-DIRECTIONS_LIST = get_directions_list(REFERENCE_ARRAY)
+# Reference array is a flipped configuration number template we convolve thinning input with
+# each of the 26 elements are represented in the 2nd order neighborhood are given a value of
+# power(2, index)
+# 26 configuration convolution kernel's elements list
+REFERENCE_ARRAY = [2 ** i for i in range(0, 26)]
+# at the center of 26 neighbors, insert 0
+REFERENCE_ARRAY.insert(13, 0)
+# Flip it in advance to undo flip that convolution does to the kernel
+REFERENCE_ARRAY.reverse()
+# Reshape it to a (3, 3, 3) matrix of uint64 to use it for convolution
+REFERENCE_ARRAY = np.asarray(REFERENCE_ARRAY).reshape(3, 3, 3).astype(np.uint64)
+
 # List of 12 functions corresponding to transformations in 12 directions
+DIRECTIONS_LIST = get_directions_list(REFERENCE_ARRAY)
+
 # Path of pre-generated lookuparray.npy
 LOOKUPARRAY_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lookuparray.npy')

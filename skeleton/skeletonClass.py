@@ -7,7 +7,7 @@ from kesm.projects.KESMAnalysis.tools.io_tools import loadStack, saveStack
 from metrics.segmentStats import SegmentStats
 from skeleton.cliqueRemoving import removeCliqueEdges
 from skeleton.networkxGraphFromArray import getNetworkxGraphFromArray
-from skeleton.thinVolume import getThinned
+from skeleton.thinVolume import get_thinned
 from skeleton.pruning import getPrunedSkeleton
 from skeleton.unitWidthCurveSkeleton import getShortestPathSkeleton
 
@@ -45,7 +45,7 @@ class Skeleton:
 
     def setThinningOutput(self):
         # Thinning output
-        self.thinnedStack = getThinned(self.inputStack)
+        self.thinnedStack = get_thinned(self.inputStack)
 
     def setUnitWidthSkeletonOutput(self):
         # Crowded regions removed from thinning output
