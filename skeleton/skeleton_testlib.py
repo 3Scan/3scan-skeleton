@@ -54,12 +54,6 @@ def getStationary3dRectangles(width=5):
     return stationaryImages
 
 
-def get3DRandImages(width=4):
-    # Random binary images
-    random_images = [np.random.randint(2, size=(25, 25, 25)) for i in range(6)]
-    return random_images
-
-
 def get3DRolledThickLines():
     # grid of thick lines
     hBar = np.zeros((25, 25, 25), dtype=bool)

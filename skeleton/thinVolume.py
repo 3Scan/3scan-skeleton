@@ -29,8 +29,8 @@ def get_thinned(binaryArr, mode: str='reflect', cval=0):
     """
     assert np.max(binaryArr) in [0, 1], "input must always be a binary array"
     voxCount = np.sum(binaryArr)
-    if binaryArr.sum() == 0:
-        return binaryArr.astype(bool)
+    if voxCount == 0 or voxCount == binaryArr.size:
+        return binaryArr
     elif len(binaryArr.shape) == 2:
         return skeletonize(binaryArr).astype(bool)
     else:

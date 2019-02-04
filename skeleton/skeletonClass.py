@@ -40,9 +40,9 @@ class Skeleton:
             aspectRatio = kwargs["aspectRatio"]
             self.inputStack = ndimage.interpolation.zoom(self.inputStack, zoom=aspectRatio, order=2, prefilter=False)
 
-    def setThinningOutput(self):
+    def setThinningOutput(self, mode="reflect"):
         # Thinning output
-        self.skeletonStack = get_thinned(self.inputStack)
+        self.skeletonStack = get_thinned(self.inputStack, mode)
 
     def setNetworkGraph(self, findSkeleton=False):
         # Network graph of the crowded region removed output
