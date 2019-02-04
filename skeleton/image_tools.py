@@ -335,3 +335,15 @@ def projectImageICA(im, normalize=True):
         imICA = imICA.astype(np.uint8)
 
     return imICA, ica.components_
+
+
+def list_of_tuples_of_val(arr, value=0):
+    """
+    Returns list of tupled indices at which the arr is equal to value.
+    Input:
+        array: ndarray
+    Returns:
+        list of tuples at which arr is equal to value
+    """
+    return list(map(tuple, np.transpose(np.where(arr == value))))
+

@@ -4,6 +4,18 @@ from scipy.spatial import ConvexHull
 from skeleton.skeletonClass import Skeleton
 
 
+def get_hilbert_curve():
+    return np.array([[[1, 1, 1],
+                      [1, 0, 1],
+                      [1, 0, 1]],
+                     [[0, 0, 0],
+                      [0, 0, 0],
+                      [1, 0, 1]],
+                     [[1, 1, 1],
+                      [1, 0, 1],
+                      [1, 0, 1]]], dtype=bool)
+
+
 def get_thinnedRandomBlob():
     # get random convex blob
     xs = np.random.uniform(-1, 1, size=50)

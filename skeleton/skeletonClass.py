@@ -6,6 +6,8 @@ from scipy import ndimage
 from skeleton.io_tools import loadStack, saveStack
 from metrics.segmentStats import SegmentStats
 from skeleton.networkx_graph_from_array import get_networkx_graph_from_array
+# NOTE This does the pyx compilation of this extension
+import pyximport; pyximport.install() # NOQA
 from skeleton.thinVolume import get_thinned
 from skeleton.pruning import getPrunedSkeleton
 

@@ -2,8 +2,9 @@ import time
 
 import numpy as np
 from skimage.morphology import skeletonize
-
-import skeleton.thinning
+# NOTE This does the pyx compilation of this extension
+import pyximport; pyximport.install() # NOQA
+import skeleton.thinning as thinning
 
 """
 Thinning algorithm as described in
@@ -13,7 +14,7 @@ z is the nth image of the stack in 3D array and is the first dimension in this p
 """
 
 
-def get_thinned(binaryArr):
+def get_thinned(binaryArr, mode: str='reflect', cval=0):
     """
     Return thinned output
     Parameters
@@ -33,12 +34,12 @@ def get_thinned(binaryArr):
     elif len(binaryArr.shape) == 2:
         return skeletonize(binaryArr).astype(bool)
     else:
-        start_skeleton = time.time()
-        zOrig, yOrig, xOrig = np.shape(binaryArr)
-        orig = np.lib.pad(binaryArr, 1, 'constant')
-        result = skeleton.thinning.cy_get_thinned3D(np.uint64(orig))
-        print("thinned %i number of pixels in %0.2f seconds" % (voxCount, time.time() - start_skeleton))
-        return result[1:zOrig + 1, 1: yOrig + 1, 1: xOrig + 1].astype(bool)
+        start_time = time.time()
+        # cast to uint64 to make configuration number calculation return the right range of values
+        result = thinning.cy_get_thinned_3d(np.uint64(binaryArr), mode, cval)
+        print(
+            "thinned %i number of pixels in %0.2f seconds" % (voxCount, time.time() - start_time))
+        return result
 
 
 if __name__ == '__main__':
