@@ -4,7 +4,8 @@
 # pip3 install pipreqs
 # Inside the repo run
 #    pipreqs . # creates a requirement.txt file for the given module inside the repo
-# Might not list all the dependencies, in such case use pip3 freeze and try to figure out versions
+# Might not list all the dependencies/versions exactly on your machine, in such case use pip3 freeze and try to figure out versions
+# I usually let pipreqs figure out first and run pip3 install -r requirements.txt to figure out if any incorrect dependencies are listed, then run tests locally to figure out missing dependencies.
 # for packages you are using the module written inside the repo
 
 
