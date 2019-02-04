@@ -1,6 +1,4 @@
-# 3scan-skeleton
-
-3D Image Skeletonization Tools
+# 3D Image Skeletonization Tools
 
 This repository contains programs needed to obtain a 3D skeleton and quantify the skeletonized array to statistics with the help of function present in metrics.segmentStats.  
 Input must be a binary array with z in its first dimension.  
