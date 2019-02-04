@@ -47,7 +47,7 @@ class Skeleton:
         # Generally the function expects a skeleton
         # and findSkeleton is False by default
         if findSkeleton is True:
-            self.setUnitWidthSkeletonOutput()
+            self.setThinningOutput()
         else:
             self.skeletonStack = self.inputStack
         self.graph = get_networkx_graph_from_array(self.skeletonStack)
