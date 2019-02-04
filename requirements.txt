@@ -20,3 +20,4 @@ opencv_python==3.2.0.7
 Pillow==5.1.0
 scipy==0.18.1
 scikit_image==0.13.1
+scikit-learn==0.18.1

@@ -8,7 +8,7 @@ script:
   # command to lint code
   - flake8 --config .flake8
   # command to run tests
-  - nosetests --with-coverage --cover-erase --cover-package=vessels --cover-html
+  - nosetests --with-coverage --cover-erase --cover-package=skeleton --cover-html
 
 # operating system tested on
 os: linux

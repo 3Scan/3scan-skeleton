@@ -40,7 +40,7 @@ class Skeleton:
 
     def setThinningOutput(self):
         # Thinning output
-        self.thinnedStack = get_thinned(self.inputStack)
+        self.skeletonStack = get_thinned(self.inputStack)
 
     def setNetworkGraph(self, findSkeleton=False):
         # Network graph of the crowded region removed output
