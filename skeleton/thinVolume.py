@@ -1,10 +1,9 @@
 import time
 
 import numpy as np
-import pyximport; pyximport.install() # NOQA
 from skimage.morphology import skeletonize
 
-from skeleton.thinning import cy_get_thinned3D # NOQA
+import skeleton.thinning
 
 """
 Thinning algorithm as described in
@@ -37,7 +36,7 @@ def get_thinned(binaryArr):
         start_skeleton = time.time()
         zOrig, yOrig, xOrig = np.shape(binaryArr)
         orig = np.lib.pad(binaryArr, 1, 'constant')
-        result = cy_get_thinned3D(np.uint64(orig))
+        result = skeleton.thinning.cy_get_thinned3D(np.uint64(orig))
         print("thinned %i number of pixels in %0.2f seconds" % (voxCount, time.time() - start_skeleton))
         return result[1:zOrig + 1, 1: yOrig + 1, 1: xOrig + 1].astype(bool)
 

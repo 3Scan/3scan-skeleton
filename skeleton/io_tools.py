@@ -1,4 +1,5 @@
 import glob
+import inspect
 import multiprocessing
 import os
 import warnings
@@ -222,3 +223,26 @@ def padInt(number, paddingDigits=8):
         warnings.warn("call to padInt() with insufficent digits to reproduce integer")
 
     return "{number:0{padding}d}".format(number=number, padding=paddingDigits)
+
+
+def module_relative_path(path, *, depth=1):
+    """
+    Construct a path relative to the path of the calling module.
+    'depth' - how far up the call stack to search for the module.
+    """
+    assert not path.startswith('/'), "Paths must be relative: {}".format(path)
+    return os.path.abspath(os.path.join(module_dir(depth=depth + 1), path))
+
+
+def module_dir(*, depth=1):
+    """
+    What is the source directory of the calling module?
+    'depth' - how far up the call stack to search for the module.
+    Ex: foo/kesm/bar/baz.py
+    >>> import kesm.base
+    >>> kesm.base.module_dir()
+    'foo/kesm/bar'
+    """
+    filename = inspect.stack()[depth][1]
+    return os.path.dirname(filename)
+
