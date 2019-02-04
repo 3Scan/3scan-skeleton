@@ -1,11 +1,21 @@
 import glob
-import numpy as np
-import os
 import multiprocessing
+import os
+import warnings
 from functools import partial
 
+
+import numpy as np
 from scipy.misc import imsave, imread
+from scipy import ndimage
 from PIL import Image
+
+import skeleton.image_tools as image_tools
+
+
+# Note: This disables the compression bomb warnings
+# That PIL issues (over and over)
+Image.MAX_IMAGE_PIXELS = None
 
 
 def getFilePathList(path, targetExtension="png"):
@@ -62,13 +72,13 @@ def loadStack(path, targetExtension="png", displayProgress=True):
     # load the first image to get image size
     tmpImg = imread(fileList[0])
 
-    if isRGB(tmpImg):
+    if image_tools.isRGB(tmpImg):
         stack = np.empty(tmpImg.shape[:2] + (len(fileList),) + (tmpImg.shape[2],), dtype=np.uint8)
     else:
         stack = np.empty(tmpImg.shape[:2] + (len(fileList),), dtype=np.uint8)
 
     for z, fn in enumerate(fileList):
-        if isRGB(tmpImg):
+        if image_tools.isRGB(tmpImg):
             stack[:, :, z, :] = imread(fn)
         else:
             stack[..., z] = imread(fn)
@@ -163,6 +173,27 @@ def pngDir2tif(originPath, newPath, numProcesses=4):
         pool.map(func, filelist)
 
     print("Wrote {} TIF files to: {}".format(nfile, newPath))
+
+
+def orthoSlice(stack, index, voxelSize=None, axis=2, order=0):
+    """
+    get the image slice from the stack at selected `index` and along desired `axis`
+    If voxelSize is supplied, the image will be correctly interpolated
+    axis=0 == YZ
+    axis=1 == XZ
+    axis=2 == XY
+    NOTE: suggested to only be used on a Cubelet or smaller
+    """
+    stackSlice = [slice(None)] * len(stack.shape)
+    stackSlice[axis] = index
+    img = stack[stackSlice]
+    if voxelSize:
+        assert len(voxelSize) == 3 or len(voxelSize) == 4, "voxelSize should be a 3D or 4D tuple"
+        zoomSize = [x for i, x in enumerate(voxelSize) if i != axis]
+        img = ndimage.interpolation.zoom(img, zoomSize, order=order)
+    if axis == 0:  # transpose if image is YZ
+        img = img.T  # transpose so correct orientation
+    return img
 
 
 def saveOrthoStack(stack, path, voxelSize=None, axis=2, order=0):

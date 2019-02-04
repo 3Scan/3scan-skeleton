@@ -185,6 +185,7 @@ def generate_lookup_array(stop=2**26, direction=0):
             lookup_array[item] = _get_voxel_deletion_flag(neighbor_values, direction)
     return lookup_array
 
+
 if __name__ == '__main__':
     # generating and saving all the 12 lookuparrays
     for index in range(12):

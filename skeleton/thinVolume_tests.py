@@ -77,6 +77,7 @@ def _getCountObjects(image):
         label_skel, countObjects = ndimage.measurements.label(skel, structure=np.ones((3, 3, 3), dtype=bool))
     return countObjects
 
+
 # One single tiny loop
 tinyLoop = np.array([[1, 1, 1],
                      [1, 0, 1],

@@ -22,7 +22,7 @@ def get_thinnedRandomBlob():
     blob = blob.astype(bool)
     skel = Skeleton(blob)
     skel.setThinningOutput()
-    thinned_blob = skel.thinnedStack
+    thinned_blob = skel.skeletonStack
     return thinned_blob
 
 
