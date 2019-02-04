@@ -1,5 +1,3 @@
-import kesm.base
-
 import nose.tools
 import numpy as np
 
@@ -20,18 +18,18 @@ def test_rotate_3D_90():
 
 
 def test_rot_3D_90_identity():
-    kesm.base.assert_equals(RAND_ARR, RAND_ARR)
+    np.testing.assert_array_equal(RAND_ARR, RAND_ARR)
 
     for axis in ['x', 'y', 'z']:
         # FUll rotations should be identity.
-        kesm.base.assert_equals(
+        np.testing.assert_array_equal(
             RAND_ARR,
             # do 1 + 3 to avoid the %4 skip.
             ops.rot_3D_90(
                 ops.rot_3D_90(RAND_ARR, rot_axis=axis, k=1),
                 rot_axis=axis, k=3))
 
-        kesm.base.assert_equals(
+        np.testing.assert_array_equal(
             ops.rot_3D_90(RAND_ARR, rot_axis=axis, k=3),
             ops.rot_3D_90(
                 ops.rot_3D_90(RAND_ARR, rot_axis=axis, k=1),
