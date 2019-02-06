@@ -10,7 +10,7 @@ script:
   # command to generation skeleton extension
   - python3 setup_cython.py build_ext --inplace
   # command to run tests
-  - nosetests --with-coverage --cover-erase --cover-package=skeleton --cover-html
+  - nosetests --with-coverage --cover-erase --cover-package=skeleton,metrics,runscripts --cover-html
 
 # operating system tested on
 os: linux
