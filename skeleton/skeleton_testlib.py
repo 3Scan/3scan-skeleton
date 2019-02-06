@@ -4,6 +4,18 @@ from scipy.spatial import ConvexHull
 from skeleton.skeletonClass import Skeleton
 
 
+def get_hilbert_curve():
+    return np.array([[[1, 1, 1],
+                      [1, 0, 1],
+                      [1, 0, 1]],
+                     [[0, 0, 0],
+                      [0, 0, 0],
+                      [1, 0, 1]],
+                     [[1, 1, 1],
+                      [1, 0, 1],
+                      [1, 0, 1]]], dtype=bool)
+
+
 def get_thinnedRandomBlob():
     # get random convex blob
     xs = np.random.uniform(-1, 1, size=50)
@@ -40,12 +52,6 @@ def getStationary3dRectangles(width=5):
     grid = h_lines | v_liness
     stationaryImages = [h_line, v_lines, h_lines, v_liness, grid]
     return stationaryImages
-
-
-def get3DRandImages(width=4):
-    # Random binary images
-    random_images = [np.random.randint(2, size=(25, 25, 25)) for i in range(6)]
-    return random_images
 
 
 def get3DRolledThickLines():

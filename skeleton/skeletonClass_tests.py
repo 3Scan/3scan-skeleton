@@ -15,12 +15,11 @@ from the program thinVolume.py
 
 def checkSameObjects(image):
     # check if number of objects are same in input and output of thinning
-    dims = image.ndim
-    label_img, countObjects = ndimage.measurements.label(image, structure=np.ones([3] * dims, dtype=bool))
+    label_img, countObjects = ndimage.measurements.label(image, structure=ndimage.generate_binary_structure(image.ndim, 2))
     skel = Skeleton(image)
-    skel.setThinningOutput()
+    skel.setThinningOutput(mode="constant")
     thinned_blob = skel.skeletonStack
-    label_img, countObjectsn = ndimage.measurements.label(thinned_blob, structure=np.ones([3] * dims, dtype=bool))
+    label_img, countObjectsn = ndimage.measurements.label(thinned_blob, structure=ndimage.generate_binary_structure(image.ndim, 2))
     assert (countObjectsn == countObjects), ("number of objects in input "
                                              "{} is different from output {}".format(countObjects, countObjectsn))
     return thinned_blob
@@ -28,7 +27,7 @@ def checkSameObjects(image):
 
 def checkAlgorithmPreservesImage(image):
     skel = Skeleton(image)
-    skel.setThinningOutput()
+    skel.setThinningOutput(mode="constant")
     thinned_blob = skel.skeletonStack
     assert np.array_equal(image, thinned_blob)
 
@@ -36,7 +35,7 @@ def checkAlgorithmPreservesImage(image):
 def checkCycle(image):
     # check if number of cycles in the donut image after thinning is 1
     skel = Skeleton(image)
-    skel.setThinningOutput()
+    skel.setThinningOutput(mode="constant")
     thinned_blob = skel.skeletonStack
     label_img, countObjects = ndimage.measurements.label(thinned_blob, structure=np.ones((3, 3, 3), dtype=bool))
     assert countObjects == 1, "number of cycles in single donut is {}".format(countObjects)
@@ -46,14 +45,6 @@ def test_donut():
     # Test 1 donut should result in a single cycle
     image = skeleton_testlib.get_donut()
     checkCycle(image)
-
-
-def test_randomImage():
-    # Test 2 All random images should preserve topology and should have
-    # same number of objects
-    testImages = skeleton_testlib.get3DRandImages()
-    for image in testImages:
-        yield checkSameObjects, image
 
 
 def test_rectangles():
@@ -67,9 +58,7 @@ def test_rectangles():
 
 def test_singlePixelLines():
     # Test 4 single pixel lines should still be the same in an image
-    testImages = skeleton_testlib.getStationary3dRectangles(width=0)
-    for image in testImages:
-        yield checkAlgorithmPreservesImage, image
+    checkSameObjects(skeleton_testlib.get_single_voxel_line())
 
 
 def test_tinyLoopWithBranches():

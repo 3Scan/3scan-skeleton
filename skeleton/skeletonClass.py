@@ -6,6 +6,8 @@ from scipy import ndimage
 from skeleton.io_tools import loadStack, saveStack
 from metrics.segmentStats import SegmentStats
 from skeleton.networkx_graph_from_array import get_networkx_graph_from_array
+# NOTE This does the pyx compilation of this extension
+import pyximport; pyximport.install() # NOQA
 from skeleton.thinVolume import get_thinned
 from skeleton.pruning import getPrunedSkeleton
 
@@ -38,9 +40,9 @@ class Skeleton:
             aspectRatio = kwargs["aspectRatio"]
             self.inputStack = ndimage.interpolation.zoom(self.inputStack, zoom=aspectRatio, order=2, prefilter=False)
 
-    def setThinningOutput(self):
+    def setThinningOutput(self, mode="reflect"):
         # Thinning output
-        self.skeletonStack = get_thinned(self.inputStack)
+        self.skeletonStack = get_thinned(self.inputStack, mode)
 
     def setNetworkGraph(self, findSkeleton=False):
         # Network graph of the crowded region removed output
