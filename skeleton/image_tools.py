@@ -346,4 +346,3 @@ def list_of_tuples_of_val(arr, value=0):
         list of tuples at which arr is equal to value
     """
     return list(map(tuple, np.transpose(np.where(arr == value))))
-
